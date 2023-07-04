@@ -7,8 +7,6 @@ def read(fname):
 setup(name='optionlab',
       version='0.1',
       description="A Python library for evaluating option trading strategies.",
-      long_description_content_type='text/markdown',
-      long_description=read('Desc.MD'),
       author='Roberto Gomes de Aguiar Veiga',
       url="https://github.com/rgaveiga/optionlab",
       packages=['optionlab'])
