@@ -68,17 +68,17 @@ strategy : list
             "action" : string
                 Either 'buy' or 'sell'. It is mandatory.
             "prevpos" : float
-                Stock price effectively paid or received in a previously opened position. If positive, it means
-                that the position remains open and the payoff calculation takes this price into account, not the
-                current price of the stock. If negative, it means that the position is closed and the difference
-                between this price and the current price is considered in the payoff calculation.
-        For a non-determined previously opened position to be closed, which might consist of any combination of
-        calls, puts and stocks, the dictionary must contain two keys:
+                Stock price effectively paid or received in a previously opened position. If positive, it
+                means that the position remains open and the payoff calculation takes this price into account,
+                not thecurrent price of the stock. If negative, it means that the position is closed and the
+                difference between this price and the current price is considered in the payoff calculation.
+        For a non-determined previously opened position to be closed, which might consist of any combination
+        of calls, puts and stocks, the dictionary must contain two keys:
             "type" : string
                 It must be 'closed'. It is mandatory.
             "prevpos" : float
-                The total value of the position to be closed, which can be positive if it made a profit or negative
-                if it is a loss. It is mandatory.
+                The total value of the position to be closed, which can be positive if it made a profit or
+                negative if it is a loss. It is mandatory.
 profittarg : float, optional
     Target profit level. Default is None, which means it is not calculated.
 losslimit : float, optional
@@ -90,14 +90,14 @@ stockcommission : float
 compute_the_greeks : logical, optional
     Whether or not Black-Scholes formulas should be used to compute the Greeks. Default is False.
 compute_expectation : logical, optional
-    Whether or not the strategy's average profit and loss must be computed from a numpy array of random terminal
-    prices generated from the chosen distribution. Default is False.
+    Whether or not the strategy's average profit and loss must be computed from a numpy array of random
+    terminal prices generated from the chosen distribution. Default is False.
 use_dates : logical, optional
-    Whether the target and maturity dates are provided or not. If False, the number of days remaining to the
-    target date and maturity are provided. Default is True.
+    Whether the target and maturity dates are provided or not. If False, the number of days remaining to
+    the target date and maturity are provided. Default is True.
 discard_nonbusinessdays : logical, optional
-    Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between two dates.
-    Default is True.
+    Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between two
+    dates. Default is True.
 country : string, optional
     Country for which the holidays will be considered if 'discard_nonbusinessdyas' is True. Default is 'US'.
 startdate : string, optional
@@ -107,11 +107,11 @@ targetdate : string, optional
 days2targetdate : int, optional
     Number of days remaining until the target date. Not considered if 'use_dates' is True. Default is 30 days.
 distribution : string, optional
-    Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 'laplace' or 'array'.
-    Default is 'black-scholes'.
+    Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 'laplace' or
+    'array'. Default is 'black-scholes'.
 nmcprices : int, optional
-    Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy. Default
-    is 100,000.
+    Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy.
+    Default is 100,000.
 ```
 
 The calculations are performed by calling the *run()* method of the *Strategy* object:
@@ -150,16 +150,19 @@ This method returns a Python dictionary with the calculation results stored unde
 "ProbabilityOfProfitTarget" : float
     Probability of the strategy yielding at least the profit target.
 "ProfitTargetRanges" : list
-    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at least the profit 
-    target.                    
+    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at least the
+    profit target.                    
 "ProbabilityOfLossLimit" : float
     Probability of the strategy losing at least the loss limit.
 "AverageProfitFromMC" : float
-    Average profit as calculated from Monte Carlo-created terminal stock prices for which the strategy is profitable.
+    Average profit as calculated from Monte Carlo-created terminal stock prices for which the strategy is
+    profitable.
 "AverageLossFromMC" : float
-    Average loss as calculated from Monte Carlo-created terminal stock prices for which the strategy ends in loss. 
+    Average loss as calculated from Monte Carlo-created terminal stock prices for which the strategy ends
+    in loss. 
 "ProbabilityOfProfitFromMC" : float
-    Probability of the strategy yielding at least $0.01 as calculated from Monte Carlo-created terminal stock prices.
+    Probability of the strategy yielding at least $0.01 as calculated from Monte Carlo-created terminal
+    stock prices.
 ```
 
 ## Contributions
