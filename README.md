@@ -8,6 +8,8 @@ The probability of profit (PoP) for the strategy is calculated based on the dist
 
 Despite the code having been developed with option strategies in mind, it can also be used for strategies that combine options with stocks and/or take into account the profits or losses of closed trades.
 
+If you have any questions, corrections, comments or suggestions, just [drop a message](mailto:roberto.veiga@ufabc.edu.br). You can also reach me on [Linkedin](https://www.linkedin.com/in/roberto-gomes-phd-8a718317b/).
+
 ## Installation
 
 The easiest way to install *optionlab* is using **pip**:
@@ -197,9 +199,7 @@ print("Probability of Profit (PoP): %.1f%%" % (out["ProbabilityOfProfit"]*100.0)
 
 ## Contributions
 
-Although functional, **optionlab** is still in its early stages of development. The author has limited time available to work on this library, which is why contributions from individuals with expertise in options and Python programming are greatly appreciated.
-
-If you have any questions, corrections, comments or suggestions, just [drop a message](mailto:roberto.veiga@ufabc.edu.br).
+Although functional, **optionlab** is still in its early stages of development. The author has limited time available to work on this library, which is why contributions from individuals with expertise in options and Python programming are greatly appreciated. 
 
 ## Disclaimer
 
