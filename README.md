@@ -12,7 +12,7 @@ If you have any questions, corrections, comments or suggestions, just [drop a me
 
 ## Installation
 
-The easiest way to install *optionlab* is using **pip**:
+The easiest way to install **optionlab** is using **pip**:
 
 ```
 pip install optionlab 
