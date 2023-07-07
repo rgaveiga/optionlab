@@ -6,6 +6,8 @@ The code produces various outputs, including the profit/loss profile of the stra
 
 The probability of profit (PoP) for the strategy is calculated based on the distribution of estimated prices of the underlying asset on the user-defined target date. Specifically, for the price range in the payoff where the strategy generates profit, the PoP represents the probability that the stock price will fall within that range. This distribution of underlying asset prices on the target date can be lognormal, log-Laplace, or derived from the Black-Scholes model. Additionally, the distribution can be obtained through simulations (e.g., Monte Carlo) or machine learning models.
 
+Despite the code having been developed with option strategies in mind, it can also be used for strategies that combine options with stocks and/or take into account the profits or losses of closed trades.
+
 ## Installation
 
 The easiest way to install *optionlab* is using **pip**:
@@ -51,12 +53,13 @@ strategy : list
             "action" : string
                 Either 'buy' or 'sell'. It is mandatory.
             "prevpos" : float
-                Premium effectively paid or received in a previously opened position. If positive, it means that the position remains open and the payoff calculation takes this price into 
-                account, not the current price of the option. If negative, it means that the position is closed and the difference between this price and the current price is considered in 
-                the payoff calculation.
+                Premium effectively paid or received in a previously opened position. If positive, it means
+                that the position remains open and the payoff calculation takes this price into account, not
+                the current price of the option. If negative, it means that the position is closed and the
+                difference between this price and the current price is considered in the payoff calculation.
             "expiration" : string | int
-                Expiration date in 'YYYY-MM-DD' format or number of days left before maturity, depending on the value in 'use_dates' 
-                    (see below).
+                Expiration date in 'YYYY-MM-DD' format or number of days left before maturity, depending on
+                the value in 'use_dates' (see below).
         For stocks, the dictionary should contain up to 4 keys:
             "type" : string
                 It must be 'stock'. It is mandatory.
@@ -65,14 +68,17 @@ strategy : list
             "action" : string
                 Either 'buy' or 'sell'. It is mandatory.
             "prevpos" : float
-                Stock price effectively paid or received in a previously opened position. If positive, it means that the position remains open and the payoff calculation takes this price 
-                into account, not the current price of the stock. If negative, it means that the position is closed and the difference between this price and the current price is 
-                considered in the payoff calculation.
-        For a non-determined previously opened position to be closed, which might consist of any combination of calls, puts and stocks, the dictionary must contain two keys:
+                Stock price effectively paid or received in a previously opened position. If positive, it means
+                that the position remains open and the payoff calculation takes this price into account, not the
+                current price of the stock. If negative, it means that the position is closed and the difference
+                between this price and the current price is considered in the payoff calculation.
+        For a non-determined previously opened position to be closed, which might consist of any combination of
+        calls, puts and stocks, the dictionary must contain two keys:
             "type" : string
                 It must be 'closed'. It is mandatory.
             "prevpos" : float
-                The total value of the position to be closed, which can be positive if it made a profit or negative if it is a loss. It is mandatory.
+                The total value of the position to be closed, which can be positive if it made a profit or negative
+                if it is a loss. It is mandatory.
 profittarg : float, optional
     Target profit level. Default is None, which means it is not calculated.
 losslimit : float, optional
@@ -84,11 +90,14 @@ stockcommission : float
 compute_the_greeks : logical, optional
     Whether or not Black-Scholes formulas should be used to compute the Greeks. Default is False.
 compute_expectation : logical, optional
-    Whether or not the strategy's average profit and loss must be computed from a numpy array of random terminal prices generated from the chosen distribution. Default is False.
+    Whether or not the strategy's average profit and loss must be computed from a numpy array of random terminal
+    prices generated from the chosen distribution. Default is False.
 use_dates : logical, optional
-    Whether the target and maturity dates are provided or not. If False, the number of days remaining to the target date and maturity are provided. Default is True.
+    Whether the target and maturity dates are provided or not. If False, the number of days remaining to the
+    target date and maturity are provided. Default is True.
 discard_nonbusinessdays : logical, optional
-    Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between two dates. Default is True.
+    Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between two dates.
+    Default is True.
 country : string, optional
     Country for which the holidays will be considered if 'discard_nonbusinessdyas' is True. Default is 'US'.
 startdate : string, optional
@@ -98,9 +107,59 @@ targetdate : string, optional
 days2targetdate : int, optional
     Number of days remaining until the target date. Not considered if 'use_dates' is True. Default is 30 days.
 distribution : string, optional
-    Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 'laplace' or 'array'. Default is 'black-scholes'.
+    Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 'laplace' or 'array'.
+    Default is 'black-scholes'.
 nmcprices : int, optional
-    Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy. Default is 100,000.
+    Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy. Default
+    is 100,000.
+```
+
+The calculations are performed by calling the *run()* method of the *Strategy* object:
+
+```python
+out=st.run()
+```
+
+This method returns a Python dictionary with the calculation results stored under the following keys:
+
+```
+"ProbabilityOfProfit" : float
+    Probability of the strategy yielding at least $0.01.
+"ProfitRanges" : list
+    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at least $0.01.
+"StrategyCost" : float
+    Total strategy cost.
+"PerLegCost" : list
+    A Python list of costs, one per strategy leg.
+"ImpliedVolatility" : list
+    A Python list of implied volatilities, one per strategy leg.
+"InTheMoneyProbability" : list
+    A Python list of ITM probabilities, one per strategy leg.
+"Delta" : list
+    A Python list of Delta values, one per strategy leg.
+"Gamma" : list
+    A Python list of Gamma values, one per strategy leg.
+"Theta" : list
+    A Python list of Theta values, one per strategy leg.
+"Vega" : list
+    A Python list of Vega values, one per strategy leg.
+"MinimumReturnInTheDomain" : float
+    Minimum return of the strategy within the stock price domain.
+"MaximumReturnInTheDomain" : float
+    Maximum return of the strategy within the stock price domain.
+"ProbabilityOfProfitTarget" : float
+    Probability of the strategy yielding at least the profit target.
+"ProfitTargetRanges" : list
+    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at least the profit 
+    target.                    
+"ProbabilityOfLossLimit" : float
+    Probability of the strategy losing at least the loss limit.
+"AverageProfitFromMC" : float
+    Average profit as calculated from Monte Carlo-created terminal stock prices for which the strategy is profitable.
+"AverageLossFromMC" : float
+    Average loss as calculated from Monte Carlo-created terminal stock prices for which the strategy ends in loss. 
+"ProbabilityOfProfitFromMC" : float
+    Probability of the strategy yielding at least $0.01 as calculated from Monte Carlo-created terminal stock prices.
 ```
 
 ## Contributions
