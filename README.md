@@ -69,11 +69,11 @@ strategy : list
                 Either 'buy' or 'sell'. It is mandatory.
             "prevpos" : float
                 Stock price effectively paid or received in a previously opened position. If positive, it
-                means that the position remains open and the payoff calculation takes this price into account,
-                not thecurrent price of the stock. If negative, it means that the position is closed and the
-                difference between this price and the current price is considered in the payoff calculation.
-        For a non-determined previously opened position to be closed, which might consist of any combination
-        of calls, puts and stocks, the dictionary must contain two keys:
+                means that the position remains open and the payoff calculation takes this price into
+                account, not thecurrent price of the stock. If negative, it means that the position is closed
+                and the difference between this price and the current price is considered in the payoff
+                calculation. For a non-determined previously opened position to be closed, which might consist
+                of any combination of calls, puts and stocks, the dictionary must contain two keys:
             "type" : string
                 It must be 'closed'. It is mandatory.
             "prevpos" : float
@@ -96,8 +96,8 @@ use_dates : logical, optional
     Whether the target and maturity dates are provided or not. If False, the number of days remaining to
     the target date and maturity are provided. Default is True.
 discard_nonbusinessdays : logical, optional
-    Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between two
-    dates. Default is True.
+    Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between
+    two dates. Default is True.
 country : string, optional
     Country for which the holidays will be considered if 'discard_nonbusinessdyas' is True. Default is 'US'.
 startdate : string, optional
@@ -105,13 +105,14 @@ startdate : string, optional
 targetdate : string, optional
     Target date in the calculations, in 'YYYY-MM-DD' format. Default is "". Mandatory if 'use_dates' is True.
 days2targetdate : int, optional
-    Number of days remaining until the target date. Not considered if 'use_dates' is True. Default is 30 days.
+    Number of days remaining until the target date. Not considered if 'use_dates' is True. Default is 30
+    days.
 distribution : string, optional
-    Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 'laplace' or
-    'array'. Default is 'black-scholes'.
+    Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 'laplace'
+    or 'array'. Default is 'black-scholes'.
 nmcprices : int, optional
-    Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy.
-    Default is 100,000.
+    Number of random terminal prices to be generated when calculationg the average profit and loss of a
+    strategy. Default is 100,000.
 ```
 
 The calculations are performed by calling the *run()* method of the *Strategy* object:
