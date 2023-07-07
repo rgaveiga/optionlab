@@ -130,8 +130,9 @@ minstock=stockprice-round(stockprice*0.5,2)
 maxstock=stockprice+round(stockprice*0.5,2)
 strategy=[{"type":"call","strike":175.00,"premium":1.15,"n":100,"action":"sell"}]
 
-st.getdata(stockprice=stockprice,startdate=startdate,targetdate=targetdate,volatility=volatility,interestrate=interestrate,
-           minstock=minstock,maxstock=maxstock,strategy=strategy,distribution=distribution)
+st.getdata(stockprice=stockprice,startdate=startdate,targetdate=targetdate,volatility=volatility,
+           interestrate=interestrate,minstock=minstock,maxstock=maxstock,strategy=strategy,
+           distribution=distribution)
 ```
 
 The calculations are performed by calling the *run()* method of the *Strategy* object:
