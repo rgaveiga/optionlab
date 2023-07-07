@@ -72,8 +72,8 @@ strategy : list
                 means that the position remains open and the payoff calculation takes this price into
                 account, not thecurrent price of the stock. If negative, it means that the position is closed
                 and the difference between this price and the current price is considered in the payoff
-                calculation. For a non-determined previously opened position to be closed, which might consist
-                of any combination of calls, puts and stocks, the dictionary must contain two keys:
+                calculation. For a non-determined previously opened position to be closed, which might
+                consist of any combination of calls, puts and stocks, the dictionary must contain two keys:
             "type" : string
                 It must be 'closed'. It is mandatory.
             "prevpos" : float
