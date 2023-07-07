@@ -2,7 +2,7 @@
 
 This package is a lightweight library written entirely in Python, designed to provide quick evaluation of option strategies.
 
-The code produces various outputs, including the profit/loss profile of the strategy on a user-defined target date, the range of stock prices for which the strategy is profitable (i.e., generating a return greater than \$0.01), the Greeks associated with each leg of the strategy, the resulting debit or credit on the trading account, the maximum and minimum returns within a specified lower and higher price range of the underlying asset (as defined by the user), and an estimate of the strategy's probability of profit.
+The code produces various outputs, including the profit/loss profile of the strategy on a user-defined target date, the range of stock prices for which the strategy is profitable (i.e., generating a return greater than \$0.01), the Greeks associated with each leg of the strategy, the resulting debit or credit on the trading account, the maximum and minimum returns within a specified lower and higher price range of the underlying asset, and an estimate of the strategy's probability of profit.
 
 The probability of profit (PoP) for the strategy is calculated based on the distribution of estimated prices of the underlying asset on the user-defined target date. Specifically, for the price range in the payoff where the strategy generates profit, the PoP represents the probability that the stock price will fall within that range. This distribution of underlying asset prices on the target date can be lognormal, log-Laplace, or derived from the Black-Scholes model. Additionally, the distribution can be obtained through simulations (e.g., Monte Carlo) or machine learning models.
 
