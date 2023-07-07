@@ -117,7 +117,9 @@ nmcprices : int, optional
     strategy. Default is 100,000.
 ```
 
-For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on November 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021. The corresponding input data follows:
+For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on November 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021. 
+
+The corresponding input data follows:
 
 ```python
 distribution="black-scholes"
