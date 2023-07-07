@@ -127,7 +127,8 @@ This method returns a Python dictionary with the calculation results stored unde
 "ProbabilityOfProfit" : float
     Probability of the strategy yielding at least $0.01.
 "ProfitRanges" : list
-    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at least $0.01.
+    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at
+    least $0.01.
 "StrategyCost" : float
     Total strategy cost.
 "PerLegCost" : list
@@ -151,19 +152,19 @@ This method returns a Python dictionary with the calculation results stored unde
 "ProbabilityOfProfitTarget" : float
     Probability of the strategy yielding at least the profit target.
 "ProfitTargetRanges" : list
-    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at least the
-    profit target.                    
+    A Python list of minimum and maximum stock prices defining ranges in which the strategy makes at
+    least the profit target.                    
 "ProbabilityOfLossLimit" : float
     Probability of the strategy losing at least the loss limit.
 "AverageProfitFromMC" : float
-    Average profit as calculated from Monte Carlo-created terminal stock prices for which the strategy is
-    profitable.
+    Average profit as calculated from Monte Carlo-created terminal stock prices for which the strategy
+    is profitable.
 "AverageLossFromMC" : float
-    Average loss as calculated from Monte Carlo-created terminal stock prices for which the strategy ends
-    in loss. 
+    Average loss as calculated from Monte Carlo-created terminal stock prices for which the strategy
+    ends in loss. 
 "ProbabilityOfProfitFromMC" : float
-    Probability of the strategy yielding at least $0.01 as calculated from Monte Carlo-created terminal
-    stock prices.
+    Probability of the strategy yielding at least $0.01 as calculated from Monte Carlo-created
+    terminal stock prices.
 ```
 
 ## Contributions
