@@ -109,6 +109,64 @@ Next, you need to pass the input data to the *getdata()* method of the newly cre
   
     Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy. Default is 100,000.
 
+For options, the dictionary should contain up to 7 keys:
+  
+- "type" : string
+
+    Either "call" or "put". It is mandatory.
+
+- "strike" : float
+
+    Option strike price. It is mandatory.
+
+- "premium" : float
+
+    Option premium. It is mandatory.
+  
+- "n" : integer
+
+    Number of options. It is mandatory.
+
+- "action" : string
+  
+    Either "buy" or "sell". It is mandatory.
+  
+- "prevpos" : float
+  
+    Premium effectively paid or received in a previously opened position. If positive, it means that the position remains open and the payoff calculation takes this price into account, not the current price of the option. If negative, it means that the position is closed and the difference between this price and the current price is considered in the payoff calculation.
+
+- "expiration" : string | integer
+  
+    Expiration date in "YYYY-MM-DD" format or number of days left before maturity, depending on the value in *use_dates* (see below).
+  
+For stocks, the dictionary should contain up to 4 keys:
+  
+- "type" : string
+  
+    It must be "stock". It is mandatory.
+  
+- "n" : integer
+  
+    Number of shares. It is mandatory.
+  
+- "action" : string
+  
+    Either "buy" or "sell". It is mandatory.
+  
+- "prevpos" : float
+  
+    Stock price effectively paid or received in a previously opened position. If positive, it means that the position remains open and the payoff calculation takes this price into account, not thecurrent price of the stock. If negative, it means that the position is closed and the difference between this price and the current price is considered in the payoff calculation.
+
+For a non-determined previously opened position to be closed, which might consist of any combination of calls, puts and stocks, the dictionary must contain two keys:
+  
+- "type" : string
+  
+    It must be "closed". It is mandatory.
+  
+- "prevpos" : float
+  
+    The total value of the position to be closed, which can be positive if it made a profit or negative if it is a loss. It is mandatory.
+
 For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on November 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021. 
 
 The corresponding input data follows:
@@ -208,7 +266,6 @@ This method returns a Python dictionary with the calculation results stored unde
 - "ProbabilityOfProfitFromMC" : float
   
     Probability of the strategy yielding at least \$0.01 as calculated from Monte Carlo-created terminal stock prices.
-```
 
 To obtain the probability of profit of the naked call example above:
 
