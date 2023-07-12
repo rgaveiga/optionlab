@@ -14,7 +14,9 @@ If you have any questions, corrections, comments or suggestions, just [drop a me
 
 The easiest way to install **optionlab** is using **pip**:
 
-> pip install optionlab 
+```
+pip install optionlab
+```
 
 ## Basic usage
 
