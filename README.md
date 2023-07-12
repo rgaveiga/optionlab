@@ -53,7 +53,7 @@ Next, you need to pass the input data to the *getdata()* method of the newly cre
   
     A Python list containing the strategy legs as Python dictionaries.
   
-        For options, the dictionary should contain up to 7 keys
+        - For options, the dictionary should contain up to 7 keys
   
             - "type" : string
   
@@ -83,7 +83,7 @@ Next, you need to pass the input data to the *getdata()* method of the newly cre
   
                 Expiration date in "YYYY-MM-DD" format or number of days left before maturity, depending on the value in *use_dates* (see below).
   
-        For stocks, the dictionary should contain up to 4 keys:
+        - For stocks, the dictionary should contain up to 4 keys:
   
             - "type" : string
   
@@ -99,7 +99,9 @@ Next, you need to pass the input data to the *getdata()* method of the newly cre
   
             - "prevpos" : float
   
-                Stock price effectively paid or received in a previously opened position. If positive, it means that the position remains open and the payoff calculation takes this price into account, not thecurrent price of the stock. If negative, it means that the position is closed and the difference between this price and the current price is considered in the payoff calculation. For a non-determined previously opened position to be closed, which might consist of any combination of calls, puts and stocks, the dictionary must contain two keys:
+                Stock price effectively paid or received in a previously opened position. If positive, it means that the position remains open and the payoff calculation takes this price into account, not thecurrent price of the stock. If negative, it means that the position is closed and the difference between this price and the current price is considered in the payoff calculation.
+  
+          - For a non-determined previously opened position to be closed, which might consist of any combination of calls, puts and stocks, the dictionary must contain two keys:
   
             - "type" : string
   
