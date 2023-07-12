@@ -29,7 +29,9 @@ from optionlab.strategy import Strategy
 st=Strategy()
 ```
 
-Next, you need to pass the input data to the *getdata()* method of the newly created *Strategy* object. This method accepts the following parameters:
+Next, you need to pass the input data to the *getdata()* method of the newly created *Strategy* object. 
+
+This method accepts the following parameters:
 
 ---
 
