@@ -59,59 +59,59 @@ This method accepts the following parameters:
   
     A Python list containing the strategy legs as Python dictionaries (see below).
 
-- profittarg : float, optional
+- *profittarg* : float, optional
  
     Target profit level. Default is None, which means it is not calculated.
   
-- losslimit : float, optional
+- *losslimit* : float, optional
   
     Limit loss level. Default is None, which means it is not calculated.
   
-- optcommission : float
+- *optcommission* : float
   
     Broker commission for options transactions. Default is 0.0.
   
-- stockcommission : float
+- *stockcommission* : float
   
     Broker commission for stocks transactions. Default is 0.0.
   
-- compute_the_greeks : logical, optional
+- *compute_the_greeks* : logical, optional
   
     Whether or not Black-Scholes formulas should be used to compute the Greeks. Default is False.
   
-- compute_expectation : logical, optional
+- *compute_expectation* : logical, optional
   
     Whether or not the strategy's average profit and loss must be computed from a numpy array of random terminal prices generated from the chosen distribution. Default is False.
   
-- use_dates : logical, optional
+- *use_dates* : logical, optional
   
     Whether the target and maturity dates are provided or not. If False, the number of days remaining to the target date and maturity are provided. Default is True.
   
-- discard_nonbusinessdays : logical, optional
+- *discard_nonbusinessdays* : logical, optional
   
     Whether to discard Saturdays and Sundays (and maybe holidays) when counting the number of days between two dates. Default is True.
   
-- country : string, optional
+- *country* : string, optional
   
     Country for which the holidays will be considered if *discard_nonbusinessdyas* is True. Default is "US".
   
-- startdate : string, optional
+- *startdate* : string, optional
   
     Start date in the calculations, in "YYYY-MM-DD" format. Default is "". Mandatory if *use_dates* is True.
   
-- targetdate : string, optional
+- *targetdate* : string, optional
   
     Target date in the calculations, in "YYYY-MM-DD" format. Default is "". Mandatory if *use_dates* is True.
   
-- days2targetdate : integer, optional
+- *days2targetdate* : integer, optional
 
     Number of days remaining until the target date. Not considered if *use_dates* is True. Default is 30 days.
 
-- distribution : string, optional
+- *distribution* : string, optional
   
     Statistical distribution used to compute probabilities. It can be "black-scholes", "normal", "laplace" or "array". Default is "black-scholes".
   
-- nmcprices : integer, optional
+- *nmcprices* : integer, optional
   
     Number of random terminal prices to be generated when calculationg the average profit and loss of a strategy. Default is 100,000.
 
