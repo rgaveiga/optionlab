@@ -12,7 +12,7 @@ If you have any questions, corrections, comments or suggestions, just [drop a me
 
 ## Installation
 
-The easiest way to install **optionlab** is using **pip**:
+The easiest way to install **OptionLab** is using **pip**:
 
 ```
 pip install optionlab
@@ -301,7 +301,7 @@ print("Probability of Profit (PoP): %.1f%%" % (out["ProbabilityOfProfit"]*100.0)
 
 ## Contributions
 
-Although functional, **optionlab** is still in its early stages of development. The author has limited time available to work on this library, which is why contributions from individuals with expertise in options and Python programming are greatly appreciated. 
+Although functional, **OptionLab** is still in its early stages of development. The author has limited time available to work on this library, which is why contributions from individuals with expertise in options and Python programming are greatly appreciated. 
 
 ## Disclaimer
 
