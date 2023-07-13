@@ -1,4 +1,4 @@
-# optionlab
+# OptionLab
 
 This package is a lightweight library written entirely in Python, designed to provide quick evaluation of option strategies.
 
