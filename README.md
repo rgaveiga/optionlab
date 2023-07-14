@@ -191,7 +191,7 @@ For a non-determined previously opened position to be closed, which might consis
 
 For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on November 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.
 
-The corresponding input data follows:
+A strategy in **OptionLab** is defined as a list of dictionaries, each dictionary corresponding to a leg in the strategy. This list and additonal input data must be passed to the *getdata()* method of the *Strategy* object:
 
 ```python
 strategy=[{"type":"call","strike":175.00,"premium":1.15,"n":100,"action":"sell"}]
