@@ -194,19 +194,9 @@ For example, let's say we wanted to calculate the probability of profit for nake
 The corresponding input data follows:
 
 ```python
-distribution="black-scholes"
-stockprice=164.04
-volatility=0.272
-startdate="2021-11-22"
-targetdate="2021-12-17"
-interestrate=0.0002
-minstock=stockprice-round(stockprice*0.5,2)
-maxstock=stockprice+round(stockprice*0.5,2)
 strategy=[{"type":"call","strike":175.00,"premium":1.15,"n":100,"action":"sell"}]
-
-st.getdata(stockprice=stockprice,startdate=startdate,targetdate=targetdate,volatility=volatility,
-           interestrate=interestrate,minstock=minstock,maxstock=maxstock,strategy=strategy,
-           distribution=distribution)
+st.getdata(stockprice=164.04,startdate="2021-11-22",targetdate="2021-12-17",volatility=0.272,
+           interestrate=0.0002,minstock=120,maxstock=200,strategy=strategy)
 ```
 
 The calculations are performed by calling the *run()* method of the *Strategy* object:
