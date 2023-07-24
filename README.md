@@ -189,7 +189,7 @@ For a non-determined previously opened position to be closed, which might consis
 
 ---
 
-For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on November 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.
+For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on December 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.
 
 The strategy and additonal input data must be passed to the *getdata()* method of the *Strategy* object as follows:
 
