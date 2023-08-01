@@ -4,12 +4,7 @@ from numpy import array,asarray,ndarray,exp,abs,round,diff,flatnonzero,arange,in
 from numpy.random import normal,laplace
 from numpy.lib.scimath import log,sqrt
 from datetime import date,timedelta
-from sys import modules
-
-try:
-    import holidays
-except ModuleNotFoundError:
-    print("WARNING! Install the 'holidays' package to count holidays as non-business days!")
+from optionlab.__holidays__ import getholidays
 
 def getpayoff(optype,s,x):
     '''
@@ -198,15 +193,13 @@ def getnonbusinessdays(startdate,enddate,country="US"):
         raise ValueError("End date must be after start date!")
     
     nonbusinessdays=0
+    holidays=getholidays(country)
     
     for i in range(ndays):
         currdate=startdate+timedelta(days=i)
         
-        if currdate.weekday()>=5:
+        if currdate.weekday()>=5 or currdate.strftime("%Y-%m-%d") in holidays:
             nonbusinessdays+=1
-        elif "holidays" in modules:                      
-            if holidays.country_holidays(country).get(currdate.strftime("%Y-%m-%d")) is not None:
-                nonbusinessdays+=1
             
     return nonbusinessdays
 
