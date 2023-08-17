@@ -44,6 +44,7 @@ class Strategy:
         self.__startdate=date.today()
         self.__targetdate=self.__startdate
         self.__r=None
+        self.__y=0.0
         self.__profittarg=None
         self.__losslimit=None
         self.__optcommission=0.0
@@ -72,10 +73,10 @@ class Strategy:
         self.losslimitprob=0.0
             
     def getdata(self,stockprice,volatility,interestrate,minstock,maxstock,
-                strategy,profittarg=None,losslimit=None,optcommission=0.0,
-                stockcommission=0.0,compute_the_greeks=False,compute_expectation=False,
-                use_dates=True,discard_nonbusinessdays=True,country="US",
-                startdate="",targetdate="",days2targetdate=30,
+                strategy,dividendyield=0.0,profittarg=None,losslimit=None,
+                optcommission=0.0,stockcommission=0.0,compute_the_greeks=False,
+                compute_expectation=False,use_dates=True,discard_nonbusinessdays=True,
+                country="US",startdate="",targetdate="",days2targetdate=30,
                 distribution="black-scholes",nmcprices=100000):
         '''
         getdata -> provides input data to performs calculations for a strategy.
@@ -141,6 +142,8 @@ class Strategy:
                     The total value of the position to be closed, which can be 
                     positive if it made a profit or negative if it is a loss. 
                     It is mandatory.
+        dividendyield : float, optional
+            Annualized dividend yield. Default is 0.0.
         profittarg : float, optional
             Target profit level. Default is None, which means it is not 
             calculated.
@@ -360,6 +363,7 @@ class Strategy:
         self.__stockprice=stockprice
         self.__volatility=volatility
         self.__r=interestrate
+        self.__y=dividendyield
         self.__minstock=minstock
         self.__maxstock=maxstock
         self.__profittarg=profittarg
@@ -385,6 +389,8 @@ class Strategy:
                     Annualized volatility. It is mandatory.
                 "InterestRate" : float
                     Annualized risk-free interest rate. It is mandatory.
+                "DividendYield" : float, optional
+                    Annualized dividend yield. Default is 0.0.
                 "StockPriceDomain" : list
                     A Python list of two prices defining the lower and upper bounds 
                     of the stock price domain. It is mandatory.
@@ -505,6 +511,11 @@ class Strategy:
             self.__r=float(d["InterestRate"])
         else:
             raise KeyError("Key 'InterestRate' is missing!")
+            
+        if "DividendYield" in d.keys():
+            self.__y=float(d["DividendYield"])
+        else:
+            self.__y=0.0
             
         if "StockPriceDomain" in d.keys():
             self.__minstock=float(d["StockPriceDomain"][0])
@@ -815,6 +826,7 @@ class Strategy:
                                            time2target,
                                            self.__r,
                                            self.__distribution,
+                                           self.__y,
                                            self.__nmcprices)
 
         if self.__s_mc.shape[0]>0:                
@@ -832,7 +844,8 @@ class Strategy:
                                                          self.__strike[i],
                                                          self.__r,
                                                          self.__volatility,
-                                                         time2maturity)[2:]               
+                                                         time2maturity,
+                                                         self.__y)[2:]               
      
                     self.gamma.append(gamma)
                     self.vega.append(vega)
@@ -843,7 +856,8 @@ class Strategy:
                                                          self.__stockprice,
                                                          self.__strike[i],
                                                          self.__r,
-                                                         time2maturity))
+                                                         time2maturity,
+                                                         self.__y))
                         self.itmprob.append(callitmprob)
                         
                         if self.__action[i]=="buy":
@@ -858,7 +872,8 @@ class Strategy:
                                                          self.__stockprice,
                                                          self.__strike[i],
                                                          self.__r,
-                                                         time2maturity))
+                                                         time2maturity,
+                                                         self.__y))
                         self.itmprob.append(putitmprob)
                         
                         if self.__action[i]=="buy":
@@ -902,6 +917,7 @@ class Strategy:
                                                                    self.__volatility,
                                                                    self.__n[i],
                                                                    self.__s,
+                                                                   self.__y,
                                                                    self.__optcommission)
                         
                         if self.__compute_expectation or self.__distribution=="array":
@@ -914,6 +930,7 @@ class Strategy:
                                                              self.__volatility,
                                                              self.__n[i],
                                                              self.__s_mc,
+                                                             self.__y,
                                                              self.__optcommission)[0]
                     else:                       
                         self.profit[i],self.cost[i]=getPLprofile(self.__type[i],
@@ -998,7 +1015,8 @@ class Strategy:
                                        stockprice=self.__stockprice,
                                        volatility=self.__volatility,
                                        time2maturity=time2target,
-                                       interestrate=self.__r)
+                                       interestrate=self.__r,
+                                       dividendyield=self.__y)
             elif self.__distribution=="array":
                 self.profitprob=getPoP(self.__profitranges,
                                        self.__distribution,
@@ -1015,7 +1033,8 @@ class Strategy:
                                                stockprice=self.__stockprice,
                                                volatility=self.__volatility,
                                                time2maturity=time2target,
-                                               interestrate=self.__r)
+                                               interestrate=self.__r,
+                                               dividendyield=self.__y)
                 elif self.__distribution=="array":
                     self.profittargprob=getPoP(self.__profittargrange,
                                                self.__distribution,
@@ -1032,7 +1051,8 @@ class Strategy:
                                                   stockprice=self.__stockprice,
                                                   volatility=self.__volatility,
                                                   time2maturity=time2target,
-                                                  interestrate=self.__r)
+                                                  interestrate=self.__r,
+                                                  dividendyield=self.__y)
                 elif self.__distribution=="array":
                     self.losslimitprob=1.0-getPoP(self.__losslimitranges,
                                                   self.__distribution,

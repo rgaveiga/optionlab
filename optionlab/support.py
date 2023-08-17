@@ -1,9 +1,10 @@
 from __future__ import division
 from scipy import stats
-from numpy import array,asarray,ndarray,exp,abs,round,diff,flatnonzero,arange,inf
+from numpy import asarray,ndarray,exp,abs,round,diff,flatnonzero,arange,inf
 from numpy.random import normal,laplace
 from numpy.lib.scimath import log,sqrt
 from datetime import date,timedelta
+from optionlab.black_scholes import get_d1_d2,getoptionprice
 from optionlab.__holidays__ import getholidays
 
 def getpayoff(optype,s,x):
@@ -96,7 +97,7 @@ def getPLprofile(optype,action,x,val,n,s,commission=0.0):
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
     if optype in ("call","put"):
-        return [n*getPLoption(optype,val,action,s,x)-commission,n*cost+commission]
+        return n*getPLoption(optype,val,action,s,x)-commission,n*cost-commission
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
@@ -123,14 +124,14 @@ def getPLprofilestock(s0,action,n,s,commission=0.0):
     else:        
         raise ValueError("Action must be either 'buy' or 'sell'!")
    
-    return n*getPLstock(s0,action,s)-commission,n*cost+commission
+    return n*getPLstock(s0,action,s)-commission,n*cost-commission
         
-def getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,
+def getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,y=0.0,
                    commission=0.0):
     '''
-    getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,
+    getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,y,
     commission) -> returns the profit/loss profile and cost of an option trade 
-    at a target date before maturity using the Black-Scholes model for option 
+    on a target date before maturity using the Black-Scholes model for option 
     pricing.
     
     Arguments:
@@ -144,6 +145,7 @@ def getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,
     volatility: annualized volatility of the underlying asset.
     n: number of options.
     s: a numpy array of stock prices.
+    y: annualized dividend yield (default is zero)
     comission: commission charged by the broker (default is zero).
     '''
     if not isinstance(s,ndarray):
@@ -158,19 +160,10 @@ def getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")  
 
-    d1=(log(s/x)+(r+volatility*volatility/2.0)*targ2maturity)/(volatility*sqrt(targ2maturity))
-    
-    if optype=="call":
-        calcprice=round((s*stats.norm.cdf(d1)-x*exp(-r*targ2maturity)*
-                         stats.norm.cdf(d1-volatility*sqrt(targ2maturity))),2)
-    elif optype=="put":
-        calcprice=round((x*exp(-r*targ2maturity)*
-                         stats.norm.cdf(-d1+volatility*sqrt(targ2maturity))-
-                                        s*stats.norm.cdf(-d1)),2)
-    else:
-        raise ValueError("Option type must be either 'call' or 'put'!")
+    d1,d2=get_d1_d2(s,x,r,volatility,targ2maturity,y)
+    calcprice=getoptionprice(optype,s,x,r,targ2maturity,d1,d2,y)
         
-    return fac*n*(calcprice-val)-commission,n*cost+commission
+    return fac*n*(calcprice-val)-commission,n*cost-commission
 
 def getnonbusinessdays(startdate,enddate,country="US"):
     '''
@@ -219,9 +212,9 @@ def createpriceseq(minprice,maxprice):
         raise ValueError("Maximum price cannot be less than minimum price!")
       
 def createpricesamples(s0,volatility,time2maturity,r=0.01,distribution="black-scholes",
-                       n=100000):
+                       y=0.0,n=100000):
     '''
-    createpricesamples(s0,volatility,time2maturity,r,distribution,n) -> generates 
+    createpricesamples(s0,volatility,time2maturity,r,distribution,y,n) -> generates 
     random stock prices at maturity according to a statistical distribution.
     
     Arguments:
@@ -234,45 +227,19 @@ def createpricesamples(s0,volatility,time2maturity,r=0.01,distribution="black-sc
     distribution: statistical distribution used to generate random stock prices 
                   at maturity. It can be 'black-scholes' (default), 'normal' or 
                   'laplace'.
+    y: annualized dividend yield (default is zero).
     n: number of randomly generated terminal prices.
     '''       
     if distribution=="normal":
         return exp(normal(log(s0),volatility*sqrt(time2maturity),n))
     elif distribution=="black-scholes":
-        drift=(r-0.5*volatility*volatility)*time2maturity
+        drift=(r-y-0.5*volatility*volatility)*time2maturity
         
         return exp(normal((log(s0)+drift),volatility*sqrt(time2maturity),n))
     elif distribution=="laplace":
-        return exp(laplace(log(s0),
-                           (volatility*sqrt(time2maturity))/sqrt(2.0),n))
+        return exp(laplace(log(s0),(volatility*sqrt(time2maturity))/sqrt(2.0),n))
     else:
         raise ValueError("Distribution not implemented yet!")
-
-def createBSoptionchain(s0,minx,maxx,vol,r,time2maturity,n):
-    '''
-    createBSoptionchain(s0,minx,maxx,vol,r,time2maturity,n) -> generates an 
-    equally spaced option chain calculated with the Black-Scholes model.
-    
-    Arguments:
-    ----------
-    s0: stock price.
-    minx: lowest strike.
-    maxx: highest strike.
-    vol: annualized volatility.
-    r: annualized risk-free interest rate.
-    time2maturity: time left before maturity.
-    n: number of strikes in the option chain.
-    '''
-    deltax=(maxx-minx)/(n-1)
-    
-    x=round(array([(minx+i*deltax) for i in range(n)]),2)
-    d1=(log(s0/x)+(r+vol*vol/2.0)*time2maturity)/(vol*sqrt(time2maturity))
-    c=round((s0*stats.norm.cdf(d1)-x*exp(-r*time2maturity)*
-             stats.norm.cdf(d1-vol*sqrt(time2maturity))),2)
-    p=round((x*exp(-r*time2maturity)*stats.norm.cdf(-d1+vol*sqrt(time2maturity))-
-             s0*stats.norm.cdf(-d1)),2)
-        
-    return {"strikes":x,"calls":c,"puts":p}
                                     
 def getprofitrange(s,profit,target=0.01):
     '''
@@ -345,7 +312,7 @@ def getPoP(profitranges,source="black-scholes",**kwargs):
               is calculated assuming a (log)normal distribution with risk neutrality 
               as implemented in the Black-Scholes model.
               The keywords 'stockprice', 'volatility', 'interestrate' and 
-              'time2maturity' must be set.
+              'time2maturity' must be set. The keyword 'dividendyield' is optional.
     
               * For 'source="array"': the probability of profit is calculated 
               from a 1D numpy array of stock prices typically at maturity generated 
@@ -394,8 +361,16 @@ def getPoP(profitranges,source="black-scholes",**kwargs):
                     raise ValueError("Risk-free interest rate must be a positive number!")
             else:
                 raise ValueError("Risk-free interest rate must be provided!")
+            
+            if "dividendyield" in kwargs.keys():
+                y=float(kwargs["dividendyield"])
                 
-            drift=(r-0.5*volatility*volatility)*time2maturity
+                if y<0.0:
+                    raise ValueError("Dividend yield must be a positive number!")
+            else:
+                y=0.0
+                
+            drift=(r-y-0.5*volatility*volatility)*time2maturity
                     
         sigma=volatility*sqrt(time2maturity)
                
