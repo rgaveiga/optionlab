@@ -59,6 +59,10 @@ This method accepts the following parameters:
   
     A Python list containing the strategy legs as Python dictionaries (see below).
 
+- *dividendyield* : float, optional
+  
+    Annualized dividend yield. Default is 0.0.
+
 - *profittarg* : float, optional
  
     Target profit level. Default is None, which means it is not calculated.
