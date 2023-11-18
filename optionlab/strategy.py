@@ -67,7 +67,6 @@ class Strategy:
         self.vega=[]
         self.theta=[]
         self.cost=[]
-        self.strategycost=0.0
         self.profitprob=0.0
         self.profittargprob=0.0
         self.losslimitprob=0.0
@@ -813,6 +812,7 @@ class Strategy:
             raise RuntimeError("No terminal stock prices from Monte Carlo simulations! Nothing to do!")
                         
         time2target=self.__days2target/self.__daysinyear
+        self.cost=[0.0 for _ in range(len(self.__type))]
         
         if self.__s.shape[0]==0:
             self.__s=createpriceseq(self.__minstock,self.__maxstock)
@@ -833,9 +833,7 @@ class Strategy:
             self.profit_mc=zeros((len(self.__type),self.__s_mc.shape[0]))
             self.strategyprofit_mc=zeros(self.__s_mc.shape[0])
                         
-        for i in range(len(self.__type)):
-            self.cost.append(0.0)
-                     
+        for i in range(len(self.__type)):                     
             if self.__type[i] in ("call","put"):
                 if self.__compute_the_greeks and self.__prevpos[i]>=0.0:
                     time2maturity=self.__days2maturity[i]/self.__daysinyear                    
@@ -1001,7 +999,6 @@ class Strategy:
                     self.profit_mc[i]+=self.__prevpos[i]
             
             self.strategyprofit+=self.profit[i]
-            self.strategycost+=self.cost[i]
             
             if self.__compute_expectation or self.__distribution=="array":
                 self.strategyprofit_mc+=self.profit_mc[i]
@@ -1059,7 +1056,7 @@ class Strategy:
                                                   array=self.__s_mc)
             
         output={"ProbabilityOfProfit":self.profitprob,
-                "StrategyCost":self.strategycost,
+                "StrategyCost":sum(self.cost),
                 "PerLegCost":self.cost,
                 "ProfitRanges":self.__profitranges,
                 "MinimumReturnInTheDomain":self.strategyprofit.min(),
