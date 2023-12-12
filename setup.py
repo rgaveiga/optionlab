@@ -5,7 +5,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__),fname)).read()
 
 setup(name='optionlab',
-      version='0.1.6',
+      version='0.1.7',
       description="A Python library for evaluating option trading strategies.",
       long_description_content_type='text/markdown',
       long_description=read('Desc.MD'),
