@@ -813,6 +813,12 @@ class Strategy:
                         
         time2target=self.__days2target/self.__daysinyear
         self.cost=[0.0 for _ in range(len(self.__type))]
+        self.impvol=[]
+        self.itmprob=[]
+        self.delta=[]
+        self.gamma=[]
+        self.vega=[]
+        self.theta=[]
         
         if self.__s.shape[0]==0:
             self.__s=createpriceseq(self.__minstock,self.__maxstock)
