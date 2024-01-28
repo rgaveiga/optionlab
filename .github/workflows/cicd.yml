@@ -1,0 +1,25 @@
+# Run unit and integration tests for CI
+# Build any branch that passes CI as a docker image
+# Push a docker image tagged with the git hash and branch name
+# For PR's, display the option to deploy to the test env
+# For merges to main, display the option to deploy to the dev env
+# The environments are configured in the GitHub repo settings
+
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/cached-venv
+      - name: Run mypy & service tests
+        run: |
+          source venv/bin/activate
+          mypy . --ignore-missing-imports
+          pytest
