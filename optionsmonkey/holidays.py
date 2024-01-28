@@ -5,9 +5,11 @@ December 31, 2050 for the following countries:
     France, Germany, Italy, and Australia.
 """
 
+from optionsmonkey.models import Country
 
-def getholidays(country):
-    if country in ("US", "USA", "United States"):
+
+def getholidays(country: Country):
+    if country == "US":
         return __getholidaysUS__()
     elif country == "Canada":
         return __getholidaysCanada__()
@@ -25,7 +27,7 @@ def getholidays(country):
         return __getholidaysRussia__()
     elif country == "Japan":
         return __getholidaysJapan__()
-    elif country in ("UK", "United Kingdom"):
+    elif country == "UK":
         return __getholidaysUK__()
     elif country == "France":
         return __getholidaysFrance__()

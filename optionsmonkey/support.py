@@ -4,8 +4,8 @@ from numpy import asarray, ndarray, exp, abs, round, diff, flatnonzero, arange, 
 from numpy.random import normal, laplace
 from numpy.lib.scimath import log, sqrt
 from datetime import date, timedelta
-from optionsmonkey.black_scholes import get_d1_d2, getoptionprice
-from optionsmonkey.__holidays__ import getholidays
+from optionsmonkey.black_scholes import get_d1_d2, get_option_price
+from optionsmonkey.holidays import getholidays
 
 
 def getpayoff(optype, s, x):
@@ -171,7 +171,7 @@ def getPLprofileBS(
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
     d1, d2 = get_d1_d2(s, x, r, volatility, targ2maturity, y)
-    calcprice = getoptionprice(optype, s, x, r, targ2maturity, d1, d2, y)
+    calcprice = get_option_price(optype, s, x, r, targ2maturity, d1, d2, y)
 
     return fac * n * (calcprice - val) - commission, n * cost - commission
 

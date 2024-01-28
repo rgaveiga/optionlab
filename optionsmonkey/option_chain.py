@@ -1,18 +1,26 @@
 from numpy import round, array
 from optionsmonkey.black_scholes import (
     get_d1_d2,
-    getoptionprice,
-    getdelta,
-    getgamma,
-    gettheta,
-    getvega,
+    get_option_price,
+    get_delta,
+    get_gamma,
+    get_theta,
+    get_vega,
 )
 
 
-def createBSoptionchain(s0, minx, maxx, vol, r, time2maturity, n, y=0.0):
+def create_bs_option_chain(
+    s0: float,
+    minx: float,
+    maxx: float,
+    vol: float,
+    r: float,
+    time2maturity: float,
+    n: int,
+    y: float = 0.0,
+):
     """
-    createBSoptionchain(s0,minx,maxx,vol,r,time2maturity,n,y) -> generates an
-    equally spaced option chain calculated with the Black-Scholes model.
+    Generates an equally spaced option chain calculated with the Black-Scholes model.
 
     Arguments:
     ----------
@@ -32,15 +40,15 @@ def createBSoptionchain(s0, minx, maxx, vol, r, time2maturity, n, y=0.0):
     return {
         "strikes": x,
         "calls": {
-            "price": getoptionprice("call", s0, x, r, time2maturity, d1, d2, y),
-            "delta": getdelta("call", d1, time2maturity, y),
-            "theta": gettheta("call", s0, x, r, vol, time2maturity, d1, d2, y),
+            "price": get_option_price("call", s0, x, r, time2maturity, d1, d2, y),
+            "delta": get_delta("call", d1, time2maturity, y),
+            "theta": get_theta("call", s0, x, r, vol, time2maturity, d1, d2, y),
         },
         "puts": {
-            "price": getoptionprice("put", s0, x, r, time2maturity, d1, d2, y),
-            "delta": getdelta("put", d1, time2maturity, y),
-            "theta": gettheta("put", s0, x, r, vol, time2maturity, d1, d2, y),
+            "price": get_option_price("put", s0, x, r, time2maturity, d1, d2, y),
+            "delta": get_delta("put", d1, time2maturity, y),
+            "theta": get_theta("put", s0, x, r, vol, time2maturity, d1, d2, y),
         },
-        "gamma": getgamma(s0, vol, time2maturity, d1, y),
-        "vega": getvega(s0, time2maturity, d1, y),
+        "gamma": get_gamma(s0, vol, time2maturity, d1, y),
+        "vega": get_vega(s0, time2maturity, d1, y),
     }

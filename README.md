@@ -25,9 +25,9 @@ Usage examples for several strategies can be found in the **examples** directory
 To evaluate an option strategy, you need to import the *Strategy* class from the *strategy* module and instantiate it:
 
 ```python
-from optionsmonkey.strategy import Strategy
+from optionsmonkey.strategy import StrategyEngine
 
-st = Strategy()
+st = StrategyEngine()
 ```
 
 Next, you need to pass the input data to the *getdata()* method of the newly created *Strategy* object. 

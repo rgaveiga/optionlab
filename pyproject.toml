@@ -9,10 +9,15 @@ readme = "README.md"
 python = "^3.10"
 pandas = "^2.2.0"
 scipy = "^1.12.0"
+matplotlib = "^3.8.2"
+pydantic = "^2.5.3"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.0"
+pytest = "^8.0.0"
+ruff = "^0.1.14"
+mypy = "^1.8.0"
 
 [build-system]
 requires = ["poetry-core"]
