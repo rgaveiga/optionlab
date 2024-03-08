@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "optionlab"
+version = "0.1.0"
+description = "Evaluate option strategies"
+authors = ["rgaveiga"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+scipy = "^1.12.0"
+pandas = "^2.2.1"
+matplotlib = "^3.8.3"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.8.0"
+black = "^24.2.0"
+pytest = "^8.0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
