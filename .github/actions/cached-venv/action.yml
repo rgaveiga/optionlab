@@ -1,0 +1,30 @@
+name: "Install dependencies in venv"
+description: "Install dependencies in venv"
+
+runs:
+  using: composite
+  steps:
+    - name: Cache virtual environment
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-venv-1
+      with:
+        path: '**/venv'
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('poetry.lock') }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10.8"
+
+    - name: Install Poetry
+      run: |
+        pip install poetry==1.4.0
+      shell: bash
+
+    - name: Install dependencies
+      run: |
+        python3.10 -m venv venv
+        source venv/bin/activate
+        poetry install
+      shell: bash
