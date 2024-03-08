@@ -4,4 +4,4 @@ from . import support
 from . import strategy
 from . import option_chain
 
-__version__="0.1.7"
+__version__ = "0.1.7"
