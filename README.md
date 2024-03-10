@@ -295,8 +295,29 @@ print("Probability of Profit (PoP): %.1f%%" % (out["ProbabilityOfProfit"]*100.0)
 
 ## Contributions
 
-Although functional, **OptionLab** is still in its early stages of development. The author has limited time available to work on this library, which is why contributions from individuals with expertise in options and Python programming are greatly appreciated. 
+Although functional, **OptionLab** is still in its early stages of development. The author has limited time available 
+to work on this library, which is why contributions from individuals with expertise in options and Python 
+programming are greatly appreciated. 
+
+### Dev setup
+
+This repository uses `poetry` as a package manager. Install `poetry` as per the 
+[poetry docs](https://python-poetry.org/docs/#installing-with-pipx). It is recommended to install poetry version
+1.4.0 if there are issues with the latest versions.
+
+Once poetry is installed, set up your virtual environment for the repo with the following:
+
+```
+cd optionlab/
+python3.10 venv venv
+source venv/bin/activate
+poetry install
+```
+
+That should install all your dependencies and make you ready to contribute. Please add tests for all new features and 
+bug fixes and make sure you are formatting with [black](https://github.com/psf/black).
 
 ## Disclaimer
 
-This is free software and is provided as is. The author makes no guarantee that its results are accurate and is not responsible for any losses caused by the use of the code. Bugs can be reported as issues.
+This is free software and is provided as is. The author makes no guarantee that its results are accurate and is 
+not responsible for any losses caused by the use of the code. Bugs can be reported as issues.

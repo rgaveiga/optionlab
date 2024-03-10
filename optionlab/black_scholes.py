@@ -1,6 +1,6 @@
 from __future__ import division
-from scipy import stats, pi
-from numpy import exp, round, arange, abs, argmin
+from scipy import stats
+from numpy import exp, round, arange, abs, argmin, pi
 from numpy.lib.scimath import log, sqrt
 
 
