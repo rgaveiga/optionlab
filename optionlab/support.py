@@ -1,83 +1,26 @@
 from __future__ import division
-from scipy import stats
+
+import numpy as np
 from numpy import asarray, ndarray, exp, abs, round, diff, flatnonzero, arange, inf
-from numpy.random import normal, laplace
 from numpy.lib.scimath import log, sqrt
-from datetime import date, timedelta
-from optionlab.black_scholes import get_d1_d2, getoptionprice
-from optionlab.__holidays__ import getholidays
+from numpy.random import normal, laplace
+from scipy import stats
+
+from optionlab.black_scholes import get_d1_d2, get_option_price
+from optionlab.models import OptionType, Action, Distribution
 
 
-def getpayoff(optype, s, x):
+def get_pl_profile(
+    optype: OptionType,
+    action: Action,
+    x: float,
+    val: float,
+    n: int,
+    s: np.ndarray,
+    commission: float = 0.0,
+) -> tuple[np.ndarray, float]:
     """
-    getpayoff(optype,s,x) -> returns the payoff of an option trade at expiration.
-
-    Arguments:
-    ----------
-    optype: option type (either 'call' or 'put').
-    s: a numpy array of stock prices.
-    x: strike price.
-    """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
-
-    if optype == "call":
-        return (s - x + abs(s - x)) / 2.0
-    elif optype == "put":
-        return (x - s + abs(x - s)) / 2.0
-    else:
-        raise ValueError("Option type must be either 'call' or 'put'!")
-
-
-def getPLoption(optype, opvalue, action, s, x):
-    """
-    getPLoption(optype,opvalue,action,s,x) -> returns the profit (P) or loss
-    (L) per option of an option trade at expiration.
-
-    Arguments:
-    ----------
-    optype: option type (either 'call' or 'put').
-    opvalue: option price.
-    action: either 'buy' or 'sell' the option.
-    s: a numpy array of stock prices.
-    x: strike price.
-    """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
-
-    if action == "sell":
-        return opvalue - getpayoff(optype, s, x)
-    elif action == "buy":
-        return getpayoff(optype, s, x) - opvalue
-    else:
-        raise ValueError("Action must be either 'sell' or 'buy'!")
-
-
-def getPLstock(s0, action, s):
-    """
-    getPLstock(s0,action,s) -> returns the profit (P) or loss (L) of a stock
-    position.
-
-    Arguments:
-    ----------
-    s0: initial stock price.
-    action: either 'buy' or 'sell' the stock.
-    s: a numpy array of stock prices.
-    """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
-
-    if action == "sell":
-        return s0 - s
-    elif action == "buy":
-        return s - s0
-    else:
-        raise ValueError("Action must be either 'sell' or 'buy'!")
-
-
-def getPLprofile(optype, action, x, val, n, s, commission=0.0):
-    """
-    getPLprofile(optype,action,x,val,n,s,commision) -> returns the profit/loss
+    get_pl_profile(optype, action, x, val, n, s, commission) -> returns the profit/loss
     profile and cost of an option trade at expiration.
 
     Arguments:
@@ -88,10 +31,8 @@ def getPLprofile(optype, action, x, val, n, s, commission=0.0):
     val: option price.
     n: number of options.
     s: a numpy array of stock prices.
-    comission: commission charged by the broker (default is zero).
+    commission: commission charged by the broker (default is zero).
     """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
 
     if action == "buy":
         cost = -val
@@ -102,16 +43,18 @@ def getPLprofile(optype, action, x, val, n, s, commission=0.0):
 
     if optype in ("call", "put"):
         return (
-            n * getPLoption(optype, val, action, s, x) - commission,
+            n * _get_pl_option(optype, val, action, s, x) - commission,
             n * cost - commission,
         )
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
 
-def getPLprofilestock(s0, action, n, s, commission=0.0):
+def get_pl_profile_stock(
+    s0: float, action: Action, n: int, s: np.ndarray, commission: float = 0.0
+) -> tuple[np.ndarray, float]:
     """
-    getPLprofilestock(s0,action,n,s,commission) -> returns the profit/loss
+    get_pl_profile_stock(s0, action, n, s, commission) -> returns the profit/loss
     profile and cost of a stock position.
 
     Arguments:
@@ -122,8 +65,6 @@ def getPLprofilestock(s0, action, n, s, commission=0.0):
     s: a numpy array of stock prices.
     comission: commission charged by the broker (default is zero).
     """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
 
     if action == "buy":
         cost = -s0
@@ -132,14 +73,24 @@ def getPLprofilestock(s0, action, n, s, commission=0.0):
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
-    return n * getPLstock(s0, action, s) - commission, n * cost - commission
+    return n * _get_pl_stock(s0, action, s) - commission, n * cost - commission
 
 
-def getPLprofileBS(
-    optype, action, x, val, r, targ2maturity, volatility, n, s, y=0.0, commission=0.0
+def get_pl_profile_bs(
+    optype: OptionType,
+    action: Action,
+    x: float,
+    val: float,
+    r: float,
+    targ2maturity: float,
+    volatility: float,
+    n: int,
+    s: np.ndarray,
+    y: float = 0.0,
+    commission: float = 0.0,
 ):
     """
-    getPLprofileBS(optype,action,x,val,r,targ2maturity,volatility,n,s,y,
+    get_pl_profile_bs(optype,action,x,val,r,targ2maturity,volatility,n,s,y,
     commission) -> returns the profit/loss profile and cost of an option trade
     on a target date before maturity using the Black-Scholes model for option
     pricing.
@@ -156,10 +107,8 @@ def getPLprofileBS(
     n: number of options.
     s: a numpy array of stock prices.
     y: annualized dividend yield (default is zero)
-    comission: commission charged by the broker (default is zero).
+    commission: commission charged by the broker (default is zero).
     """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
 
     if action == "buy":
         cost = -val
@@ -171,46 +120,14 @@ def getPLprofileBS(
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
     d1, d2 = get_d1_d2(s, x, r, volatility, targ2maturity, y)
-    calcprice = getoptionprice(optype, s, x, r, targ2maturity, d1, d2, y)
+    calcprice = get_option_price(optype, s, x, r, targ2maturity, d1, d2, y)
 
     return fac * n * (calcprice - val) - commission, n * cost - commission
 
 
-def getnonbusinessdays(startdate, enddate, country="US"):
+def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     """
-    getnonbusinessdays -> returns the number of non-business days between
-    the start and end date.
-
-    Arguments
-    ---------
-    startdate: Start date, provided as a 'datetime.date' object.
-    enddate: End date, provided as a 'datetime.date' object.
-    country: Country for which the holidays will be counted as non-business days
-             (default is "US").
-    """
-    if not (isinstance(startdate, date) and isinstance(enddate, date)):
-        raise TypeError("'startdate' and 'enddate' must be 'datetime.date' objects!")
-
-    if enddate > startdate:
-        ndays = (enddate - startdate).days
-    else:
-        raise ValueError("End date must be after start date!")
-
-    nonbusinessdays = 0
-    holidays = getholidays(country)
-
-    for i in range(ndays):
-        currdate = startdate + timedelta(days=i)
-
-        if currdate.weekday() >= 5 or currdate.strftime("%Y-%m-%d") in holidays:
-            nonbusinessdays += 1
-
-    return nonbusinessdays
-
-
-def createpriceseq(minprice, maxprice):
-    """
-    createpriceseq(minprice,maxprice) -> generates a sequence of stock prices
+    create_price_seq(minprice, maxprice) -> generates a sequence of stock prices
     from 'minprice' to 'maxprice' with increment $0.01.
 
     Arguments:
@@ -218,17 +135,25 @@ def createpriceseq(minprice, maxprice):
     minprice: minimum stock price in the range.
     maxprice: maximum stock price in the range.
     """
-    if maxprice > minprice:
-        return round((arange(int(maxprice - minprice) * 100 + 1) * 0.01 + minprice), 2)
+    if max_price > min_price:
+        return round(
+            (arange(int(max_price - min_price) * 100 + 1) * 0.01 + min_price), 2
+        )
     else:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
 
-def createpricesamples(
-    s0, volatility, time2maturity, r=0.01, distribution="black-scholes", y=0.0, n=100000
-):
+def create_price_samples(
+    s0: float,
+    volatility: float,
+    time2maturity: int,
+    r: float = 0.01,
+    distribution: Distribution = "black-scholes",
+    y: float = 0.0,
+    n: int = 100_000,
+) -> float:
     """
-    createpricesamples(s0,volatility,time2maturity,r,distribution,y,n) -> generates
+    create_price_samples(s0, volatility, time2maturity, r, distribution, y, n) -> generates
     random stock prices at maturity according to a statistical distribution.
 
     Arguments:
@@ -256,9 +181,11 @@ def createpricesamples(
         raise ValueError("Distribution not implemented yet!")
 
 
-def getprofitrange(s, profit, target=0.01):
+def get_profit_range(
+    s: np.ndarray, profit: np.ndarray, target: float = 0.01
+) -> list[list[float]]:
     """
-    getprofitrange(s,profit,target) -> returns pairs of stock prices, as a list,
+    get_profit_range(s, profit, target) -> returns pairs of stock prices, as a list,
     for which an option trade is expected to get the desired profit in between.
 
     Arguments:
@@ -268,10 +195,8 @@ def getprofitrange(s, profit, target=0.01):
             stock price in the stock price array.
     target: profit target (0.01 is the default).
     """
-    if not (isinstance(s, ndarray) and isinstance(profit, ndarray)):
-        raise TypeError("'s' and 'profit' must be numpy arrays!")
 
-    profitrange = []
+    profitrange: list[list[float]] = []
 
     t = s[profit >= target]
 
@@ -304,9 +229,11 @@ def getprofitrange(s, profit, target=0.01):
     return profitrange
 
 
-def getPoP(profitranges, source="black-scholes", **kwargs):
+def get_pop(
+    profitranges: list[list[float]], source: Distribution = "black-scholes", **kwargs
+) -> float:
     """
-    getPoP(profitranges,source,kwargs) -> estimates the probability of profit
+    get_pop(profitranges, source, kwargs) -> estimates the probability of profit
     (PoP) of an option trade.
 
     Arguments:
@@ -398,13 +325,12 @@ def getPoP(profitranges, source="black-scholes", **kwargs):
         if source == "laplace":
             beta = sigma / sqrt(2.0)
 
-        for i in range(len(profitranges)):
-            lval = profitranges[i][0]
+        for p_range in profitranges:
+            lval = p_range[0]
+            hval = p_range[1]
 
             if lval <= 0.0:
                 lval = 1e-10
-
-            hval = profitranges[i][1]
 
             if source in ["normal", "black-scholes"]:
                 pop += stats.norm.cdf(
@@ -420,9 +346,10 @@ def getPoP(profitranges, source="black-scholes", **kwargs):
             stocks = asarray(kwargs["array"])
 
             if stocks.shape[0] > 0:
-                for i in range(len(profitranges)):
-                    tmp1 = stocks[stocks >= profitranges[i][0]]
-                    tmp2 = tmp1[tmp1 <= profitranges[i][1]]
+                for i, p_range in enumerate(profitranges):
+                    lval, hval = p_range
+                    tmp1 = stocks[stocks >= lval]
+                    tmp2 = tmp1[tmp1 <= hval]
                     pop += tmp2.shape[0]
 
                 pop = pop / stocks.shape[0]
@@ -434,3 +361,68 @@ def getPoP(profitranges, source="black-scholes", **kwargs):
         raise ValueError("Source not supported yet!")
 
     return pop
+
+
+def _get_pl_option(
+    optype: OptionType, opvalue: float, action: Action, s: np.ndarray, x: float
+) -> np.ndarray:
+    """
+    getPLoption(optype,opvalue,action,s,x) -> returns the profit (P) or loss
+    (L) per option of an option trade at expiration.
+
+    Arguments:
+    ----------
+    optype: option type (either 'call' or 'put').
+    opvalue: option price.
+    action: either 'buy' or 'sell' the option.
+    s: a numpy array of stock prices.
+    x: strike price.
+    """
+    if not isinstance(s, ndarray):
+        raise TypeError("'s' must be a numpy array!")
+
+    if action == "sell":
+        return opvalue - _get_payoff(optype, s, x)
+    elif action == "buy":
+        return _get_payoff(optype, s, x) - opvalue
+    else:
+        raise ValueError("Action must be either 'sell' or 'buy'!")
+
+
+def _get_payoff(optype: OptionType, s: np.ndarray, x: float) -> np.ndarray:
+    """
+    get_payoff(optype, s, x) -> returns the payoff of an option trade at expiration.
+
+    Arguments:
+    ----------
+    optype: option type (either 'call' or 'put').
+    s: a numpy array of stock prices.
+    x: strike price.
+    """
+
+    if optype == "call":
+        return (s - x + abs(s - x)) / 2.0
+    elif optype == "put":
+        return (x - s + abs(x - s)) / 2.0
+    else:
+        raise ValueError("Option type must be either 'call' or 'put'!")
+
+
+def _get_pl_stock(s0: float, action: Action, s: np.ndarray) -> np.ndarray:
+    """
+    get_pl_stock(s0,action,s) -> returns the profit (P) or loss (L) of a stock
+    position.
+
+    Arguments:
+    ----------
+    s0: initial stock price.
+    action: either 'buy' or 'sell' the stock.
+    s: a numpy array of stock prices.
+    """
+
+    if action == "sell":
+        return s0 - s
+    elif action == "buy":
+        return s - s0
+    else:
+        raise ValueError("Action must be either 'sell' or 'buy'!")
