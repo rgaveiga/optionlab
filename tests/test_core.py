@@ -1,7 +1,7 @@
 import pytest
 
 from optionlab.models import Inputs, Outputs
-from optionlab.strategy import StrategyEngine
+from optionlab.engine import StrategyEngine
 
 
 COVERED_CALL_RESULT = {
