@@ -1,4 +1,15 @@
+import pytest
+
 from optionlab.strategy import Strategy
+
+COVERED_CALL_RESULT = {
+    "ProbabilityOfProfit": 0.5489826392738772,
+    "StrategyCost": -16489.0,
+    "PerLegCost": [-16899.0, 409.99999999999994],
+    "ProfitRanges": [[164.9, float("inf")]],
+    "MinimumReturnInTheDomain": -9590.000000000002,
+    "MaximumReturnInTheDomain": 2011.0,
+}
 
 
 def test_covered_call(nvidia):
@@ -22,14 +33,35 @@ def test_covered_call(nvidia):
     st.getdata(**inputs)
     outputs = st.run()
 
-    assert outputs == {
-        "ProbabilityOfProfit": 0.5489826392738772,
-        "StrategyCost": -16489.0,
-        "PerLegCost": [-16899.0, 409.99999999999994],
-        "ProfitRanges": [[164.9, float("inf")]],
-        "MinimumReturnInTheDomain": -9590.000000000002,
-        "MaximumReturnInTheDomain": 2011.0,
+    assert outputs == pytest.approx(COVERED_CALL_RESULT)
+
+
+def test_covered_call_w_days_to_target(nvidia):
+    # https://medium.com/@rgaveiga/python-for-options-trading-2-mixing-options-and-stocks-1e9f59f388f
+
+    inputs = nvidia | {
+        # The covered call strategy is defined
+        "startdate": None,
+        "targetdate": None,
+        "days2targetdate": 32,
+        "use_dates": False,
+        "strategy": [
+            {"type": "stock", "n": 100, "action": "buy"},
+            {
+                "type": "call",
+                "strike": 185.0,
+                "premium": 4.1,
+                "n": 100,
+                "action": "sell",
+            },
+        ],
     }
+
+    st = Strategy()
+    st.getdata(**inputs)
+    outputs = st.run()
+
+    assert outputs == pytest.approx(COVERED_CALL_RESULT)
 
 
 def test_covered_call_w_prev_position(nvidia):
