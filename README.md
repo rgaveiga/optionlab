@@ -45,8 +45,6 @@ The input data passed to `model_validate` above needs to be of the following str
 
 ---
 
-Sure, here's the formatted list:
-
 - `stock_price` : float
   - Spot price of the underlying.
 
@@ -181,16 +179,16 @@ For example, let's say we wanted to calculate the probability of profit for nake
 The inputs object must be passed to the `StrategyEngine` object as follows:
 
 ```python
-from optionlab.strategy import StrategyEngine
+from optionlab.engine import StrategyEngine
 
 inputs_data = {
-    "stockprice": 164.04,
-    "startdate": "2021-11-22",
-    "targetdate": "2021-12-17",
+    "stock_price": 164.04,
+    "start_date": "2021-11-22",
+    "target_date": "2021-12-17",
     "volatility": 0.272,
-    "interestrate": 0.0002,
-    "minstock": 120,
-    "maxstock": 200,
+    "interest_rate": 0.0002,
+    "min_stock": 120,
+    "max_stock": 200,
     "strategy": [
         {"type": "call", "strike": 175.0, "premium": 1.15, "n": 100, "action": "sell"}
     ],
