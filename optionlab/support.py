@@ -11,7 +11,7 @@ from optionlab.models import OptionType, Action, Distribution
 
 
 def get_pl_profile(
-    optype: OptionType,
+    op_type: OptionType,
     action: Action,
     x: float,
     val: float,
@@ -20,12 +20,12 @@ def get_pl_profile(
     commission: float = 0.0,
 ) -> tuple[np.ndarray, float]:
     """
-    get_pl_profile(optype, action, x, val, n, s, commission) -> returns the profit/loss
+    get_pl_profile(op_type, action, x, val, n, s, commission) -> returns the profit/loss
     profile and cost of an option trade at expiration.
 
     Arguments:
     ----------
-    optype: option type ('call' or 'put').
+    op_type: option type ('call' or 'put').
     action: either 'buy' or 'sell' the option.
     x: strike price.
     val: option price.
@@ -41,9 +41,9 @@ def get_pl_profile(
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
-    if optype in ("call", "put"):
+    if op_type in ("call", "put"):
         return (
-            n * _get_pl_option(optype, val, action, s, x) - commission,
+            n * _get_pl_option(op_type, val, action, s, x) - commission,
             n * cost - commission,
         )
     else:
@@ -77,12 +77,12 @@ def get_pl_profile_stock(
 
 
 def get_pl_profile_bs(
-    optype: OptionType,
+    op_type: OptionType,
     action: Action,
     x: float,
     val: float,
     r: float,
-    targ2maturity: float,
+    target_to_maturity: float,
     volatility: float,
     n: int,
     s: np.ndarray,
@@ -90,19 +90,19 @@ def get_pl_profile_bs(
     commission: float = 0.0,
 ):
     """
-    get_pl_profile_bs(optype,action,x,val,r,targ2maturity,volatility,n,s,y,
+    get_pl_profile_bs(op_type,action,x,val,r,target_to_maturity,volatility,n,s,y,
     commission) -> returns the profit/loss profile and cost of an option trade
     on a target date before maturity using the Black-Scholes model for option
     pricing.
 
     Arguments:
     ----------
-    optype: option type (either 'call' or 'put').
+    op_type: option type (either 'call' or 'put').
     action: either 'buy' or 'sell' the option.
     x: strike.
     val: option price when the trade was open.
     r: risk-free interest rate.
-    targ2maturity: time remaining to maturity from the target date.
+    target_to_maturity: time remaining to maturity from the target date.
     volatility: annualized volatility of the underlying asset.
     n: number of options.
     s: a numpy array of stock prices.
@@ -119,8 +119,8 @@ def get_pl_profile_bs(
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
-    d1, d2 = get_d1_d2(s, x, r, volatility, targ2maturity, y)
-    calcprice = get_option_price(optype, s, x, r, targ2maturity, d1, d2, y)
+    d1, d2 = get_d1_d2(s, x, r, volatility, target_to_maturity, y)
+    calcprice = get_option_price(op_type, s, x, r, target_to_maturity, d1, d2, y)
 
     return fac * n * (calcprice - val) - commission, n * cost - commission
 
@@ -146,21 +146,21 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 def create_price_samples(
     s0: float,
     volatility: float,
-    time2maturity: int,
+    time_to_maturity: int,
     r: float = 0.01,
     distribution: Distribution = "black-scholes",
     y: float = 0.0,
     n: int = 100_000,
 ) -> float:
     """
-    create_price_samples(s0, volatility, time2maturity, r, distribution, y, n) -> generates
+    create_price_samples(s0, volatility, time_to_maturity, r, distribution, y, n) -> generates
     random stock prices at maturity according to a statistical distribution.
 
     Arguments:
     ----------
     s0: spot price of the stock.
     volatility: annualized volatility.
-    time2maturity: time left to maturity in units of year.
+    time_to_maturity: time left to maturity in units of year.
     r: annualized risk-free interest rate (default is 0.01). Used only if
        distribution is 'black-scholes'.
     distribution: statistical distribution used to generate random stock prices
@@ -170,13 +170,15 @@ def create_price_samples(
     n: number of randomly generated terminal prices.
     """
     if distribution == "normal":
-        return exp(normal(log(s0), volatility * sqrt(time2maturity), n))
+        return exp(normal(log(s0), volatility * sqrt(time_to_maturity), n))
     elif distribution == "black-scholes":
-        drift = (r - y - 0.5 * volatility * volatility) * time2maturity
+        drift = (r - y - 0.5 * volatility * volatility) * time_to_maturity
 
-        return exp(normal((log(s0) + drift), volatility * sqrt(time2maturity), n))
+        return exp(normal((log(s0) + drift), volatility * sqrt(time_to_maturity), n))
     elif distribution == "laplace":
-        return exp(laplace(log(s0), (volatility * sqrt(time2maturity)) / sqrt(2.0), n))
+        return exp(
+            laplace(log(s0), (volatility * sqrt(time_to_maturity)) / sqrt(2.0), n)
+        )
     else:
         raise ValueError("Distribution not implemented yet!")
 
@@ -248,14 +250,14 @@ def get_pop(
               * For 'source="normal"' or 'source="laplace"': the probability of
               profit is calculated assuming either a (log)normal or a (log)Laplace
               distribution of terminal stock prices at maturity.
-              The keywords 'stockprice', 'volatility' and 'time2maturity' must be
+              The keywords 'stockprice', 'volatility' and 'time_to_maturity' must be
               set.
 
               * For 'source="black-scholes"' (default): the probability of profit
               is calculated assuming a (log)normal distribution with risk neutrality
               as implemented in the Black-Scholes model.
               The keywords 'stockprice', 'volatility', 'interestrate' and
-              'time2maturity' must be set. The keyword 'dividendyield' is optional.
+              'time_to_maturity' must be set. The keyword 'dividendyield' is optional.
 
               * For 'source="array"': the probability of profit is calculated
               from a 1D numpy array of stock prices typically at maturity generated
@@ -288,10 +290,10 @@ def get_pop(
         else:
             raise ValueError("Volatility must be provided!")
 
-        if "time2maturity" in kwargs.keys():
-            time2maturity = float(kwargs["time2maturity"])
+        if "time_to_maturity" in kwargs.keys():
+            time_to_maturity = float(kwargs["time_to_maturity"])
 
-            if time2maturity < 0.0:
+            if time_to_maturity < 0.0:
                 raise ValueError("Time left to expiration must be a positive number!")
         else:
             raise ValueError("Time left to expiration must be provided!")
@@ -315,9 +317,9 @@ def get_pop(
             else:
                 y = 0.0
 
-            drift = (r - y - 0.5 * volatility * volatility) * time2maturity
+            drift = (r - y - 0.5 * volatility * volatility) * time_to_maturity
 
-        sigma = volatility * sqrt(time2maturity)
+        sigma = volatility * sqrt(time_to_maturity)
 
         if sigma == 0.0:
             sigma = 1e-10
@@ -364,15 +366,15 @@ def get_pop(
 
 
 def _get_pl_option(
-    optype: OptionType, opvalue: float, action: Action, s: np.ndarray, x: float
+    op_type: OptionType, opvalue: float, action: Action, s: np.ndarray, x: float
 ) -> np.ndarray:
     """
-    getPLoption(optype,opvalue,action,s,x) -> returns the profit (P) or loss
+    getPLoption(op_type,opvalue,action,s,x) -> returns the profit (P) or loss
     (L) per option of an option trade at expiration.
 
     Arguments:
     ----------
-    optype: option type (either 'call' or 'put').
+    op_type: option type (either 'call' or 'put').
     opvalue: option price.
     action: either 'buy' or 'sell' the option.
     s: a numpy array of stock prices.
@@ -382,27 +384,27 @@ def _get_pl_option(
         raise TypeError("'s' must be a numpy array!")
 
     if action == "sell":
-        return opvalue - _get_payoff(optype, s, x)
+        return opvalue - _get_payoff(op_type, s, x)
     elif action == "buy":
-        return _get_payoff(optype, s, x) - opvalue
+        return _get_payoff(op_type, s, x) - opvalue
     else:
         raise ValueError("Action must be either 'sell' or 'buy'!")
 
 
-def _get_payoff(optype: OptionType, s: np.ndarray, x: float) -> np.ndarray:
+def _get_payoff(op_type: OptionType, s: np.ndarray, x: float) -> np.ndarray:
     """
-    get_payoff(optype, s, x) -> returns the payoff of an option trade at expiration.
+    get_payoff(op_type, s, x) -> returns the payoff of an option trade at expiration.
 
     Arguments:
     ----------
-    optype: option type (either 'call' or 'put').
+    op_type: option type (either 'call' or 'put').
     s: a numpy array of stock prices.
     x: strike price.
     """
 
-    if optype == "call":
+    if op_type == "call":
         return (s - x + abs(s - x)) / 2.0
-    elif optype == "put":
+    elif op_type == "put":
         return (x - s + abs(x - s)) / 2.0
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")

@@ -56,16 +56,16 @@ class StrategyEngine:
         self.__days2maturity: list[int] = []
         self.__days2target = 30
         self.__daysinyear = 252 if inputs.discard_nonbusiness_days else 365
-        self.impvol: list[float] = []
-        self.itmprob: list[float] = []
+        self.implied_volatility: list[float] = []
+        self.itm_probability: list[float] = []
         self.delta: list[float] = []
         self.gamma: list[float] = []
         self.vega: list[float] = []
         self.theta: list[float] = []
         self.cost: list[float] = []
-        self.profitprob = 0.0
-        self.profittargprob = 0.0
-        self.losslimitprob = 0.0
+        self.project_probability = 0.0
+        self.project_target_probability = 0.0
+        self.loss_limit_probability = 0.0
         self.__distribution = inputs.distribution
         self.__stockprice = inputs.stock_price
         self.__volatility = inputs.volatility
@@ -180,8 +180,8 @@ class StrategyEngine:
 
         time2target = self.__days2target / self.__daysinyear
         self.cost = [0.0 for _ in range(len(self.__type))]
-        self.impvol = []
-        self.itmprob = []
+        self.implied_volatility = []
+        self.itm_probability = []
         self.delta = []
         self.gamma = []
         self.vega = []
@@ -211,13 +211,13 @@ class StrategyEngine:
         for i, type in enumerate(self.__type):
             if type in ("call", "put"):
                 if self.__prevpos[i] >= 0.0:
-                    time2maturity = self.__days2maturity[i] / self.__daysinyear
+                    time_to_maturity = self.__days2maturity[i] / self.__daysinyear
                     bs = get_bs_info(
                         self.__stockprice,
                         self.__strike[i],
                         self.__r,
                         self.__volatility,
-                        time2maturity,
+                        time_to_maturity,
                         self.__y,
                     )
 
@@ -225,18 +225,18 @@ class StrategyEngine:
                     self.vega.append(bs.vega)
 
                     if type == "call":
-                        self.impvol.append(
+                        self.implied_volatility.append(
                             _get_implied_vol(
                                 "call",
                                 self.__premium[i],
                                 self.__stockprice,
                                 self.__strike[i],
                                 self.__r,
-                                time2maturity,
+                                time_to_maturity,
                                 self.__y,
                             )
                         )
-                        self.itmprob.append(bs.call_itm_prob)
+                        self.itm_probability.append(bs.call_itm_prob)
 
                         if self.__action[i] == "buy":
                             self.delta.append(bs.call_delta)
@@ -245,18 +245,18 @@ class StrategyEngine:
                             self.delta.append(-bs.call_delta)
                             self.theta.append(-bs.call_theta / self.__daysinyear)
                     else:
-                        self.impvol.append(
+                        self.implied_volatility.append(
                             _get_implied_vol(
                                 "put",
                                 self.__premium[i],
                                 self.__stockprice,
                                 self.__strike[i],
                                 self.__r,
-                                time2maturity,
+                                time_to_maturity,
                                 self.__y,
                             )
                         )
-                        self.itmprob.append(bs.put_itm_prob)
+                        self.itm_probability.append(bs.put_itm_prob)
 
                         if self.__action[i] == "buy":
                             self.delta.append(bs.put_delta)
@@ -265,8 +265,8 @@ class StrategyEngine:
                             self.delta.append(-bs.put_delta)
                             self.theta.append(-bs.put_theta / self.__daysinyear)
                 else:
-                    self.impvol.append(0.0)
-                    self.itmprob.append(0.0)
+                    self.implied_volatility.append(0.0)
+                    self.itm_probability.append(0.0)
                     self.delta.append(0.0)
                     self.gamma.append(0.0)
                     self.vega.append(0.0)
@@ -342,8 +342,8 @@ class StrategyEngine:
                                 self.__optcommission,
                             )[0]
             elif type == "stock":
-                self.impvol.append(0.0)
-                self.itmprob.append(1.0)
+                self.implied_volatility.append(0.0)
+                self.itm_probability.append(1.0)
                 self.delta.append(1.0)
                 self.gamma.append(0.0)
                 self.vega.append(0.0)
@@ -383,8 +383,8 @@ class StrategyEngine:
                             self.__stockcommission,
                         )[0]
             elif type == "closed":
-                self.impvol.append(0.0)
-                self.itmprob.append(0.0)
+                self.implied_volatility.append(0.0)
+                self.itm_probability.append(0.0)
                 self.delta.append(0.0)
                 self.gamma.append(0.0)
                 self.vega.append(0.0)
@@ -405,17 +405,17 @@ class StrategyEngine:
 
         if self.__profitranges:
             if self.__distribution in ("normal", "laplace", "black-scholes"):
-                self.profitprob = get_pop(
+                self.project_probability = get_pop(
                     self.__profitranges,
                     self.__distribution,
                     stockprice=self.__stockprice,
                     volatility=self.__volatility,
-                    time2maturity=time2target,
+                    time_to_maturity=time2target,
                     interestrate=self.__r,
                     dividendyield=self.__y,
                 )
             elif self.__distribution == "array":
-                self.profitprob = get_pop(
+                self.project_probability = get_pop(
                     self.__profitranges, self.__distribution, array=self.__s_mc
                 )
 
@@ -426,17 +426,17 @@ class StrategyEngine:
 
             if self.__profittargrange:
                 if self.__distribution in ("normal", "laplace", "black-scholes"):
-                    self.profittargprob = get_pop(
+                    self.project_target_probability = get_pop(
                         self.__profittargrange,
                         self.__distribution,
                         stockprice=self.__stockprice,
                         volatility=self.__volatility,
-                        time2maturity=time2target,
+                        time_to_maturity=time2target,
                         interestrate=self.__r,
                         dividendyield=self.__y,
                     )
                 elif self.__distribution == "array":
-                    self.profittargprob = get_pop(
+                    self.project_target_probability = get_pop(
                         self.__profittargrange, self.__distribution, array=self.__s_mc
                     )
 
@@ -447,28 +447,30 @@ class StrategyEngine:
 
             if self.__losslimitranges:
                 if self.__distribution in ("normal", "laplace", "black-scholes"):
-                    self.losslimitprob = 1.0 - get_pop(
+                    self.loss_limit_probability = 1.0 - get_pop(
                         self.__losslimitranges,
                         self.__distribution,
                         stockprice=self.__stockprice,
                         volatility=self.__volatility,
-                        time2maturity=time2target,
+                        time_to_maturity=time2target,
                         interestrate=self.__r,
                         dividendyield=self.__y,
                     )
                 elif self.__distribution == "array":
-                    self.losslimitprob = 1.0 - get_pop(
+                    self.loss_limit_probability = 1.0 - get_pop(
                         self.__losslimitranges, self.__distribution, array=self.__s_mc
                     )
 
         optional_outputs = {}
 
         if self.__profittarg is not None:
-            optional_outputs["probability_of_profit_target"] = self.profittargprob
+            optional_outputs["probability_of_profit_target"] = (
+                self.project_target_probability
+            )
             optional_outputs["project_target_ranges"] = self.__profittargrange
 
         if self.__losslimit is not None:
-            optional_outputs["probability_of_loss_limit"] = self.losslimitprob
+            optional_outputs["probability_of_loss_limit"] = self.loss_limit_probability
 
         if (
             self.__compute_expectation or self.__distribution == "array"
@@ -493,14 +495,14 @@ class StrategyEngine:
         return Outputs.model_validate(
             optional_outputs
             | {
-                "probability_of_profit": self.profitprob,
+                "probability_of_profit": self.project_probability,
                 "strategy_cost": sum(self.cost),
                 "per_leg_cost": self.cost,
                 "profit_ranges": self.__profitranges,
                 "minimum_return_in_the_domain": self.strategyprofit.min(),
                 "maximum_return_in_the_domain": self.strategyprofit.max(),
-                "implied_volatility": self.impvol,
-                "in_the_money_probability": self.itmprob,
+                "implied_volatility": self.implied_volatility,
+                "in_the_money_probability": self.itm_probability,
                 "delta": self.delta,
                 "gamma": self.gamma,
                 "theta": self.theta,
