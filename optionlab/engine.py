@@ -408,11 +408,11 @@ class StrategyEngine:
                 self.project_probability = get_pop(
                     self.__profitranges,
                     self.__distribution,
-                    stockprice=self.__stockprice,
+                    stock_price=self.__stockprice,
                     volatility=self.__volatility,
-                    time_to_maturity=time2target,
-                    interestrate=self.__r,
-                    dividendyield=self.__y,
+                    years_to_maturity=time2target,
+                    interest_rate=self.__r,
+                    dividend_yield=self.__y,
                 )
             elif self.__distribution == "array":
                 self.project_probability = get_pop(
@@ -429,11 +429,11 @@ class StrategyEngine:
                     self.project_target_probability = get_pop(
                         self.__profittargrange,
                         self.__distribution,
-                        stockprice=self.__stockprice,
+                        stock_price=self.__stockprice,
                         volatility=self.__volatility,
-                        time_to_maturity=time2target,
-                        interestrate=self.__r,
-                        dividendyield=self.__y,
+                        years_to_maturity=time2target,
+                        interest_rate=self.__r,
+                        dividend_yield=self.__y,
                     )
                 elif self.__distribution == "array":
                     self.project_target_probability = get_pop(
@@ -450,11 +450,11 @@ class StrategyEngine:
                     self.loss_limit_probability = 1.0 - get_pop(
                         self.__losslimitranges,
                         self.__distribution,
-                        stockprice=self.__stockprice,
+                        stock_price=self.__stockprice,
                         volatility=self.__volatility,
-                        time_to_maturity=time2target,
-                        interestrate=self.__r,
-                        dividendyield=self.__y,
+                        years_to_maturity=time2target,
+                        interest_rate=self.__r,
+                        dividend_yield=self.__y,
                     )
                 elif self.__distribution == "array":
                     self.loss_limit_probability = 1.0 - get_pop(

@@ -63,7 +63,7 @@ def get_pl_profile_stock(
     action: either 'buy' or 'sell' the shares.
     n: number of shares.
     s: a numpy array of stock prices.
-    comission: commission charged by the broker (default is zero).
+    commission: commission charged by the broker (default is zero).
     """
 
     if action == "buy":
@@ -82,7 +82,7 @@ def get_pl_profile_bs(
     x: float,
     val: float,
     r: float,
-    target_to_maturity: float,
+    target_to_maturity_years: float,
     volatility: float,
     n: int,
     s: np.ndarray,
@@ -90,7 +90,7 @@ def get_pl_profile_bs(
     commission: float = 0.0,
 ):
     """
-    get_pl_profile_bs(op_type,action,x,val,r,target_to_maturity,volatility,n,s,y,
+    get_pl_profile_bs(op_type, action, x, val, r, target_to_maturity, volatility, n, s, y,
     commission) -> returns the profit/loss profile and cost of an option trade
     on a target date before maturity using the Black-Scholes model for option
     pricing.
@@ -102,7 +102,7 @@ def get_pl_profile_bs(
     x: strike.
     val: option price when the trade was open.
     r: risk-free interest rate.
-    target_to_maturity: time remaining to maturity from the target date.
+    target_to_maturity_years: time remaining to maturity from the target date, in years.
     volatility: annualized volatility of the underlying asset.
     n: number of options.
     s: a numpy array of stock prices.
@@ -119,21 +119,21 @@ def get_pl_profile_bs(
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
-    d1, d2 = get_d1_d2(s, x, r, volatility, target_to_maturity, y)
-    calcprice = get_option_price(op_type, s, x, r, target_to_maturity, d1, d2, y)
+    d1, d2 = get_d1_d2(s, x, r, volatility, target_to_maturity_years, y)
+    calcprice = get_option_price(op_type, s, x, r, target_to_maturity_years, d1, d2, y)
 
     return fac * n * (calcprice - val) - commission, n * cost - commission
 
 
 def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     """
-    create_price_seq(minprice, maxprice) -> generates a sequence of stock prices
-    from 'minprice' to 'maxprice' with increment $0.01.
+    create_price_seq(min_price, max_price) -> generates a sequence of stock prices
+    from 'min_price' to 'max_price' with increment $0.01.
 
     Arguments:
     ----------
-    minprice: minimum stock price in the range.
-    maxprice: maximum stock price in the range.
+    min_price: minimum stock price in the range.
+    max_price: maximum stock price in the range.
     """
     if max_price > min_price:
         return round(
@@ -146,21 +146,21 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 def create_price_samples(
     s0: float,
     volatility: float,
-    time_to_maturity: int,
+    years_to_maturity: int,
     r: float = 0.01,
     distribution: Distribution = "black-scholes",
     y: float = 0.0,
     n: int = 100_000,
 ) -> float:
     """
-    create_price_samples(s0, volatility, time_to_maturity, r, distribution, y, n) -> generates
+    create_price_samples(s0, volatility, years_to_maturity, r, distribution, y, n) -> generates
     random stock prices at maturity according to a statistical distribution.
 
     Arguments:
     ----------
     s0: spot price of the stock.
     volatility: annualized volatility.
-    time_to_maturity: time left to maturity in units of year.
+    years_to_maturity: time left to maturity in units of year.
     r: annualized risk-free interest rate (default is 0.01). Used only if
        distribution is 'black-scholes'.
     distribution: statistical distribution used to generate random stock prices
@@ -170,14 +170,14 @@ def create_price_samples(
     n: number of randomly generated terminal prices.
     """
     if distribution == "normal":
-        return exp(normal(log(s0), volatility * sqrt(time_to_maturity), n))
+        return exp(normal(log(s0), volatility * sqrt(years_to_maturity), n))
     elif distribution == "black-scholes":
-        drift = (r - y - 0.5 * volatility * volatility) * time_to_maturity
+        drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
 
-        return exp(normal((log(s0) + drift), volatility * sqrt(time_to_maturity), n))
+        return exp(normal((log(s0) + drift), volatility * sqrt(years_to_maturity), n))
     elif distribution == "laplace":
         return exp(
-            laplace(log(s0), (volatility * sqrt(time_to_maturity)) / sqrt(2.0), n)
+            laplace(log(s0), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n)
         )
     else:
         raise ValueError("Distribution not implemented yet!")
@@ -232,16 +232,16 @@ def get_profit_range(
 
 
 def get_pop(
-    profitranges: list[list[float]], source: Distribution = "black-scholes", **kwargs
+    profit_ranges: list[list[float]], source: Distribution = "black-scholes", **kwargs
 ) -> float:
     """
-    get_pop(profitranges, source, kwargs) -> estimates the probability of profit
+    get_pop(profit_ranges, source, kwargs) -> estimates the probability of profit
     (PoP) of an option trade.
 
     Arguments:
     ----------
-    profitranges: a Python list containing the stock price ranges, as given by
-                  'getprofitrange()', for which a trade results in profit.
+    profit_ranges: a Python list containing the stock price ranges, as given by
+                  'get_profit_range()', for which a trade results in profit.
     source: a string. It determines how the probability of profit is estimated
             (see next).
     **kwargs: a Python dictionary. The input that has to be provided depends on
@@ -250,14 +250,14 @@ def get_pop(
               * For 'source="normal"' or 'source="laplace"': the probability of
               profit is calculated assuming either a (log)normal or a (log)Laplace
               distribution of terminal stock prices at maturity.
-              The keywords 'stockprice', 'volatility' and 'time_to_maturity' must be
+              The keywords 'stock_price', 'volatility' and 'years_to_maturity' must be
               set.
 
               * For 'source="black-scholes"' (default): the probability of profit
               is calculated assuming a (log)normal distribution with risk neutrality
               as implemented in the Black-Scholes model.
-              The keywords 'stockprice', 'volatility', 'interestrate' and
-              'time_to_maturity' must be set. The keyword 'dividendyield' is optional.
+              The keywords 'stock_price', 'volatility', 'interest_rate' and
+              'years_to_maturity' must be set. The keyword 'dividend_yield' is optional.
 
               * For 'source="array"': the probability of profit is calculated
               from a 1D numpy array of stock prices typically at maturity generated
@@ -270,56 +270,56 @@ def get_pop(
     pop = 0.0
     drift = 0.0
 
-    if len(profitranges) == 0:
+    if len(profit_ranges) == 0:
         return pop
 
     if source in ("normal", "laplace", "black-scholes"):
-        if "stockprice" in kwargs.keys():
-            stockprice = float(kwargs["stockprice"])
-
-            if stockprice <= 0.0:
-                raise ValueError("Stock price must be greater than zero!")
-        else:
+        if not kwargs.get("stock_price"):
             raise ValueError("Stock price must be provided!")
 
-        if "volatility" in kwargs.keys():
-            volatility = float(kwargs["volatility"])
+        stock_price = float(kwargs["stock_price"])
 
-            if volatility <= 0.0:
-                raise ValueError("Volatility must be greater than zero!")
-        else:
+        if stock_price <= 0.0:
+            raise ValueError("Stock price must be greater than zero!")
+
+        if not kwargs.get("volatility"):
             raise ValueError("Volatility must be provided!")
 
-        if "time_to_maturity" in kwargs.keys():
-            time_to_maturity = float(kwargs["time_to_maturity"])
+        volatility = float(kwargs["volatility"])
 
-            if time_to_maturity < 0.0:
-                raise ValueError("Time left to expiration must be a positive number!")
-        else:
+        if volatility <= 0.0:
+            raise ValueError("Volatility must be greater than zero!")
+
+        if not kwargs.get("years_to_maturity"):
             raise ValueError("Time left to expiration must be provided!")
 
-        if source == "black-scholes":
-            if "interestrate" in kwargs.keys():
-                r = float(kwargs["interestrate"])
+        years_to_maturity = float(kwargs["years_to_maturity"])
 
-                if r < 0.0:
-                    raise ValueError(
-                        "Risk-free interest rate must be a positive number!"
-                    )
-            else:
+        if years_to_maturity < 0.0:
+            raise ValueError("Time left to expiration must be a positive number!")
+
+        if source == "black-scholes":
+            if not kwargs.get("interest_rate"):
                 raise ValueError("Risk-free interest rate must be provided!")
 
-            if "dividendyield" in kwargs.keys():
-                y = float(kwargs["dividendyield"])
+            r = float(kwargs["interest_rate"])
+
+            if r < 0.0:
+                raise ValueError(
+                    "Risk-free interest rate must be a positive number!"
+                )
+
+            if kwargs.get("dividend_yield"):
+                y = float(kwargs["dividend_yield"])
 
                 if y < 0.0:
                     raise ValueError("Dividend yield must be a positive number!")
             else:
                 y = 0.0
 
-            drift = (r - y - 0.5 * volatility * volatility) * time_to_maturity
+            drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
 
-        sigma = volatility * sqrt(time_to_maturity)
+        sigma = volatility * sqrt(years_to_maturity)
 
         if sigma == 0.0:
             sigma = 1e-10
@@ -327,38 +327,39 @@ def get_pop(
         if source == "laplace":
             beta = sigma / sqrt(2.0)
 
-        for p_range in profitranges:
+        for p_range in profit_ranges:
             lval = p_range[0]
             hval = p_range[1]
 
             if lval <= 0.0:
                 lval = 1e-10
 
-            if source in ["normal", "black-scholes"]:
+            if source in ("normal", "black-scholes"):
                 pop += stats.norm.cdf(
-                    (log(hval / stockprice) - drift) / sigma
-                ) - stats.norm.cdf((log(lval / stockprice) - drift) / sigma)
+                    (log(hval / stock_price) - drift) / sigma
+                ) - stats.norm.cdf((log(lval / stock_price) - drift) / sigma)
             else:
                 pop += stats.laplace.cdf(
-                    log(hval / stockprice) / beta
-                ) - stats.laplace.cdf(log(lval / stockprice) / beta)
+                    log(hval / stock_price) / beta
+                ) - stats.laplace.cdf(log(lval / stock_price) / beta)
 
     elif source == "array":
-        if "array" in kwargs.keys():
-            stocks = asarray(kwargs["array"])
-
-            if stocks.shape[0] > 0:
-                for i, p_range in enumerate(profitranges):
-                    lval, hval = p_range
-                    tmp1 = stocks[stocks >= lval]
-                    tmp2 = tmp1[tmp1 <= hval]
-                    pop += tmp2.shape[0]
-
-                pop = pop / stocks.shape[0]
-            else:
-                raise ValueError("The array of stock prices is empty!")
-        else:
+        if not kwargs.get("array"):
             raise ValueError("An array of stock prices must be provided!")
+
+        stocks = asarray(kwargs["array"])
+
+        if stocks.shape[0] == 0:
+            raise ValueError("The array of stock prices is empty!")
+
+        for i, p_range in enumerate(profit_ranges):
+            lval, hval = p_range
+            tmp1 = stocks[stocks >= lval]
+            tmp2 = tmp1[tmp1 <= hval]
+            pop += tmp2.shape[0]
+
+        pop = pop / stocks.shape[0]
+
     else:
         raise ValueError("Source not supported yet!")
 
