@@ -1,7 +1,7 @@
 import typing
 
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 if typing.TYPE_CHECKING:
@@ -36,6 +36,7 @@ if typing.TYPE_CHECKING:
         get_theta,
     )
     from .engine import StrategyEngine
+    from .plot import plot_pl
     from .support import (
         get_pl_profile,
         get_pl_profile_stock,
@@ -84,6 +85,8 @@ __all__ = (
     "get_delta",
     "get_gamma",
     "get_theta",
+    # plot
+    "plot_pl",
 )
 
 # A mapping of {<member name>: (package, <module name>)} defining dynamic imports
@@ -124,6 +127,8 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_delta": (__package__, ".black_scholes"),
     "get_gamma": (__package__, ".black_scholes"),
     "get_theta": (__package__, ".black_scholes"),
+    # plot
+    "plot_pl": (__package__, ".plot"),
 }
 
 
