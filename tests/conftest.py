@@ -6,11 +6,11 @@ import datetime as dt
 def nvidia():
     stockprice = 168.99
     return dict(
-        stockprice=stockprice,
+        stock_price=stockprice,
         volatility=0.483,
-        startdate=dt.date(2023, 1, 16).strftime("%Y-%m-%d"),
-        targetdate=dt.date(2023, 2, 17).strftime("%Y-%m-%d"),
-        interestrate=0.045,
-        minstock=stockprice - 100.0,
-        maxstock=stockprice + 100.0,
+        start_date=dt.date(2023, 1, 16),
+        target_date=dt.date(2023, 2, 17),
+        interest_rate=0.045,
+        min_stock=stockprice - 100.0,
+        max_stock=stockprice + 100.0,
     )
