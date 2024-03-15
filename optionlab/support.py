@@ -154,7 +154,7 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 def create_price_samples(
     s0: float,
     volatility: float,
-    years_to_maturity: int,
+    years_to_maturity: float,
     r: float = 0.01,
     distribution: Distribution = "black-scholes",
     y: float = 0.0,
