@@ -317,6 +317,45 @@ poetry install
 That should install all your dependencies and make you ready to contribute. Please add tests for all new features and 
 bug fixes and make sure you are formatting with [black](https://github.com/psf/black).
 
+#### Git Hooks
+
+This repo uses git hooks. Git hooks are scripts that run automatically every time a particular event occurs in a 
+Git repository. These events can include committing, merging, and pushing, among others. Git hooks allow developers 
+to enforce certain standards or checks before actions are completed in the repository, enhancing the workflow 
+and code quality.
+
+The pre-commit framework is a tool that leverages Git hooks to run checks on the code before it is committed to the 
+repository. By using pre-commit, developers can configure various plugins or hooks that automatically check for 
+syntax errors, formatting issues, or even run tests on the code being committed. This ensures that only code 
+that passes all the defined checks can be added to the repository, helping to maintain code quality and prevent
+issues from being introduced. 
+
+To install the pre-commit framework on a system with Homebrew, follow these steps:
+
+```
+brew install pre-commit
+```
+
+Once pre-commit is installed, navigate to the root directory of your Git repository where you want to 
+enable pre-commit hooks. Then, run the following command to set up pre-commit for that repository. This 
+command installs the Git hook scripts that the pre-commit framework will use to run checks before commits.
+
+```
+pre-commit install
+```
+
+Now, before each commit, the pre-commit hooks you've configured will automatically run. If any hook fails, 
+the commit will be aborted, allowing you to fix the issues before successfully committing your changes. This 
+process helps maintain a high code quality and ensures that common issues are addressed early in 
+the development process.
+
+To check all files in a repository with pre-commit, use:
+
+```
+pre-commit run --all-files
+
+```
+
 ## Disclaimer
 
 This is free software and is provided as is. The author makes no guarantee that its results are accurate and is 

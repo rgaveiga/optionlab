@@ -16,6 +16,7 @@ matplotlib = "^3.8.3"
 mypy = "^1.8.0"
 black = {extras = ["jupyter"], version = "^24.2.0"}
 pytest = "^8.0.2"
+ruff = "^0.3.2"
 
 [build-system]
 requires = ["poetry-core"]
