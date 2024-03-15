@@ -27,8 +27,8 @@ def get_bs_info(
     put_theta = get_theta("put", s, x, r, vol, years_to_maturity, d1, d2, y)
     gamma = get_gamma(s, vol, years_to_maturity, d1, y)
     vega = get_vega(s, years_to_maturity, d1, y)
-    call_itm_prob = _get_itm_probability("call", d2, years_to_maturity, y)
-    put_itm_prob = _get_itm_probability("put", d2, years_to_maturity, y)
+    call_itm_prob = get_itm_probability("call", d2, years_to_maturity, y)
+    put_itm_prob = get_itm_probability("put", d2, years_to_maturity, y)
 
     return BlackScholesInfo(
         call_price=call_price,
@@ -214,7 +214,7 @@ def get_d1_d2(
     return d1, d2
 
 
-def _get_implied_vol(
+def get_implied_vol(
     option_type: OptionType,
     oprice: float,
     s0: float,
@@ -224,7 +224,7 @@ def _get_implied_vol(
     y: float = 0.0,
 ) -> np.ndarray:
     """
-    _get_implied_vol(option_type, oprice, s0, x, r, years_to_maturity, y) -> estimates the implied
+    get_implied_vol(option_type, oprice, s0, x, r, years_to_maturity, y) -> estimates the implied
     volatility taking the option type (call or put), the option price, the current
     stock price 's0', the option strike 'x', the annualized risk-free rate 'r',
     the time remaining to maturity in units of year, and the stocks's annualized
@@ -240,11 +240,11 @@ def _get_implied_vol(
     return vol[argmin(dopt)]
 
 
-def _get_itm_probability(
+def get_itm_probability(
     option_type: OptionType, d2: float, years_to_maturity: float = 0.0, y: float = 0.0
 ) -> float:
     """
-    getitmprob(option_type,d2,years_to_maturity,y) -> returns the estimated probability
+    get_itm_probability(option_type, d2, years_to_maturity, y) -> returns the estimated probability
     that an option (either call or put) will be in-the-money at maturity, taking
     'd2' as defined in the Black-Scholes formula as a mandatory argument. Optionally,
     the time remaining to maturity in units of year and the stocks's annualized

@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import rcParams
 from numpy import array, ndarray, zeros, full, stack, savetxt
 
-from optionlab.black_scholes import get_bs_info, _get_implied_vol
+from optionlab.black_scholes import get_bs_info, get_implied_vol
 from optionlab.models import (
     Inputs,
     Action,
@@ -225,7 +225,7 @@ class StrategyEngine:
 
                     if type == "call":
                         self.implied_volatility.append(
-                            _get_implied_vol(
+                            get_implied_vol(
                                 "call",
                                 self.__premium[i],
                                 self.__stockprice,
@@ -245,7 +245,7 @@ class StrategyEngine:
                             self.theta.append(-bs.call_theta / self.__daysinyear)
                     else:
                         self.implied_volatility.append(
-                            _get_implied_vol(
+                            get_implied_vol(
                                 "put",
                                 self.__premium[i],
                                 self.__stockprice,
