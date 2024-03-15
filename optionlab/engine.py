@@ -2,9 +2,8 @@ from __future__ import division
 from __future__ import print_function
 
 import datetime as dt
-from typing import Literal
+from typing import Literal, Any
 
-import numpy as np
 from numpy import array, ndarray, zeros, stack, savetxt
 
 from optionlab.black_scholes import get_bs_info, get_implied_vol
@@ -43,7 +42,7 @@ class StrategyEngine:
         None.
         """
         self.s = create_price_seq(inputs.min_stock, inputs.max_stock)
-        self._s_mc: np.ndarray = array(inputs.array_prices or [])
+        self._s_mc: ndarray = array(inputs.array_prices or [])
         self.strike: list[float] = []
         self._premium: list[float] = []
         self._n: list[int] = []
@@ -166,7 +165,7 @@ class StrategyEngine:
             else:
                 raise ValueError("Type must be 'call', 'put', 'stock' or 'closed'!")
 
-    def run(self):
+    def run(self) -> Outputs:
         """
         run -> runs calculations for an options strategy.
 
@@ -205,7 +204,7 @@ class StrategyEngine:
 
         for i, type in enumerate(self.type):
             if type in ("call", "put"):
-                self._run_option_calcs(type, i)
+                self._run_option_calcs(i)
             elif type == "stock":
                 self._run_stock_calcs(i)
             elif type == "closed":
@@ -218,9 +217,10 @@ class StrategyEngine:
 
         self._profit_ranges = get_profit_range(self.s, self.strategy_profit)
 
+        pop_inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
         if self._distribution in ("normal", "laplace", "black-scholes"):
             pop_inputs = ProbabilityOfProfitInputs(
-                source=self._distribution,
+                source=self._distribution,  # type: ignore
                 stock_price=self._stock_price,
                 volatility=self._volatility,
                 years_to_maturity=time_to_target,
@@ -243,63 +243,16 @@ class StrategyEngine:
             )
 
         if self._loss_limit is not None:
-            self._loss_limit_ranges = get_profit_range(
+            self._loss_limit_rangesm = get_profit_range(
                 self.s, self.strategy_profit, self._loss_limit + 0.01
             )
             self.loss_limit_probability = 1.0 - get_pop(
                 self._loss_limit_ranges, pop_inputs
             )
 
-        optional_outputs = {}
+        return self._generate_outputs()
 
-        if self._profit_target is not None:
-            optional_outputs["probability_of_profit_target"] = (
-                self.project_target_probability
-            )
-            optional_outputs["project_target_ranges"] = self._profit_target_range
-
-        if self._loss_limit is not None:
-            optional_outputs["probability_of_loss_limit"] = self.loss_limit_probability
-
-        if (
-            self._compute_expectation or self._distribution == "array"
-        ) and self._s_mc.shape[0] > 0:
-            profit = self.strategy_profit_mc[self.strategy_profit_mc >= 0.01]
-            loss = self.strategy_profit_mc[self.strategy_profit_mc < 0.0]
-            optional_outputs["average_profit_from_mc"] = 0.0
-            optional_outputs["average_loss_from_mc"] = (
-                loss.mean() if loss.shape[0] > 0 else 0.0
-            )
-
-            if profit.shape[0] > 0:
-                optional_outputs["average_profit_from_mc"] = profit.mean()
-
-            if loss.shape[0] > 0:
-                optional_outputs["average_loss_from_mc"] = loss.mean()
-
-            optional_outputs["probability_of_profit_from_mc"] = (
-                self.strategy_profit_mc >= 0.01
-            ).sum() / self.strategy_profit_mc.shape[0]
-
-        return Outputs.model_validate(
-            optional_outputs
-            | {
-                "probability_of_profit": self.project_probability,
-                "strategy_cost": sum(self.cost),
-                "per_leg_cost": self.cost,
-                "profit_ranges": self._profit_ranges,
-                "minimum_return_in_the_domain": self.strategy_profit.min(),
-                "maximum_return_in_the_domain": self.strategy_profit.max(),
-                "implied_volatility": self.implied_volatility,
-                "in_the_money_probability": self.itm_probability,
-                "delta": self.delta,
-                "gamma": self.gamma,
-                "theta": self.theta,
-                "vega": self.vega,
-            }
-        )
-
-    def get_pl(self, leg: int | None = None):
+    def get_pl(self, leg: int | None = None) -> tuple[ndarray, ndarray]:
         """
         get_pl -> returns the profit/loss profile of either a leg or the whole
         strategy.
@@ -321,7 +274,7 @@ class StrategyEngine:
 
         return self.s, self.strategy_profit
 
-    def pl_to_csv(self, filename: str = "pl.csv", leg: int | None = None):
+    def pl_to_csv(self, filename: str = "pl.csv", leg: int | None = None) -> None:
         """
         pl_to_csv -> saves the profit/loss data to a .csv file.
 
@@ -345,8 +298,9 @@ class StrategyEngine:
             filename, arr.transpose(), delimiter=",", header="StockPrice,Profit/Loss"
         )
 
-    def _run_option_calcs(self, type: OptionType, i: int):
+    def _run_option_calcs(self, i: int):
         action: Action = self.action[i]  # type: ignore
+        type: OptionType = self.type[i]  # type: ignore
 
         if self._prev_pos[i] < 0.0:
             # Previous position is closed
@@ -525,6 +479,56 @@ class StrategyEngine:
 
         if self._compute_expectation or self._distribution == "array":
             self.profit_mc[i] += self._prev_pos[i]
+
+    def _generate_outputs(self) -> Outputs:
+        optional_outputs: dict[str, Any] = {}
+
+        if self._profit_target is not None:
+            optional_outputs["probability_of_profit_target"] = (
+                self.project_target_probability
+            )
+            optional_outputs["project_target_ranges"] = self._profit_target_range
+
+        if self._loss_limit is not None:
+            optional_outputs["probability_of_loss_limit"] = self.loss_limit_probability
+
+        if (
+            self._compute_expectation or self._distribution == "array"
+        ) and self._s_mc.shape[0] > 0:
+            profit = self.strategy_profit_mc[self.strategy_profit_mc >= 0.01]
+            loss = self.strategy_profit_mc[self.strategy_profit_mc < 0.0]
+            optional_outputs["average_profit_from_mc"] = 0.0
+            optional_outputs["average_loss_from_mc"] = (
+                loss.mean() if loss.shape[0] > 0 else 0.0
+            )
+
+            if profit.shape[0] > 0:
+                optional_outputs["average_profit_from_mc"] = profit.mean()
+
+            if loss.shape[0] > 0:
+                optional_outputs["average_loss_from_mc"] = loss.mean()
+
+            optional_outputs["probability_of_profit_from_mc"] = (
+                self.strategy_profit_mc >= 0.01
+            ).sum() / self.strategy_profit_mc.shape[0]
+
+        return Outputs.model_validate(
+            optional_outputs
+            | {
+                "probability_of_profit": self.project_probability,
+                "strategy_cost": sum(self.cost),
+                "per_leg_cost": self.cost,
+                "profit_ranges": self._profit_ranges,
+                "minimum_return_in_the_domain": self.strategy_profit.min(),
+                "maximum_return_in_the_domain": self.strategy_profit.max(),
+                "implied_volatility": self.implied_volatility,
+                "in_the_money_probability": self.itm_probability,
+                "delta": self.delta,
+                "gamma": self.gamma,
+                "theta": self.theta,
+                "vega": self.vega,
+            }
+        )
 
     """
     Properties
