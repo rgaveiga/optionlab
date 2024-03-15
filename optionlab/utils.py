@@ -7,7 +7,9 @@ from optionlab.__holidays__ import getholidays
 from optionlab.models import Country
 
 
-def get_nonbusiness_days(start_date: dt.date, end_date: dt.date, country: Country = "US"):
+def get_nonbusiness_days(
+    start_date: dt.date, end_date: dt.date, country: Country = "US"
+):
     """
     get_nonbusiness_days -> returns the number of non-business days between
     the start and end date.

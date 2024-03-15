@@ -102,7 +102,7 @@ The input data passed to `model_validate` above needs to be of the following str
   - Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 
   'laplace' or 'array'. Default is 'black-scholes'.
 
-- `nmc_prices` : int, optional
+- `mc_prices_number` : int, optional
   - Number of random terminal prices to be generated when calculating the average profit and 
   loss of a strategy. Default is 100,000.
 

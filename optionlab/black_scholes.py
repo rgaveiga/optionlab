@@ -45,7 +45,7 @@ def get_bs_info(
 
 
 def get_option_price(
-    op_type: OptionType,
+    option_type: OptionType,
     s0: np.ndarray | float,
     x: np.ndarray | float,
     r: float,
@@ -55,7 +55,7 @@ def get_option_price(
     y: float = 0.0,
 ) -> float:
     """
-    get_option_price(op_type, s0, x, r, years_to_maturity, d1, d2, y) -> returns the price of
+    get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y) -> returns the price of
     an option (call or put) given the current stock price 's0' and the option
     strike 'x', as well as the annualized risk-free rate 'r', the time remaining
     to maturity in units of year, 'd1' and 'd2' as defined in the Black-Scholes
@@ -67,13 +67,13 @@ def get_option_price(
     else:
         s = s0
 
-    if op_type == "call":
+    if option_type == "call":
         return round(
             s * stats.norm.cdf(d1)
             - x * exp(-r * years_to_maturity) * stats.norm.cdf(d2),
             2,
         )
-    elif op_type == "put":
+    elif option_type == "put":
         return round(
             x * exp(-r * years_to_maturity) * stats.norm.cdf(-d2)
             - s * stats.norm.cdf(-d1),
@@ -84,10 +84,10 @@ def get_option_price(
 
 
 def get_delta(
-    op_type: OptionType, d1: float, years_to_maturity: float = 0.0, y: float = 0.0
+    option_type: OptionType, d1: float, years_to_maturity: float = 0.0, y: float = 0.0
 ) -> float:
     """
-    get_delta(op_type, d1, years_to_maturity, y) -> computes the Greek Delta for an option
+    get_delta(option_type, d1, years_to_maturity, y) -> computes the Greek Delta for an option
     (call or put) taking 'd1' as defined in the Black-Scholes formula as a mandatory
     argument. Optionally, the time remaining to maturity in units of year and
     the stocks's annualized dividend yield 'y' (default is zero,i.e., the stock
@@ -99,9 +99,9 @@ def get_delta(
     else:
         yfac = 1.0
 
-    if op_type == "call":
+    if option_type == "call":
         return yfac * stats.norm.cdf(d1)
-    elif op_type == "put":
+    elif option_type == "put":
         return yfac * (stats.norm.cdf(d1) - 1.0)
     else:
         raise ValueError("Option must be either 'call' or 'put'!")
@@ -129,7 +129,7 @@ def get_gamma(
 
 
 def get_theta(
-    op_type: OptionType,
+    option_type: OptionType,
     s0: float,
     x: np.ndarray | float,
     r: float,
@@ -140,7 +140,7 @@ def get_theta(
     y: float = 0.0,
 ) -> float:
     """
-    get_theta(op_type, s0, x, r, vol, years_to_maturity, d1, d2, y) -> computes the Greek Theta
+    get_theta(option_type, s0, x, r, vol, years_to_maturity, d1, d2, y) -> computes the Greek Theta
     for an option (call or put) taking the current stock price 's0', the exercise
     price 'x', the annualized risk-free rate 'r', the time remaining to maturity
     in units of year , the annualized volatility 'vol', 'd1' and 'd2' as defined
@@ -156,13 +156,13 @@ def get_theta(
 
     cdf_d1_prime = exp(-0.5 * d1 * d1) / sqrt(2.0 * pi)
 
-    if op_type == "call":
+    if option_type == "call":
         return -(
             s * vol * cdf_d1_prime / (2.0 * sqrt(years_to_maturity))
             + r * x * exp(-r * years_to_maturity) * stats.norm.cdf(d2)
             - y * s * stats.norm.cdf(d1)
         )
-    elif op_type == "put":
+    elif option_type == "put":
         return -(
             s * vol * cdf_d1_prime / (2.0 * sqrt(years_to_maturity))
             - r * x * exp(-r * years_to_maturity) * stats.norm.cdf(-d2)
@@ -215,7 +215,7 @@ def get_d1_d2(
 
 
 def _get_implied_vol(
-    op_type: OptionType,
+    option_type: OptionType,
     oprice: float,
     s0: float,
     x: float,
@@ -224,7 +224,7 @@ def _get_implied_vol(
     y: float = 0.0,
 ) -> np.ndarray:
     """
-    _get_implied_vol(op_type, oprice, s0, x, r, years_to_maturity, y) -> estimates the implied
+    _get_implied_vol(option_type, oprice, s0, x, r, years_to_maturity, y) -> estimates the implied
     volatility taking the option type (call or put), the option price, the current
     stock price 's0', the option strike 'x', the annualized risk-free rate 'r',
     the time remaining to maturity in units of year, and the stocks's annualized
@@ -234,17 +234,17 @@ def _get_implied_vol(
     vol = 0.001 * arange(1, 1001)
     d1, d2 = get_d1_d2(s0, x, r, vol, years_to_maturity, y)
     dopt = abs(
-        get_option_price(op_type, s0, x, r, years_to_maturity, d1, d2, y) - oprice
+        get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y) - oprice
     )
 
     return vol[argmin(dopt)]
 
 
 def _get_itm_probability(
-    op_type: OptionType, d2: float, years_to_maturity: float = 0.0, y: float = 0.0
+    option_type: OptionType, d2: float, years_to_maturity: float = 0.0, y: float = 0.0
 ) -> float:
     """
-    getitmprob(op_type,d2,years_to_maturity,y) -> returns the estimated probability
+    getitmprob(option_type,d2,years_to_maturity,y) -> returns the estimated probability
     that an option (either call or put) will be in-the-money at maturity, taking
     'd2' as defined in the Black-Scholes formula as a mandatory argument. Optionally,
     the time remaining to maturity in units of year and the stocks's annualized
@@ -256,9 +256,9 @@ def _get_itm_probability(
     else:
         yfac = 1.0
 
-    if op_type == "call":
+    if option_type == "call":
         return yfac * stats.norm.cdf(d2)
-    elif op_type == "put":
+    elif option_type == "put":
         return yfac * stats.norm.cdf(-d2)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")

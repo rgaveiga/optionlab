@@ -77,3 +77,29 @@ def test_validate_dates(nvidia):
     assert "You can't mix a strategy expiration with a days_to_target_date." in str(
         err.value
     )
+
+
+def test_array_distribution_with_no_array(nvidia):
+
+    inputs = nvidia | {
+        "distribution": "array",
+        "strategy": [
+            {"type": "closed", "prev_pos": 100},
+        ],
+    }
+
+    with pytest.raises(ValueError) as err:
+        Inputs.model_validate(inputs)
+
+    assert "Array of prices must be provided if distribution is 'array'." in str(
+        err.value
+    )
+
+    inputs |= {"array": []}
+
+    with pytest.raises(ValueError) as err:
+        Inputs.model_validate(inputs)
+
+    assert "Array of prices must be provided if distribution is 'array'." in str(
+        err.value
+    )

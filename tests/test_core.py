@@ -2,7 +2,7 @@ import pytest
 
 from optionlab.models import Inputs, Outputs
 from optionlab.engine import StrategyEngine
-
+from optionlab.support import create_price_samples
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5489826392738772,
@@ -200,3 +200,103 @@ def test_3_legs(nvidia):
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
+
+
+def test_run_with_mc_array(nvidia):
+    array_prices = create_price_samples(168.99, 0.483, 23 / 365, 0.045)
+
+    inputs = Inputs.model_validate(
+        nvidia
+        | {
+            "distribution": "array",
+            "array_prices": array_prices,
+            "strategy": [
+                {"type": "stock", "n": 100, "action": "buy"},
+                {
+                    "type": "call",
+                    "strike": 185.0,
+                    "premium": 4.1,
+                    "n": 100,
+                    "action": "sell",
+                    "expiration": nvidia["target_date"],
+                },
+            ],
+        }
+    )
+
+    st = StrategyEngine(inputs)
+    outputs = st.run()
+
+    assert outputs.model_dump(exclude_none=True) == pytest.approx(
+        {
+            "probability_of_profit": 0.56679,
+            "profit_ranges": [(164.9, float("inf"))],
+            "per_leg_cost": [-16899.0, 409.99999999999994],
+            "strategy_cost": -16489.0,
+            "minimum_return_in_the_domain": -9590.000000000002,
+            "maximum_return_in_the_domain": 2011.0,
+            "implied_volatility": [0.0, 0.466],
+            "in_the_money_probability": [1.0, 0.2529827985340476],
+            "delta": [1.0, -0.30180572515271814],
+            "gamma": [0.0, 0.01413835937607837],
+            "theta": [0.0, 0.19521264859629808],
+            "vega": [0.0, 0.1779899391089498],
+            "average_profit_from_mc": 1348.2950516297647,
+            "average_loss_from_mc": -1388.1981940251862,
+            "probability_of_profit_from_mc": 0.56703,
+        },
+        rel=0.05,
+    )
+
+
+def test_100_itm_with_compute_expectation(nvidia):
+    inputs = Inputs.model_validate(
+        nvidia
+        | {
+            "compute_expectation": True,
+            # The covered call strategy is defined
+            "strategy": [
+                {
+                    "type": "call",
+                    "strike": 165.0,
+                    "premium": 12.65,
+                    "n": 100,
+                    "action": "buy",
+                    "prev_pos": 7.5,
+                    "expiration": nvidia["target_date"],
+                },
+                {
+                    "type": "call",
+                    "strike": 170.0,
+                    "premium": 9.9,
+                    "n": 100,
+                    "action": "sell",
+                    "expiration": nvidia["target_date"],
+                },
+            ],
+        }
+    )
+
+    st = StrategyEngine(inputs)
+    outputs = st.run()
+
+    assert outputs.model_dump(exclude_none=True) == pytest.approx(
+        {
+            "probability_of_profit": 1.0,
+            "profit_ranges": [(0.0, float("inf"))],
+            "per_leg_cost": [-750.0, 990.0],
+            "strategy_cost": 240.0,
+            "minimum_return_in_the_domain": 240.0,
+            "maximum_return_in_the_domain": 740.0000000000018,
+            "implied_volatility": [0.505, 0.493],
+            "in_the_money_probability": [0.547337257503663, 0.4658724723221915],
+            "delta": [0.6044395589860037, -0.5240293090819207],
+            "gamma": [0.015620889396345561, 0.016149144698391314],
+            "theta": [-0.22254722153197432, 0.22755381063645636],
+            "vega": [0.19665373318968424, 0.20330401888012928],
+            "average_profit_from_mc": 493.3532975418169,
+            "average_loss_from_mc": 0.0,
+            "probability_of_profit_from_mc": 1.0,
+        },
+        rel=0.01,
+    )

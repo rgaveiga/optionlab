@@ -5,6 +5,7 @@ import datetime as dt
 from typing import Literal
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import rcParams
 from numpy import array, ndarray, zeros, full, stack, savetxt
 
@@ -18,6 +19,8 @@ from optionlab.models import (
     StockStrategy,
     ClosedPosition,
     Outputs,
+    ProbabilityOfProfitInputs,
+    ProbabilityOfProfitArrayInputs,
 )
 from optionlab.support import (
     get_pl_profile,
@@ -41,7 +44,7 @@ class StrategyEngine:
         None.
         """
         self.__s = array([])
-        self.__s_mc = array([])
+        self.__s_mc: np.ndarray = array(inputs.array_prices or [])
         self.__strike: list[float] = []
         self.__premium: list[float] = []
         self.__n: list[int] = []
@@ -77,7 +80,7 @@ class StrategyEngine:
         self.__losslimit = inputs.loss_limit
         self.__optcommission = inputs.opt_commission
         self.__stockcommission = inputs.stock_commission
-        self.__nmcprices = inputs.nmc_prices
+        self.__nmcprices = inputs.mc_prices_number
         self.__compute_expectation = inputs.compute_expectation
 
         if inputs.start_date and inputs.target_date:
@@ -173,10 +176,6 @@ class StrategyEngine:
         output : Outputs
             An Outputs object containing the output of a calculation.
         """
-        if self.__distribution == "array" and self.__s_mc.shape[0] == 0:
-            raise RuntimeError(
-                "No terminal stock prices from Monte Carlo simulations! Nothing to do!"
-            )
 
         time2target = self.__days2target / self.__daysinyear
         self.cost = [0.0 for _ in range(len(self.__type))]
@@ -403,63 +402,37 @@ class StrategyEngine:
 
         self.__profitranges = get_profit_range(self.__s, self.strategyprofit)
 
-        if self.__profitranges:
-            if self.__distribution in ("normal", "laplace", "black-scholes"):
-                self.project_probability = get_pop(
-                    self.__profitranges,
-                    self.__distribution,
-                    stock_price=self.__stockprice,
-                    volatility=self.__volatility,
-                    years_to_maturity=time2target,
-                    interest_rate=self.__r,
-                    dividend_yield=self.__y,
-                )
-            elif self.__distribution == "array":
-                self.project_probability = get_pop(
-                    self.__profitranges, self.__distribution, array=self.__s_mc
-                )
+        if self.__distribution in ("normal", "laplace", "black-scholes"):
+            pop_inputs = ProbabilityOfProfitInputs(
+                source=self.__distribution,
+                stock_price=self.__stockprice,
+                volatility=self.__volatility,
+                years_to_maturity=time2target,
+                interest_rate=self.__r,
+                dividend_yield=self.__y,
+            )
+        elif self.__distribution == "array":
+            pop_inputs = ProbabilityOfProfitArrayInputs(array=self.__s_mc)
+        else:
+            raise ValueError("Source not supported yet!")
+
+        self.project_probability = get_pop(self.__profitranges, pop_inputs)
 
         if self.__profittarg is not None:
             self.__profittargrange = get_profit_range(
                 self.__s, self.strategyprofit, self.__profittarg
             )
-
-            if self.__profittargrange:
-                if self.__distribution in ("normal", "laplace", "black-scholes"):
-                    self.project_target_probability = get_pop(
-                        self.__profittargrange,
-                        self.__distribution,
-                        stock_price=self.__stockprice,
-                        volatility=self.__volatility,
-                        years_to_maturity=time2target,
-                        interest_rate=self.__r,
-                        dividend_yield=self.__y,
-                    )
-                elif self.__distribution == "array":
-                    self.project_target_probability = get_pop(
-                        self.__profittargrange, self.__distribution, array=self.__s_mc
-                    )
+            self.project_target_probability = get_pop(
+                self.__profittargrange, pop_inputs
+            )
 
         if self.__losslimit is not None:
             self.__losslimitranges = get_profit_range(
                 self.__s, self.strategyprofit, self.__losslimit + 0.01
             )
-
-            if self.__losslimitranges:
-                if self.__distribution in ("normal", "laplace", "black-scholes"):
-                    self.loss_limit_probability = 1.0 - get_pop(
-                        self.__losslimitranges,
-                        self.__distribution,
-                        stock_price=self.__stockprice,
-                        volatility=self.__volatility,
-                        years_to_maturity=time2target,
-                        interest_rate=self.__r,
-                        dividend_yield=self.__y,
-                    )
-                elif self.__distribution == "array":
-                    self.loss_limit_probability = 1.0 - get_pop(
-                        self.__losslimitranges, self.__distribution, array=self.__s_mc
-                    )
+            self.loss_limit_probability = 1.0 - get_pop(
+                self.__losslimitranges, pop_inputs
+            )
 
         optional_outputs = {}
 
@@ -483,12 +456,12 @@ class StrategyEngine:
             )
 
             if tmpprof.shape[0] > 0:
-                optional_outputs["AverageProfitFromMC"] = tmpprof.mean()
+                optional_outputs["average_profit_from_mc"] = tmpprof.mean()
 
             if tmploss.shape[0] > 0:
-                optional_outputs["AverageLossFromMC"] = tmploss.mean()
+                optional_outputs["average_loss_from_mc"] = tmploss.mean()
 
-            optional_outputs["ProbabilityOfProfitFromMC"] = (
+            optional_outputs["probability_of_profit_from_mc"] = (
                 self.strategyprofit_mc >= 0.01
             ).sum() / self.strategyprofit_mc.shape[0]
 
@@ -510,9 +483,9 @@ class StrategyEngine:
             }
         )
 
-    def getPL(self, leg=-1):
+    def get_pl(self, leg=-1):
         """
-        getPL -> returns the profit/loss profile of either a leg or the whole
+        get_pl -> returns the profit/loss profile of either a leg or the whole
         strategy.
 
         Parameters
@@ -532,9 +505,9 @@ class StrategyEngine:
         else:
             return self.__s, self.strategyprofit
 
-    def PL2csv(self, filename="pl.csv", leg=-1):
+    def pl_to_csv(self, filename="pl.csv", leg=-1):
         """
-        PL2csv -> saves the profit/loss data to a .csv file.
+        pl_to_csv -> saves the profit/loss data to a .csv file.
 
         Parameters
         ----------
@@ -556,9 +529,9 @@ class StrategyEngine:
             filename, arr.transpose(), delimiter=",", header="StockPrice,Profit/Loss"
         )
 
-    def plotPL(self):
+    def plot_pl(self):
         """
-        plotPL -> displays the strategy's profit/loss profile diagram.
+        plot_pl -> displays the strategy's profit/loss profile diagram.
 
         Returns
         -------
