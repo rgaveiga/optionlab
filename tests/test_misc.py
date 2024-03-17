@@ -1,4 +1,7 @@
 import datetime as dt
+import time
+
+import pytest
 
 from optionlab.utils import get_nonbusiness_days
 
@@ -30,3 +33,21 @@ def test_holidays():
     uk_nonbusiness_days = get_nonbusiness_days(start_date, end_date, country="UK")
 
     assert uk_nonbusiness_days == 110
+
+
+@pytest.mark.benchmark
+def test_holidays_benchmark(days: int = 366):
+
+    start_date = dt.date(2024, 1, 1)
+
+    for i in range(days):
+        end_date = start_date + dt.timedelta(days=1)
+
+        get_nonbusiness_days(start_date, end_date, country="US")
+
+
+def test_benchmark_holidays(benchmark):
+    start_time = time.time()
+    benchmark(test_holidays_benchmark)
+
+    assert time.time() - start_time < 200  # takes avg. ~120ms on M1

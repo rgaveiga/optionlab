@@ -2,12 +2,14 @@ from __future__ import division
 
 import datetime as dt
 from datetime import timedelta
+from functools import lru_cache
 
 from holidays import country_holidays
 
 from optionlab.models import Country
 
 
+@lru_cache
 def get_nonbusiness_days(
     start_date: dt.date, end_date: dt.date, country: Country = "US"
 ):
