@@ -48,9 +48,6 @@ class StrategyEngine:
         self._n: list[int] = []
         self.action: list[Action | Literal["n/a"]] = []
         self.type: list[StrategyType] = []
-        self._expiration: list[dt.date | int] = (
-            []
-        )  # FIXME: remove? doesn't seem to be used
         self._prev_pos: list[float] = []
         self._use_bs: list[bool] = []
         self._profit_ranges: list[Range] = []
@@ -106,13 +103,10 @@ class StrategyEngine:
                 self._prev_pos.append(strategy.prev_pos or 0.0)
 
                 if not strategy.expiration:
-                    if inputs.target_date:
-                        self._expiration.append(inputs.target_date)
 
                     self._days_to_maturity.append(self.days_to_target)
                     self._use_bs.append(False)
                 elif isinstance(strategy.expiration, dt.date) and inputs.start_date:
-                    self._expiration.append(strategy.expiration)
 
                     if inputs.discard_nonbusiness_days:
                         n_discarded_days = get_nonbusiness_days(
@@ -147,9 +141,6 @@ class StrategyEngine:
                 self._premium.append(0.0)
                 self._use_bs.append(False)
                 self._days_to_maturity.append(-1)
-                self._expiration.append(
-                    inputs.target_date if isinstance(inputs.target_date, int) else -1
-                )
 
             elif isinstance(strategy, ClosedPosition):
                 self._prev_pos.append(strategy.prev_pos)
@@ -159,9 +150,6 @@ class StrategyEngine:
                 self.action.append("n/a")
                 self._use_bs.append(False)
                 self._days_to_maturity.append(-1)
-                self._expiration.append(
-                    inputs.target_date if isinstance(inputs.target_date, int) else -1
-                )
             else:
                 raise ValueError("Type must be 'call', 'put', 'stock' or 'closed'!")
 
