@@ -50,4 +50,4 @@ def test_benchmark_holidays(benchmark):
     start_time = time.time()
     benchmark(test_holidays_benchmark)
 
-    assert time.time() - start_time < 200  # takes avg. ~120ms on M1
+    assert time.time() - start_time < 2  # takes avg. ~1.1ms on M1
