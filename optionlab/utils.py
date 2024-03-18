@@ -2,11 +2,14 @@ from __future__ import division
 
 import datetime as dt
 from datetime import timedelta
+from functools import lru_cache
 
-from optionlab.__holidays__ import getholidays
+from holidays import country_holidays
+
 from optionlab.models import Country
 
 
+@lru_cache
 def get_nonbusiness_days(
     start_date: dt.date, end_date: dt.date, country: Country = "US"
 ):
@@ -23,17 +26,17 @@ def get_nonbusiness_days(
     """
 
     if end_date > start_date:
-        ndays = (end_date - start_date).days
+        n_days = (end_date - start_date).days
     else:
         raise ValueError("End date must be after start date!")
 
-    nonbusinessdays = 0
-    holidays = getholidays(country)
+    nonbusiness_days = 0
+    holidays = country_holidays(country)
 
-    for i in range(ndays):
-        currdate = start_date + timedelta(days=i)
+    for i in range(n_days):
+        current_date = start_date + timedelta(days=i)
 
-        if currdate.weekday() >= 5 or currdate.strftime("%Y-%m-%d") in holidays:
-            nonbusinessdays += 1
+        if current_date.weekday() >= 5 or current_date.strftime("%Y-%m-%d") in holidays:
+            nonbusiness_days += 1
 
-    return nonbusinessdays
+    return nonbusiness_days
