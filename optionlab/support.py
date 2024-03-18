@@ -1,5 +1,7 @@
 from __future__ import division
 
+from functools import lru_cache
+
 import numpy as np
 from numpy import ndarray, exp, abs, round, diff, flatnonzero, arange, inf
 from numpy.lib.scimath import log, sqrt
@@ -152,6 +154,7 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
 
+@lru_cache
 def create_price_samples(
     s0: float,
     volatility: float,

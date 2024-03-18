@@ -42,7 +42,7 @@ class StrategyEngine:
         None.
         """
         self.s = create_price_seq(inputs.min_stock, inputs.max_stock)
-        self._s_mc: ndarray = array(inputs.array_prices or [])
+        self.terminal_stock_prices: ndarray = array(inputs.array_prices or [])
         self.strike: list[float] = []
         self._premium: list[float] = []
         self._n: list[int] = []
@@ -175,8 +175,8 @@ class StrategyEngine:
         self.profit = zeros((len(self.type), self.s.shape[0]))
         self.strategy_profit = zeros(self.s.shape[0])
 
-        if self._compute_expectation and self._s_mc.shape[0] == 0:
-            self._s_mc = create_price_samples(
+        if self._compute_expectation and self.terminal_stock_prices.shape[0] == 0:
+            self.terminal_stock_prices = create_price_samples(
                 self._stock_price,
                 self._volatility,
                 time_to_target,
@@ -186,9 +186,11 @@ class StrategyEngine:
                 self._n_mc_prices,
             )
 
-        if self._s_mc.shape[0] > 0:
-            self.profit_mc = zeros((len(self.type), self._s_mc.shape[0]))
-            self.strategy_profit_mc = zeros(self._s_mc.shape[0])
+        if self.terminal_stock_prices.shape[0] > 0:
+            self.profit_mc = zeros(
+                (len(self.type), self.terminal_stock_prices.shape[0])
+            )
+            self.strategy_profit_mc = zeros(self.terminal_stock_prices.shape[0])
 
         for i, type in enumerate(self.type):
             if type in ("call", "put"):
@@ -216,7 +218,9 @@ class StrategyEngine:
                 dividend_yield=self._y,
             )
         elif self._distribution == "array":
-            pop_inputs = ProbabilityOfProfitArrayInputs(array=self._s_mc)
+            pop_inputs = ProbabilityOfProfitArrayInputs(
+                array=self.terminal_stock_prices
+            )
         else:
             raise ValueError("Source not supported yet!")
 
@@ -382,7 +386,7 @@ class StrategyEngine:
                     target_to_maturity,
                     self._volatility,
                     self._n[i],
-                    self._s_mc,
+                    self.terminal_stock_prices,
                     self._y,
                     self._opt_commission,
                 )[0]
@@ -404,7 +408,7 @@ class StrategyEngine:
                     self.strike[i],
                     opt_value,
                     self._n[i],
-                    self._s_mc,
+                    self.terminal_stock_prices,
                     self._opt_commission,
                 )[0]
 
@@ -450,7 +454,7 @@ class StrategyEngine:
                 stockpos,
                 action,
                 self._n[i],
-                self._s_mc,
+                self.terminal_stock_prices,
                 self._stock_commission,
             )[0]
 
@@ -482,7 +486,7 @@ class StrategyEngine:
 
         if (
             self._compute_expectation or self._distribution == "array"
-        ) and self._s_mc.shape[0] > 0:
+        ) and self.terminal_stock_prices.shape[0] > 0:
             profit = self.strategy_profit_mc[self.strategy_profit_mc >= 0.01]
             loss = self.strategy_profit_mc[self.strategy_profit_mc < 0.0]
             optional_outputs["average_profit_from_mc"] = 0.0
@@ -533,19 +537,3 @@ class StrategyEngine:
     @property
     def stock_price_array(self):
         return self.s
-
-    @property
-    def terminal_stock_prices(
-        self,
-    ):  # FIXME: why are Monte Carlo stock prices named `terminal_stock_prices` here?
-        return self._s_mc
-
-    @terminal_stock_prices.setter
-    def terminal_stock_prices(self, s: ndarray):  # TODO: likely delete this
-        if isinstance(s, ndarray):
-            if s.shape[0] > 0:
-                self._s_mc = s
-            else:
-                raise ValueError("Empty terminal stock price array is not allowed!")
-        else:
-            raise TypeError("A numpy array is expected!")

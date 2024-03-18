@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.0 (2024-03-19)
+
+- Refactor the engine's `run` method for readability.
+
 ## 1.0.1 (2024-03-18)
 
 - Refactor __holidays__.py to a utils function using the `holiday` library
