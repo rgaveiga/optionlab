@@ -33,7 +33,7 @@ from optionlab.utils import get_nonbusiness_days
 
 
 class StrategyEngine:
-    def __init__(self, inputs: Inputs):
+    def __init__(self, inputs_data: Inputs | dict):
         """
         __init__ -> initializes class variables.
 
@@ -41,6 +41,12 @@ class StrategyEngine:
         -------
         None.
         """
+        inputs = (
+            inputs_data
+            if isinstance(inputs_data, Inputs)
+            else Inputs.model_validate(inputs_data)
+        )
+
         self.s = create_price_seq(inputs.min_stock, inputs.max_stock)
         self.terminal_stock_prices: ndarray = array(inputs.array_prices or [])
         self.strike: list[float] = []
