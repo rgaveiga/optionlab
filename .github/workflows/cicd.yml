@@ -23,7 +23,7 @@ jobs:
           source venv/bin/activate
           mypy optionlab/ --ignore-missing-imports
           black . --check --diff --color
-          pytest
+          pytest -m "not benchmark"
 
   publish:
     name: Publish to pypi.org
