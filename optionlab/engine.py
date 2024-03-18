@@ -109,7 +109,6 @@ class StrategyEngine:
                 self._prev_pos.append(strategy.prev_pos or 0.0)
 
                 if not strategy.expiration:
-
                     self._days_to_maturity.append(self.days_to_target)
                     self._use_bs.append(False)
                 elif isinstance(strategy.expiration, dt.date) and inputs.start_date:
