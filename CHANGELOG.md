@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.0.1 (2024-03-18)
+
+- Refactor __holidays__.py to a utils function using the `holiday` library
+
 ## 1.0.0 (2024-03-11)
 
 **BREAKING CHANGES**:
