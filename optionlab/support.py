@@ -136,6 +136,7 @@ def get_pl_profile_bs(
     return fac * n * (calcprice - val) - commission, n * cost - commission
 
 
+@lru_cache
 def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     """
     create_price_seq(min_price, max_price) -> generates a sequence of stock prices

@@ -54,7 +54,7 @@ class StrategyEngine:
         self._n: list[int] = []
         self.action: list[Action | Literal["n/a"]] = []
         self.type: list[StrategyType] = []
-        self._prev_pos: list[float] = []
+        self._previous_position: list[float] = []
         self._use_bs: list[bool] = []
         self._profit_ranges: list[Range] = []
         self._profit_target_range: list[Range] = []
@@ -69,7 +69,7 @@ class StrategyEngine:
         self.vega: list[float] = []
         self.theta: list[float] = []
         self.cost: list[float] = []
-        self.project_probability = 0.0
+        self.profit_probability = 0.0
         self.project_target_probability = 0.0
         self.loss_limit_probability = 0.0
         self._distribution = inputs.distribution
@@ -106,7 +106,7 @@ class StrategyEngine:
                 self._premium.append(strategy.premium)
                 self._n.append(strategy.n)
                 self.action.append(strategy.action)
-                self._prev_pos.append(strategy.prev_pos or 0.0)
+                self._previous_position.append(strategy.prev_pos or 0.0)
 
                 if not strategy.expiration:
                     self._days_to_maturity.append(self.days_to_target)
@@ -141,14 +141,14 @@ class StrategyEngine:
             elif isinstance(strategy, StockStrategy):
                 self._n.append(strategy.n)
                 self.action.append(strategy.action)
-                self._prev_pos.append(strategy.prev_pos or 0.0)
+                self._previous_position.append(strategy.prev_pos or 0.0)
                 self.strike.append(0.0)
                 self._premium.append(0.0)
                 self._use_bs.append(False)
                 self._days_to_maturity.append(-1)
 
             elif isinstance(strategy, ClosedPosition):
-                self._prev_pos.append(strategy.prev_pos)
+                self._previous_position.append(strategy.prev_pos)
                 self.strike.append(0.0)
                 self._n.append(0)
                 self._premium.append(0.0)
@@ -229,7 +229,7 @@ class StrategyEngine:
         else:
             raise ValueError("Source not supported yet!")
 
-        self.project_probability = get_pop(self._profit_ranges, pop_inputs)
+        self.profit_probability = get_pop(self._profit_ranges, pop_inputs)
 
         if self._profit_target is not None:
             self._profit_target_range = get_profit_range(
@@ -299,7 +299,7 @@ class StrategyEngine:
         action: Action = self.action[i]  # type: ignore
         type: OptionType = self.type[i]  # type: ignore
 
-        if self._prev_pos[i] < 0.0:
+        if self._previous_position[i] < 0.0:
             # Previous position is closed
             self.implied_volatility.append(0.0)
             self.itm_probability.append(0.0)
@@ -308,7 +308,7 @@ class StrategyEngine:
             self.vega.append(0.0)
             self.theta.append(0.0)
 
-            cost = (self._premium[i] + self._prev_pos[i]) * self._n[i]
+            cost = (self._premium[i] + self._previous_position[i]) * self._n[i]
 
             if self.action[i] == "buy":
                 cost *= -1.0
@@ -357,8 +357,8 @@ class StrategyEngine:
             self.delta.append(bs.put_delta * negative_multiplier)
             self.theta.append(bs.put_theta / self._days_in_year * negative_multiplier)
 
-        if self._prev_pos[i] > 0.0:  # Premium of the open position
-            opt_value = self._prev_pos[i]
+        if self._previous_position[i] > 0.0:  # Premium of the open position
+            opt_value = self._previous_position[i]
         else:  # Current premium
             opt_value = self._premium[i]
 
@@ -427,8 +427,8 @@ class StrategyEngine:
         self.vega.append(0.0)
         self.theta.append(0.0)
 
-        if self._prev_pos[i] < 0.0:  # Previous position is closed
-            costtmp = (self._stock_price + self._prev_pos[i]) * self._n[i]
+        if self._previous_position[i] < 0.0:  # Previous position is closed
+            costtmp = (self._stock_price + self._previous_position[i]) * self._n[i]
 
             if self.action[i] == "buy":
                 costtmp *= -1.0
@@ -441,8 +441,8 @@ class StrategyEngine:
 
             return
 
-        if self._prev_pos[i] > 0.0:  # Stock price at previous position
-            stockpos = self._prev_pos[i]
+        if self._previous_position[i] > 0.0:  # Stock price at previous position
+            stockpos = self._previous_position[i]
         else:  # Spot price of the stock at start date
             stockpos = self._stock_price
 
@@ -471,11 +471,11 @@ class StrategyEngine:
         self.vega.append(0.0)
         self.theta.append(0.0)
 
-        self.cost[i] = self._prev_pos[i]
-        self.profit[i] += self._prev_pos[i]
+        self.cost[i] = self._previous_position[i]
+        self.profit[i] += self._previous_position[i]
 
         if self._compute_expectation or self._distribution == "array":
-            self.profit_mc[i] += self._prev_pos[i]
+            self.profit_mc[i] += self._previous_position[i]
 
     def _generate_outputs(self) -> Outputs:
         optional_outputs: dict[str, Any] = {}
@@ -512,7 +512,7 @@ class StrategyEngine:
         return Outputs.model_validate(
             optional_outputs
             | {
-                "probability_of_profit": self.project_probability,
+                "probability_of_profit": self.profit_probability,
                 "strategy_cost": sum(self.cost),
                 "per_leg_cost": self.cost,
                 "profit_ranges": self._profit_ranges,
