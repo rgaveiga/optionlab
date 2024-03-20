@@ -45,6 +45,7 @@ if typing.TYPE_CHECKING:
         get_profit_range,
         get_pop,
     )
+    from .api import get_options_chain, get_stock_history
 
 __version__ = VERSION
 __all__ = (
@@ -85,7 +86,8 @@ __all__ = (
     "get_gamma",
     "get_theta",
     # api
-    "get_options_chain" "get_stock_history",
+    "get_options_chain",
+    "get_stock_history",
 )
 
 # A mapping of {<member name>: (package, <module name>)} defining dynamic imports
