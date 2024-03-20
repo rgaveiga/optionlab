@@ -84,6 +84,8 @@ __all__ = (
     "get_delta",
     "get_gamma",
     "get_theta",
+    # api
+    "get_options_chain" "get_stock_history",
 )
 
 # A mapping of {<member name>: (package, <module name>)} defining dynamic imports
@@ -124,6 +126,9 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_delta": (__package__, ".black_scholes"),
     "get_gamma": (__package__, ".black_scholes"),
     "get_theta": (__package__, ".black_scholes"),
+    # api
+    "get_options_chain": (__package__, ".api"),
+    "get_stock_history": (__package__, ".api"),
 }
 
 
