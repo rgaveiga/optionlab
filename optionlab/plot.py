@@ -39,7 +39,7 @@ def plot_pl(st: StrategyEngine):
     comment += "respectively, with blue representing long and red representing "
     comment += "short positions."
 
-    plt.axvline(st._stock_price, ls="--", color="green")
+    plt.axvline(st.stock_price, ls="--", color="green")
     plt.xlabel("Stock price")
     plt.ylabel("Profit/Loss")
     plt.xlim(st.s.min(), st.s.max())
@@ -64,14 +64,14 @@ def plot_pl(st: StrategyEngine):
                 zero_put_sell.append(0.0)
 
     target_line = None
-    if st._profit_target is not None:
+    if st.profit_target is not None:
         comment += " The blue dashed line represents the profit target level."
-        target_line = full(st.s.shape[0], st._profit_target)
+        target_line = full(st.s.shape[0], st.profit_target)
 
     loss_line = None
-    if st._loss_limit is not None:
+    if st.loss_limit is not None:
         comment += " The red dashed line represents the loss limit level."
-        loss_line = full(st.s.shape[0], st._loss_limit)
+        loss_line = full(st.s.shape[0], st.loss_limit)
 
     print(comment)
 
