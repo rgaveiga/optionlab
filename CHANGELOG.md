@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.2.0 (2024-03-21)
+
+- Add API to call yfinance to receive stock information and future options chain
+
 ## 1.0.1 (2024-03-18)
 
 - Refactor __holidays__.py to a utils function using the `holiday` library
