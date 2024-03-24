@@ -1,7 +1,7 @@
 import typing
 
 
-VERSION = "1.1.0"
+VERSION = "1.3.0"
 
 
 if typing.TYPE_CHECKING:
