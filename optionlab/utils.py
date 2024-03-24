@@ -40,3 +40,13 @@ def get_nonbusiness_days(
             nonbusiness_days += 1
 
     return nonbusiness_days
+
+
+def get_fridays_date(weeks_until: int = 0) -> dt.date:
+
+    current_date = dt.datetime.now()
+
+    days_until_friday = 4 - current_date.weekday() + 7
+    datetime = current_date + dt.timedelta(days=days_until_friday + weeks_until * 7)
+
+    return datetime.date()

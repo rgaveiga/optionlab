@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.2.0 (2024-03-25)
+
+- Add API to call yfinance to receive stock information and future options chain
+
 ## 1.1.0 (2024-03-24)
 
 - Refactor the engine's `run` method for readability.

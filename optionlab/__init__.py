@@ -1,7 +1,7 @@
 import typing
 
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 
 if typing.TYPE_CHECKING:
@@ -46,6 +46,7 @@ if typing.TYPE_CHECKING:
         get_profit_range,
         get_pop,
     )
+    from .api import get_options_chain, get_stock_history
 
 __version__ = VERSION
 __all__ = (
@@ -87,6 +88,9 @@ __all__ = (
     "get_theta",
     # plot
     "plot_pl",
+    # api
+    "get_options_chain",
+    "get_stock_history",
 )
 
 # A mapping of {<member name>: (package, <module name>)} defining dynamic imports
@@ -129,6 +133,9 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_theta": (__package__, ".black_scholes"),
     # plot
     "plot_pl": (__package__, ".plot"),
+    # api
+    "get_options_chain": (__package__, ".api"),
+    "get_stock_history": (__package__, ".api"),
 }
 
 

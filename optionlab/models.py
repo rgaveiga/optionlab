@@ -2,6 +2,8 @@ import datetime as dt
 from typing import Literal
 
 import numpy as np
+import pandas as pd
+from humps import decamelize
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 
 OptionType = Literal["call", "put"]
@@ -356,4 +358,109 @@ class Outputs(BaseModel):
     def return_in_the_domain_ratio(self) -> float:
         return abs(
             self.maximum_return_in_the_domain / self.minimum_return_in_the_domain
+        )
+
+
+class UnderlyingAsset(BaseModel):
+    symbol: str
+    region: str
+    quote_type: Literal["EQUITY"]
+    quote_source_name: Literal["Delayed Quote", "Nasdaq Real Time Price"]
+    triggerable: bool
+    currency: Literal["USD"]
+    market_state: Literal["CLOSED", "OPEN", "POST"]
+    regular_market_change_percent: float
+    regular_market_price: float
+    exchange: str
+    short_name: str
+    long_name: str
+    exchange_timezone_name: str
+    exchange_timezone_short_name: str
+    gmt_off_set_milliseconds: int
+    market: Literal["us_market"]
+    esg_populated: bool
+    first_trade_date_milliseconds: int
+    post_market_change_percent: float
+    post_market_time: int
+    post_market_price: float
+    post_market_change: float
+    regular_market_change: float
+    regular_market_time: int
+    regular_market_day_high: float
+    regular_market_day_range: tuple[float, float]
+    regular_market_day_low: float
+    regular_market_volume: float
+    regular_market_previous_close: float
+    bid: float
+    ask: float
+    bid_size: int
+    ask_size: int
+    full_exchange_name: str
+    financial_currency: Literal["USD"]
+    regular_market_open: float
+    average_daily_volume3_month: int
+    average_daily_volume10_day: int
+    fifty_two_week_low_change: float
+    fifty_two_week_low_change_percent: float
+    fifty_two_week_range: tuple[float, float]
+    fifty_two_week_high_change: float
+    fifty_two_week_high_change_percent: float
+    fifty_two_week_low: float
+    fifty_two_week_high: float
+    fifty_two_week_change_percent: float
+    dividend_date: int
+    earnings_timestamp: int
+    earnings_timestamp_start: int
+    earnings_timestamp_end: int
+    trailing_annual_dividend_rate: float
+    trailing_pe: float
+    dividend_rate: float
+    trailing_annual_dividend_yield: float
+    dividend_yield: float
+    eps_trailing_twelve_months: float
+    eps_forward: float
+    eps_current_year: float
+    price_eps_current_year: float
+    shares_outstanding: int
+    book_value: float
+    fifty_day_average: float
+    fifty_day_average_change: float
+    fifty_day_average_change_percent: float
+    two_hundred_day_average: float
+    two_hundred_day_average_change: float
+    two_hundred_day_average_change_percent: float
+    market_cap: int
+    forward_pe: float
+    price_to_book: float
+    source_interval: int
+    exchange_data_delayed_by: int
+    average_analyst_rating: str
+    tradeable: bool
+    crypto_tradeable: bool
+    display_name: str
+
+
+class OptionsChain(BaseModel):
+    calls: pd.DataFrame
+    puts: pd.DataFrame
+    underlying: UnderlyingAsset
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @field_validator("underlying", mode="before")
+    @classmethod
+    def validate_underlying(cls, v: dict) -> UnderlyingAsset:
+        day_range_split = v["regularMarketDayRange"].split(" - ")
+        fifty_two_week_range_split = v["fiftyTwoWeekRange"].split(" - ")
+        return UnderlyingAsset.model_validate(
+            decamelize(v)
+            | {
+                "regular_market_day_range": (
+                    float(day_range_split[0]),
+                    float(day_range_split[1]),
+                ),
+                "fifty_two_week_range": (
+                    float(fifty_two_week_range_split[0]),
+                    float(fifty_two_week_range_split[1]),
+                ),
+            }
         )
