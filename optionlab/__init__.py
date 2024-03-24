@@ -36,6 +36,7 @@ if typing.TYPE_CHECKING:
         get_theta,
     )
     from .engine import StrategyEngine
+    from .plot import plot_pl
     from .support import (
         get_pl_profile,
         get_pl_profile_stock,
@@ -85,6 +86,8 @@ __all__ = (
     "get_delta",
     "get_gamma",
     "get_theta",
+    # plot
+    "plot_pl",
     # api
     "get_options_chain",
     "get_stock_history",
@@ -128,6 +131,8 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_delta": (__package__, ".black_scholes"),
     "get_gamma": (__package__, ".black_scholes"),
     "get_theta": (__package__, ".black_scholes"),
+    # plot
+    "plot_pl": (__package__, ".plot"),
     # api
     "get_options_chain": (__package__, ".api"),
     "get_stock_history": (__package__, ".api"),

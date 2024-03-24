@@ -59,7 +59,6 @@ def test_covered_call(nvidia):
     st = StrategyEngine(inputs)
     outputs = st.run()
 
-    # Print useful information on screen
     assert isinstance(outputs, Outputs)
     assert outputs.model_dump(exclude_none=True) == pytest.approx(COVERED_CALL_RESULT)
 
