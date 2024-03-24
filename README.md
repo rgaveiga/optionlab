@@ -37,7 +37,7 @@ Usage examples for several strategies can be found in the **examples** directory
 To evaluate an option strategy, an `Inputs` model needs to be created:
 
 ```python
-from optionlab.models import Inputs
+from optionlab import Inputs
 inputs = Inputs.model_validate(inputs_data)
 ```
 
@@ -174,13 +174,11 @@ puts and stocks, the `ClosedPosition` must contain two keys:
 
 ---
 
-For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks with maturity on December 17, 2021. The strategy setup consisted of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.
-
-The inputs object must be passed to the `StrategyEngine` object as follows:
+For example, let's say we wanted to calculate the probability of profit for naked calls on Apple stocks 
+with maturity on December 17, 2021. The strategy setup consisted of selling 100 175.00 strike 
+calls for 1.15 each on November 22, 2021.
 
 ```python
-from optionlab.engine import StrategyEngine
-
 inputs_data = {
     "stock_price": 164.04,
     "start_date": "2021-11-22",
@@ -193,12 +191,23 @@ inputs_data = {
         {"type": "call", "strike": 175.0, "premium": 1.15, "n": 100, "action": "sell"}
     ],
 }
-st = StrategyEngine(Inputs.model_validate(inputs_data))
 ```
 
-The calculations are performed by calling the *run()* method of the *StrategyEngine* object:
+The calculations can be run by using:
 
 ```python
+from optionlab import run_strategy
+
+out = run_strategy(inputs_data)
+```
+
+Alternatively, the inputs object can be passed to the `StrategyEngine` object and the calculations are performed by calling 
+the `run` method of the `StrategyEngine` object:
+
+```python
+from optionlab import StrategyEngine
+
+st = StrategyEngine(Inputs.model_validate(inputs_data))
 out = st.run()
 ```
 
