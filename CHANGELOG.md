@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0 (2024-03-31)
+
+- Add functions to run engine
+
 ## 1.1.0 (2024-03-24)
 
 - Refactor the engine's `run` method for readability.

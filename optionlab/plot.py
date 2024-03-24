@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from numpy import zeros, full
 
-from optionlab import StrategyEngine
+from optionlab.models import Outputs
 
 
-def plot_pl(st: StrategyEngine):
+def plot_pl(outputs: Outputs) -> None:
     """
     plot_pl -> displays the strategy's profit/loss profile diagram.
 
@@ -16,6 +16,9 @@ def plot_pl(st: StrategyEngine):
     -------
     None.
     """
+    st = outputs.data
+    inputs = outputs.inputs
+
     if len(st.strategy_profit) == 0:
         raise RuntimeError(
             "Before plotting the profit/loss profile diagram, you must run a calculation!"
@@ -23,7 +26,7 @@ def plot_pl(st: StrategyEngine):
 
     rcParams.update({"figure.autolayout": True})
 
-    zero_line = zeros(st.s.shape[0])
+    zero_line = zeros(st.stock_price_array.shape[0])
     strike_call_buy = []
     strike_put_buy = []
     zero_call_buy = []
@@ -39,10 +42,10 @@ def plot_pl(st: StrategyEngine):
     comment += "respectively, with blue representing long and red representing "
     comment += "short positions."
 
-    plt.axvline(st.stock_price, ls="--", color="green")
+    plt.axvline(inputs.stock_price, ls="--", color="green")
     plt.xlabel("Stock price")
     plt.ylabel("Profit/Loss")
-    plt.xlim(st.s.min(), st.s.max())
+    plt.xlim(st.stock_price_array.min(), st.stock_price_array.max())
 
     for i, strike in enumerate(st.strike):
         if strike == 0.0:
@@ -64,29 +67,29 @@ def plot_pl(st: StrategyEngine):
                 zero_put_sell.append(0.0)
 
     target_line = None
-    if st.profit_target is not None:
+    if inputs.profit_target is not None:
         comment += " The blue dashed line represents the profit target level."
-        target_line = full(st.s.shape[0], st.profit_target)
+        target_line = full(st.stock_price_array.shape[0], st.profit_target)
 
     loss_line = None
-    if st.loss_limit is not None:
+    if inputs.loss_limit is not None:
         comment += " The red dashed line represents the loss limit level."
-        loss_line = full(st.s.shape[0], st.loss_limit)
+        loss_line = full(st.stock_price_array.shape[0], st.loss_limit)
 
     print(comment)
 
     if loss_line is not None and target_line is not None:
         plt.plot(
-            st.s,
+            st.stock_price_array,
             zero_line,
             "m--",
-            st.s,
+            st.stock_price_array,
             loss_line,
             "r--",
-            st.s,
+            st.stock_price_array,
             target_line,
             "b--",
-            st.s,
+            st.stock_price_array,
             st.strategy_profit,
             "k-",
             strike_call_buy,
@@ -105,13 +108,13 @@ def plot_pl(st: StrategyEngine):
         )
     elif loss_line is not None:
         plt.plot(
-            st.s,
+            st.stock_price_array,
             zero_line,
             "m--",
-            st.s,
+            st.stock_price_array,
             loss_line,
             "r--",
-            st.s,
+            st.stock_price_array,
             st.strategy_profit,
             "k-",
             strike_call_buy,
@@ -130,13 +133,13 @@ def plot_pl(st: StrategyEngine):
         )
     elif target_line is not None:
         plt.plot(
-            st.s,
+            st.stock_price_array,
             zero_line,
             "m--",
-            st.s,
+            st.stock_price_array,
             target_line,
             "b--",
-            st.s,
+            st.stock_price_array,
             st.strategy_profit,
             "k-",
             strike_call_buy,
@@ -155,10 +158,10 @@ def plot_pl(st: StrategyEngine):
         )
     else:
         plt.plot(
-            st.s,
+            st.stock_price_array,
             zero_line,
             "m--",
-            st.s,
+            st.stock_price_array,
             st.strategy_profit,
             "k-",
             strike_call_buy,

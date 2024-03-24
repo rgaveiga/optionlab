@@ -1,7 +1,7 @@
 import pytest
 
 from optionlab.models import Inputs, Outputs
-from optionlab.engine import StrategyEngine
+from optionlab.engine import StrategyEngine, run_strategy
 from optionlab.support import create_price_samples
 
 COVERED_CALL_RESULT = {
@@ -56,11 +56,22 @@ def test_covered_call(nvidia):
         }
     )
 
+    # test with engine object
     st = StrategyEngine(inputs)
     outputs = st.run()
 
     assert isinstance(outputs, Outputs)
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(COVERED_CALL_RESULT)
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(COVERED_CALL_RESULT)
+
+    # test with function
+    outputs = run_strategy(inputs)
+
+    assert isinstance(outputs, Outputs)
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(COVERED_CALL_RESULT)
 
 
 def test_covered_call_w_days_to_target(nvidia):
@@ -88,7 +99,9 @@ def test_covered_call_w_days_to_target(nvidia):
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(COVERED_CALL_RESULT)
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(COVERED_CALL_RESULT)
 
 
 def test_covered_call_w_prev_position(nvidia):
@@ -116,7 +129,7 @@ def test_covered_call_w_prev_position(nvidia):
     outputs = st.run()
 
     # Print useful information on screen
-    assert outputs.model_dump(exclude_none=True) == {
+    assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
         "probability_of_profit": 0.7094641281976972,
         "profit_ranges": [(154.9, float("inf"))],
         "per_leg_cost": [-15899.0, 409.99999999999994],
@@ -165,7 +178,9 @@ def test_100_perc_itm(nvidia):
     outputs = st.run()
 
     # Print useful information on screen
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(PROB_100_ITM_RESULT)
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(PROB_100_ITM_RESULT)
 
 
 def test_3_legs(nvidia):
@@ -230,7 +245,9 @@ def test_run_with_mc_array(nvidia):
     st = StrategyEngine(inputs)
     outputs = st.run()
 
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(
         {
             "probability_of_profit": 0.56679,
             "profit_ranges": [(164.9, float("inf"))],
@@ -283,7 +300,9 @@ def test_100_itm_with_compute_expectation(nvidia):
     st = StrategyEngine(inputs)
     outputs = st.run()
 
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(
         PROB_100_ITM_RESULT
         | {
             "average_profit_from_mc": 493.3532975418169,
@@ -320,7 +339,9 @@ def test_covered_call_w_normal_distribution(nvidia):
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(
         COVERED_CALL_RESULT | {"probability_of_profit": 0.5666705670736036}
     )
 
@@ -351,6 +372,8 @@ def test_covered_call_w_laplace_distribution(nvidia):
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
-    assert outputs.model_dump(exclude_none=True) == pytest.approx(
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(
         COVERED_CALL_RESULT | {"probability_of_profit": 0.60568262830598}
     )
