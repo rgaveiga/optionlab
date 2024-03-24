@@ -3,6 +3,7 @@ from typing import Literal
 
 from optionlab.models import Strategy, StockStrategy, OptionStrategy
 
+# TODO: vet and add to this list
 NamedStrategy = Literal[
     "covered-call", "married-put", "bull-call", "bear-put", "protective-collar"
 ]
