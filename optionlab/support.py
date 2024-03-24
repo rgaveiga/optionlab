@@ -1,5 +1,7 @@
 from __future__ import division
 
+from functools import lru_cache
+
 import numpy as np
 from numpy import ndarray, exp, abs, round, diff, flatnonzero, arange, inf
 from numpy.lib.scimath import log, sqrt
@@ -13,6 +15,7 @@ from optionlab.models import (
     Distribution,
     ProbabilityOfProfitInputs,
     ProbabilityOfProfitArrayInputs,
+    Range,
 )
 
 
@@ -133,6 +136,7 @@ def get_pl_profile_bs(
     return fac * n * (calcprice - val) - commission, n * cost - commission
 
 
+@lru_cache
 def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     """
     create_price_seq(min_price, max_price) -> generates a sequence of stock prices
@@ -151,6 +155,7 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
 
+@lru_cache
 def create_price_samples(
     s0: float,
     volatility: float,
@@ -159,7 +164,7 @@ def create_price_samples(
     distribution: Distribution = "black-scholes",
     y: float = 0.0,
     n: int = 100_000,
-) -> float:
+) -> np.ndarray:
     """
     create_price_samples(s0, volatility, years_to_maturity, r, distribution, y, n) -> generates
     random stock prices at maturity according to a statistical distribution.
@@ -193,7 +198,7 @@ def create_price_samples(
 
 def get_profit_range(
     s: np.ndarray, profit: np.ndarray, target: float = 0.01
-) -> list[list[float]]:
+) -> list[Range]:
     """
     get_profit_range(s, profit, target) -> returns pairs of stock prices, as a list,
     for which an option trade is expected to get the desired profit in between.
@@ -206,41 +211,41 @@ def get_profit_range(
     target: profit target (0.01 is the default).
     """
 
-    profitrange: list[list[float]] = []
-
     t = s[profit >= target]
 
     if t.shape[0] == 0:
-        return profitrange
+        return []
+
+    profit_range: list[list[float]] = []
 
     mask1 = diff(t) <= target + 0.001
     mask2 = diff(t) > target + 0.001
     maxi = flatnonzero(mask1[:-1] & mask2[1:]) + 1
 
     for i in range(maxi.shape[0] + 1):
-        profitrange.append([])
+        profit_range.append([])
 
         if i == 0:
             if t[0] == s[0]:
-                profitrange[0].append(0.0)
+                profit_range[0].append(0.0)
             else:
-                profitrange[0].append(t[0])
+                profit_range[0].append(t[0])
         else:
-            profitrange[i].append(t[maxi[i - 1] + 1])
+            profit_range[i].append(t[maxi[i - 1] + 1])
 
         if i == maxi.shape[0]:
             if t[t.shape[0] - 1] == s[s.shape[0] - 1]:
-                profitrange[maxi.shape[0]].append(inf)
+                profit_range[maxi.shape[0]].append(inf)
             else:
-                profitrange[maxi.shape[0]].append(t[t.shape[0] - 1])
+                profit_range[maxi.shape[0]].append(t[t.shape[0] - 1])
         else:
-            profitrange[i].append(t[maxi[i]])
+            profit_range[i].append(t[maxi[i]])
 
-    return profitrange
+    return [(r[0], r[1]) for r in profit_range]
 
 
 def get_pop(
-    profit_ranges: list[list[float]],
+    profit_ranges: list[Range],
     inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs,
 ) -> float:
     """

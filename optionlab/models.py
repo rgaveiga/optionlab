@@ -215,7 +215,7 @@ class Inputs(BaseModel):
     target_date: dt.date | None = None
     days_to_target_date: int = Field(0, ge=0)
     distribution: Distribution = "black-scholes"
-    mc_prices_number: float = 100000
+    mc_prices_number: int = 100_000
     array_prices: list[float] | None = None
 
     @field_validator("strategy")
