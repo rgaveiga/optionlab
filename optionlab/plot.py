@@ -69,12 +69,12 @@ def plot_pl(outputs: Outputs) -> None:
     target_line = None
     if inputs.profit_target is not None:
         comment += " The blue dashed line represents the profit target level."
-        target_line = full(st.stock_price_array.shape[0], st.profit_target)
+        target_line = full(st.stock_price_array.shape[0], inputs.profit_target)
 
     loss_line = None
     if inputs.loss_limit is not None:
         comment += " The red dashed line represents the loss limit level."
-        loss_line = full(st.stock_price_array.shape[0], st.loss_limit)
+        loss_line = full(st.stock_price_array.shape[0], inputs.loss_limit)
 
     print(comment)
 
