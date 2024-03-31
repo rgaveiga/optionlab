@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.3.0 (2024-03-31)
+## 1.2.0 (2024-03-31)
 
 - Add functions to run engine
 
