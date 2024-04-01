@@ -16,7 +16,6 @@ Country = Literal[
     "Brazil",
     "China",
     "India",
-    "India",
     "South Korea",
     "Russia",
     "Japan",
@@ -287,8 +286,51 @@ class OptionInfo(BaseModel):
     theta: float
 
 
+def init_empty_array() -> np.ndarray:
+    return np.array([])
+
+
+class EngineDataResults(BaseModel):
+    stock_price_array: np.ndarray
+    terminal_stock_prices: np.ndarray
+    profit: np.ndarray = Field(default_factory=init_empty_array)
+    profit_mc: np.ndarray = Field(default_factory=init_empty_array)
+    strategy_profit: np.ndarray = Field(default_factory=init_empty_array)
+    strategy_profit_mc: np.ndarray = Field(default_factory=init_empty_array)
+    strike: list[float] = []
+    premium: list[float] = []
+    n: list[int] = []
+    action: list[Action | Literal["n/a"]] = []
+    type: list[StrategyType] = []
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+class EngineData(EngineDataResults):
+    inputs: Inputs
+    _previous_position: list[float] = []
+    _use_bs: list[bool] = []
+    _profit_ranges: list[Range] = []
+    _profit_target_range: list[Range] = []
+    _loss_limit_ranges: list[Range] = []
+    _days_to_maturity: list[int] = []
+    _days_in_year: int = 365
+    days_to_target: int = 30
+    implied_volatility: list[float | np.ndarray] = []
+    itm_probability: list[float] = []
+    delta: list[float] = []
+    gamma: list[float] = []
+    vega: list[float] = []
+    theta: list[float] = []
+    cost: list[float] = []
+    profit_probability: float = 0.0
+    project_target_probability: float = 0.0
+    loss_limit_probability: float = 0.0
+
+
 class Outputs(BaseModel):
     """
+    data: EngineDataResults
+        Further results calculated by the engine.
     probability_of_profit : float
         Probability of the strategy yielding at least $0.01.
     profit_ranges : list
@@ -333,6 +375,8 @@ class Outputs(BaseModel):
         from Monte Carlo-created terminal stock prices.
     """
 
+    inputs: Inputs
+    data: EngineDataResults
     probability_of_profit: float
     profit_ranges: list[Range]
     per_leg_cost: list[float]
