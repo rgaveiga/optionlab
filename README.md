@@ -6,8 +6,7 @@ option strategies.
 The code produces various outputs, including the profit/loss profile of the strategy on a user-defined 
 target date, the range of stock prices for which the strategy is profitable (i.e., generating a return 
 greater than \$0.01), the Greeks associated with each leg of the strategy, the resulting debit or credit 
-on the trading account, the maximum and minimum returns within a specified lower and higher price range 
-of the underlying asset, and an estimate of the strategy's probability of profit.
+on the trading account, the maximum and minimum returns within a specified lower and higher price range of the underlying asset, and an estimate of the strategy's probability of profit.
 
 The probability of profit (PoP) for the strategy is calculated based on the distribution of estimated 
 prices of the underlying asset on the user-defined target date. Specifically, for the price range in the payoff 
@@ -87,16 +86,16 @@ The input data passed to `model_validate` above needs to be of the following str
   number of days between two dates. Default is True.
 
 - `country` : string, optional
-  - Country for which the holidays will be considered if 'discard_nonbusinessdyas' is True. Default is 'US'.
+  - Country for which the holidays will be considered if 'discard_nonbusinessdays' is True. Default is 'US'.
 
 - `start_date` : dt.date, optional
   - Start date in the calculations. If not provided, days_to_target_date must be provided.
 
 - `target_date` : dt.date, optional
-  - Start date in the calculations. If not provided, days_to_target_date must be provided.
+  - Target date in the calculations. If not provided, days_to_target_date must be provided.
 
 - `days_to_target_date` : int, optional
-  - Days to maturity. If not provided, start_date and end_date must be provided.
+  - Number of days until the target date, typically the maturity date of the options. If not provided, start_date and end_date must be provided.
 
 - `distribution` : string, optional
   - Statistical distribution used to compute probabilities. It can be 'black-scholes', 'normal', 
@@ -108,7 +107,7 @@ The input data passed to `model_validate` above needs to be of the following str
 
 ---
 
-The `strategy` attribute can have be either of type `OptionStrategy`, `StockStrategy`, or `ClosedPosition`.
+The `strategy` attribute can be either of type `OptionStrategy`, `StockStrategy`, or `ClosedPosition`.
 
 The `OptionStrategy` structure:
 
@@ -139,11 +138,11 @@ The `OptionStrategy` structure:
   - Expiration date or days to maturity.
 
 ---
-  
+
 `StockStrategy`:
 
 ---
-  
+
 - `type` : string
   - It must be 'stock'. It is mandatory.
 
@@ -161,8 +160,7 @@ The `OptionStrategy` structure:
 
 ---
 
-For a non-determined previously opened position to be closed, which might consist of any combination of calls, 
-puts and stocks, the `ClosedPosition` must contain two keys:
+For a non-determined previously opened position to be closed, which might consist of any combination of calls, puts and stocks, the `ClosedPosition` must contain two keys:
 
 ---
 
@@ -193,7 +191,7 @@ inputs_data = {
 }
 ```
 
-The calculations can be run by using:
+The simplest way to perform the calculations is by calling the `run_strategy` function as follows:
 
 ```python
 from optionlab import run_strategy
@@ -201,8 +199,7 @@ from optionlab import run_strategy
 out = run_strategy(inputs_data)
 ```
 
-Alternatively, the inputs object can be passed to the `StrategyEngine` object and the calculations are performed by calling 
-the `run` method of the `StrategyEngine` object:
+Alternatively, an `Inputs` object can be passed to the `StrategyEngine` object and the calculations are performed by calling the `run` method of the `StrategyEngine` object:
 
 ```python
 from optionlab import StrategyEngine
@@ -211,7 +208,7 @@ st = StrategyEngine(Inputs.model_validate(inputs_data))
 out = st.run()
 ```
 
-This method returns an `Outputs` object with the following structure:
+In both cases, `out` contains an `Outputs` object with the following structure:
 
 ---
 
@@ -254,7 +251,7 @@ This method returns an `Outputs` object with the following structure:
 - `probability_of_profit_target` : float, optional
   - Probability of the strategy yielding at least the profit target.
 
-- `project_target_ranges` : list, optional
+- `profit_target_ranges` : list, optional
   - A list of minimum and maximum stock prices defining ranges in which the strategy makes at least the profit target.
 
 - `probability_of_loss_limit` : float, optional
@@ -278,17 +275,13 @@ print("Probability of Profit (PoP): %.1f%%" % (out.probability_of_profit * 100.0
 
 ## Contributions
 
-Although functional, **OptionLab** is still in its early stages of development. The author has limited time available 
-to work on this library, which is why contributions from individuals with expertise in options and Python 
-programming are greatly appreciated. 
-
 ### Dev setup
 
 This repository uses `poetry` as a package manager. Install `poetry` as per the 
-[poetry docs](https://python-poetry.org/docs/#installing-with-pipx). It is recommended to install poetry version
+[poetry docs](https://python-poetry.org/docs/#installing-with-pipx). It is recommended to install `poetry` version
 1.4.0 if there are issues with the latest versions.
 
-Once poetry is installed, set up your virtual environment for the repo with the following:
+Once `poetry` is installed, set up your virtual environment for the repository with the following:
 
 ```
 cd optionlab/
@@ -297,23 +290,15 @@ source venv/bin/activate
 poetry install
 ```
 
-That should install all your dependencies and make you ready to contribute. Please add tests for all new features and 
-bug fixes and make sure you are formatting with [black](https://github.com/psf/black).
+That should install all your dependencies and make you ready to contribute. Please add tests for all new features and bug fixes and make sure you are formatting with [black](https://github.com/psf/black).
 
 Optionally, to use Jupyter, you can install it with: `pip install juypter`.
 
 #### Git Hooks
 
-This repo uses git hooks. Git hooks are scripts that run automatically every time a particular event occurs in a 
-Git repository. These events can include committing, merging, and pushing, among others. Git hooks allow developers 
-to enforce certain standards or checks before actions are completed in the repository, enhancing the workflow 
-and code quality.
+This repo uses git hooks. Git hooks are scripts that run automatically every time a particular event occurs in a Git repository. These events can include committing, merging, and pushing, among others. Git hooks allow developers to enforce certain standards or checks before actions are completed in the repository, enhancing the workflow and code quality.
 
-The pre-commit framework is a tool that leverages Git hooks to run checks on the code before it is committed to the 
-repository. By using pre-commit, developers can configure various plugins or hooks that automatically check for 
-syntax errors, formatting issues, or even run tests on the code being committed. This ensures that only code 
-that passes all the defined checks can be added to the repository, helping to maintain code quality and prevent
-issues from being introduced. 
+The pre-commit framework is a tool that leverages Git hooks to run checks on the code before it is committed to the repository. By using pre-commit, developers can configure various plugins or hooks that automatically check for syntax errors, formatting issues, or even run tests on the code being committed. This ensures that only code that passes all the defined checks can be added to the repository, helping to maintain code quality and prevent issues from being introduced. 
 
 To install the pre-commit framework on a system with Homebrew, follow these steps:
 
@@ -343,5 +328,4 @@ pre-commit run --all-files
 
 ## Disclaimer
 
-This is free software and is provided as is. The author makes no guarantee that its results are accurate and is 
-not responsible for any losses caused by the use of the code. Bugs can be reported as issues.
+This is free software and is provided as is. The author makes no guarantee that its results are accurate and is not responsible for any losses caused by the use of the code. Bugs can be reported as issues.
