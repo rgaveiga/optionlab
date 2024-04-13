@@ -204,12 +204,11 @@ inputs_data = {
     "max_stock": 200,
     "strategy": [
         {
-            "type": "call", 
-         	"strike": 175.0, 
-         	"premium": 1.15, 
-         	"n": 100, 
-         	"action": 
-         	"sell"
+            "type": "call",
+            "strike": 175.0,
+            "premium": 1.15,
+            "n": 100,
+            "action":"sell"
         }
     ],
 }
