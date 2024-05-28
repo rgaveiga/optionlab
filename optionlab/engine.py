@@ -64,7 +64,7 @@ def _init_inputs(inputs: Inputs) -> EngineData:
 
         data.days_to_target = (
             inputs.target_date - inputs.start_date
-        ).days - n_discarded_days
+        ).days - n_discarded_days + 1
     else:
         data.days_to_target = inputs.days_to_target_date
 
