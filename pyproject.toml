@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "optionlab"
-version = "1.2.0"
+version = "1.2.1"
 description = "Evaluate option strategies"
 authors = ["rgaveiga"]
 readme = "README.md"
