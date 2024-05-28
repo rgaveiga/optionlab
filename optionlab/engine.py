@@ -91,7 +91,7 @@ def _init_inputs(inputs: Inputs) -> EngineData:
                     n_discarded_days = 0
 
                 data._days_to_maturity.append(
-                    (strategy.expiration - inputs.start_date).days - n_discarded_days
+                    (strategy.expiration - inputs.start_date).days - n_discarded_days + 1
                 )
 
                 data._use_bs.append(strategy.expiration != inputs.target_date)
