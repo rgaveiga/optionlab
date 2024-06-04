@@ -1,3 +1,4 @@
 dist/
 __pycache__
 run_*.py
+.ipynb_checkpoints

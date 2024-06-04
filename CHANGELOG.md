@@ -1,8 +1,12 @@
 # CHANGELOG
 
+## 1.2.1 (2024-06-03)
+
+- Add 1 to the difference between the target date and the start date, to consider the target date as a trading day.
+
 ## 1.2.0 (2024-03-31)
 
-- Add functions to run engine
+- Add functions to run engine.
 
 ## 1.1.0 (2024-03-24)
 
