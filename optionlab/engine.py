@@ -412,9 +412,9 @@ def _generate_outputs(data: EngineData) -> Outputs:
     optional_outputs: dict[str, Any] = {}
 
     if inputs.profit_target is not None:
-        optional_outputs[
-            "probability_of_profit_target"
-        ] = data.profit_target_probability
+        optional_outputs["probability_of_profit_target"] = (
+            data.profit_target_probability
+        )
         optional_outputs["profit_target_ranges"] = data._profit_target_range
 
     if inputs.loss_limit is not None:
