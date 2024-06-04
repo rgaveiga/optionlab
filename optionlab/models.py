@@ -48,8 +48,9 @@ class StockStrategy(BaseStrategy):
         negative, it means that the position is closed and the
         difference between this price and the current price is
         considered in the payoff calculation.
-        
+
     """
+
     type: Literal["stock"] = "stock"
     n: int = Field(gt=0)
     premium: float | None = None
@@ -194,8 +195,9 @@ class Inputs(BaseModel):
     mc_prices_number : int, optional
         Number of random terminal prices to be generated when calculationg
         the average profit and loss of a strategy. Default is 100,000.
-        
+
     """
+
     stock_price: float = Field(gt=0)
     volatility: float
     interest_rate: float = Field(gt=0, le=0.2)

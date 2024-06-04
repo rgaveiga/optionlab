@@ -279,7 +279,6 @@ def get_pop(
         return pop
 
     if isinstance(inputs, ProbabilityOfProfitInputs):
-
         stock_price = inputs.stock_price
         volatility = inputs.volatility
         years_to_maturity = inputs.years_to_maturity

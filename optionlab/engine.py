@@ -82,7 +82,6 @@ def _init_inputs(inputs: Inputs) -> EngineData:
                 data._days_to_maturity.append(data.days_to_target)
                 data._use_bs.append(False)
             elif isinstance(strategy.expiration, dt.date) and inputs.start_date:
-
                 if inputs.discard_nonbusiness_days:
                     n_discarded_days = get_nonbusiness_days(
                         inputs.start_date, strategy.expiration, inputs.country
@@ -141,7 +140,9 @@ def _run(data: EngineData) -> EngineData:
     """
     inputs = data.inputs
 
-    time_to_target = (data.days_to_target + 1) / data._days_in_year    # To consider the target date as a trading day
+    time_to_target = (
+        data.days_to_target + 1
+    ) / data._days_in_year  # To consider the target date as a trading day
     data.cost = [0.0] * len(data.type)
 
     data.profit = zeros((len(data.type), data.stock_price_array.shape[0]))
@@ -236,7 +237,9 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
 
         return data
 
-    time_to_maturity = (data._days_to_maturity[i] + 1) / data._days_in_year # To consider the expiration date as a trading day
+    time_to_maturity = (
+        data._days_to_maturity[i] + 1
+    ) / data._days_in_year  # To consider the expiration date as a trading day
     bs = get_bs_info(
         inputs.stock_price,
         data.strike[i],
@@ -280,7 +283,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
     if data._use_bs[i]:
         target_to_maturity = (
             data._days_to_maturity[i] - data.days_to_target + 1
-        ) / data._days_in_year    # To consider the expiration date as a trading day 
+        ) / data._days_in_year  # To consider the expiration date as a trading day
 
         data.profit[i], data.cost[i] = get_pl_profile_bs(
             type,
@@ -409,9 +412,9 @@ def _generate_outputs(data: EngineData) -> Outputs:
     optional_outputs: dict[str, Any] = {}
 
     if inputs.profit_target is not None:
-        optional_outputs["probability_of_profit_target"] = (
-            data.project_target_probability
-        )
+        optional_outputs[
+            "probability_of_profit_target"
+        ] = data.project_target_probability
         optional_outputs["project_target_ranges"] = data._profit_target_range
 
     if inputs.loss_limit is not None:
