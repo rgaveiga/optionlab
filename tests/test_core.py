@@ -184,7 +184,6 @@ def test_100_perc_itm(nvidia):
 
 
 def test_3_legs(nvidia):
-
     inputs = Inputs.model_validate(
         nvidia
         | {
@@ -262,7 +261,7 @@ def test_run_with_mc_array(nvidia):
             "theta": [0.0, 0.19283555235589467],
             "vega": [0.0, 0.1832408146218486],
             "average_profit_from_mc": 1358.707606387012,
-            "average_loss_from_mc":  -1408.7310982891534,
+            "average_loss_from_mc": -1408.7310982891534,
             "probability_of_profit_from_mc": 0.5616,
         },
         rel=0.05,
@@ -314,7 +313,6 @@ def test_100_itm_with_compute_expectation(nvidia):
 
 
 def test_covered_call_w_normal_distribution(nvidia):
-
     inputs = Inputs.model_validate(
         nvidia
         | {
@@ -347,7 +345,6 @@ def test_covered_call_w_normal_distribution(nvidia):
 
 
 def test_covered_call_w_laplace_distribution(nvidia):
-
     inputs = Inputs.model_validate(
         nvidia
         | {
