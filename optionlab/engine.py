@@ -199,7 +199,7 @@ def _run(data: EngineData) -> EngineData:
         data._profit_target_range = get_profit_range(
             data.stock_price_array, data.strategy_profit, inputs.profit_target
         )
-        data.project_target_probability = get_pop(data._profit_target_range, pop_inputs)
+        data.profit_target_probability = get_pop(data._profit_target_range, pop_inputs)
 
     if inputs.loss_limit is not None:
         data._loss_limit_rangesm = get_profit_range(
@@ -414,8 +414,8 @@ def _generate_outputs(data: EngineData) -> Outputs:
     if inputs.profit_target is not None:
         optional_outputs[
             "probability_of_profit_target"
-        ] = data.project_target_probability
-        optional_outputs["project_target_ranges"] = data._profit_target_range
+        ] = data.profit_target_probability
+        optional_outputs["profit_target_ranges"] = data._profit_target_range
 
     if inputs.loss_limit is not None:
         optional_outputs["probability_of_loss_limit"] = data.loss_limit_probability
