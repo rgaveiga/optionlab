@@ -6,7 +6,6 @@ from optionlab.models import Inputs
 
 
 def test_only_one_closed_position(nvidia):
-
     inputs = nvidia | {
         # The covered call strategy is defined
         "strategy": [
@@ -80,7 +79,6 @@ def test_validate_dates(nvidia):
 
 
 def test_array_distribution_with_no_array(nvidia):
-
     inputs = nvidia | {
         "distribution": "array",
         "strategy": [

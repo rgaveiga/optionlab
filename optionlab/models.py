@@ -48,6 +48,7 @@ class StockStrategy(BaseStrategy):
         negative, it means that the position is closed and the
         difference between this price and the current price is
         considered in the payoff calculation.
+
     """
 
     type: Literal["stock"] = "stock"
@@ -194,6 +195,7 @@ class Inputs(BaseModel):
     mc_prices_number : int, optional
         Number of random terminal prices to be generated when calculationg
         the average profit and loss of a strategy. Default is 100,000.
+
     """
 
     stock_price: float = Field(gt=0)
@@ -323,7 +325,7 @@ class EngineData(EngineDataResults):
     theta: list[float] = []
     cost: list[float] = []
     profit_probability: float = 0.0
-    project_target_probability: float = 0.0
+    profit_target_probability: float = 0.0
     loss_limit_probability: float = 0.0
 
 
@@ -358,7 +360,7 @@ class Outputs(BaseModel):
         Maximum return of the strategy within the stock price domain.
     probability_of_profit_target : float, optional
         Probability of the strategy yielding at least the profit target.
-    project_target_ranges : list, optional
+    profit_target_ranges : list, optional
         A list of minimum and maximum stock prices defining
         ranges in which the strategy makes at least the profit
         target.
@@ -390,7 +392,7 @@ class Outputs(BaseModel):
     theta: list[float]
     vega: list[float]
     probability_of_profit_target: float | None = None
-    project_target_ranges: list[Range] | None = None
+    profit_target_ranges: list[Range] | None = None
     probability_of_loss_limit: float | None = None
     average_profit_from_mc: float | None = None
     average_loss_from_mc: float | None = None

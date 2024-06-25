@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "optionlab"
-version = "1.2.0"
+version = "1.2.1"
 description = "Evaluate option strategies"
 authors = ["rgaveiga"]
 readme = "README.md"
@@ -12,6 +12,7 @@ pandas = "^2.2.1"
 matplotlib = "^3.8.3"
 pydantic = "^2.6.3"
 holidays = "^0.44"
+jupyter = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"

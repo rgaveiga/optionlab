@@ -1,13 +1,20 @@
 # CHANGELOG
 
+## 1.2.1 (2024-06-03)
+
+- Add 1 to `time_to_target` and `time_to_maturity` in `engine.py` to consider the target and expiration dates as  trading days in the calculations
+- Change Jupyter notebooks in the `examples` directory to utilize the `run_strategy()` function for performing options strategy calculations, instead of using the `StrategyEngine` class (deprecated) 
+- Correct the PoP Calculator notebook
+- Change the name of variable `project_target_ranges` in `models.py` and `engine.py` to `profit_target_ranges`
+
 ## 1.2.0 (2024-03-31)
 
-- Add functions to run engine
+- Add functions to run engine.
 
 ## 1.1.0 (2024-03-24)
 
-- Refactor the engine's `run` method for readability.
-- Accept dictionary of inputs to `StratgyEngine` init.
+- Refactor the engine's `run` method for readability
+- Accept dictionary of inputs to `StratgyEngine` init
 
 ## 1.0.1 (2024-03-18)
 

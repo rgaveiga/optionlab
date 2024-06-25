@@ -38,7 +38,6 @@ def test_holidays():
 
 @pytest.mark.benchmark
 def test_holidays_benchmark(days: int = 366):
-
     start_date = dt.date(2024, 1, 1)
 
     for i in range(days):
