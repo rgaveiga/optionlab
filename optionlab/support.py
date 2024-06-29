@@ -352,8 +352,6 @@ def _get_pl_option(
     s: a numpy array of stock prices.
     x: strike price.
     """
-    if not isinstance(s, ndarray):
-        raise TypeError("'s' must be a numpy array!")
 
     if action == "sell":
         return opvalue - _get_payoff(option_type, s, x)
