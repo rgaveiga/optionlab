@@ -1,4 +1,4 @@
 dist/
-__pycache__
-run_*.py
+run_check/
+__pycache__/
 .ipynb_checkpoints
