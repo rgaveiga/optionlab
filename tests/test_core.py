@@ -1,7 +1,7 @@
 import pytest
 
 from optionlab.models import Inputs, Outputs
-from optionlab.engine import StrategyEngine, run_strategy
+from optionlab.engine import run_strategy
 from optionlab.support import create_price_samples
 
 COVERED_CALL_RESULT = {
@@ -55,17 +55,7 @@ def test_covered_call(nvidia):
             ],
         }
     )
-
-    # test with engine object
-    st = StrategyEngine(inputs)
-    outputs = st.run()
-
-    assert isinstance(outputs, Outputs)
-    assert outputs.model_dump(
-        exclude={"data", "inputs"}, exclude_none=True
-    ) == pytest.approx(COVERED_CALL_RESULT)
-
-    # test with function
+    
     outputs = run_strategy(inputs)
 
     assert isinstance(outputs, Outputs)
@@ -93,9 +83,8 @@ def test_covered_call_w_days_to_target(nvidia):
             ],
         }
     )
-
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
@@ -125,8 +114,7 @@ def test_covered_call_w_prev_position(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
@@ -174,8 +162,7 @@ def test_100_perc_itm(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy()
 
     # Print useful information on screen
     assert outputs.model_dump(
@@ -210,8 +197,7 @@ def test_3_legs(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
@@ -241,8 +227,7 @@ def test_run_with_mc_array(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
@@ -296,8 +281,7 @@ def test_100_itm_with_compute_expectation(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
@@ -332,8 +316,7 @@ def test_covered_call_w_normal_distribution(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
@@ -364,8 +347,7 @@ def test_covered_call_w_laplace_distribution(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
