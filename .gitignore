@@ -1,3 +1,4 @@
 dist/
 run_check/
 examples/.ipynb_checkpoints/
+optionlab/__pycache__/
