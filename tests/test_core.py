@@ -3,6 +3,7 @@ import pytest
 from optionlab.models import Inputs, Outputs
 from optionlab.engine import run_strategy
 from optionlab.support import create_price_samples
+from optionlab.black_scholes import get_bs_info 
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945269,
@@ -34,6 +35,35 @@ PROB_100_ITM_RESULT = {
     "vega": [0.20095091693287098, 0.20763771616023433],
 }
 
+
+def test_black_scholes():
+    stockprice = 100.0
+    strike = 105.0
+    interestrate = 1.0
+    dividendyield = 0.0
+    volatility = 20.0
+    days2maturity = 60
+    
+    interestrate = interestrate / 100
+    dividendyield = dividendyield / 100
+    volatility = volatility / 100
+    time_to_maturity = days2maturity / 365
+    
+    bs = get_bs_info(stockprice, strike, interestrate, volatility, time_to_maturity, 
+                     dividendyield
+    )
+    
+    assert bs.call_price == 1.44
+    assert bs.call_delta == 0.2942972000055033
+    assert bs.call_theta == -8.780589609657586
+    assert bs.call_itm_prob == 0.2669832523577367
+    assert bs.put_price == 6.27
+    assert bs.put_delta == -0.7057027999944967
+    assert bs.put_theta == -7.732314219179215
+    assert bs.put_itm_prob == 0.7330167476422633
+    assert bs.gamma == 0.042503588182705464
+    assert bs.vega == 0.13973782416231934
+    
 
 def test_covered_call(nvidia):
     # https://medium.com/@rgaveiga/python-for-options-trading-2-mixing-options-and-stocks-1e9f59f388f
