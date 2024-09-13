@@ -35,7 +35,7 @@ if typing.TYPE_CHECKING:
         get_gamma,
         get_theta,
     )
-    from .engine import StrategyEngine, run_strategy
+    from .engine import run_strategy
     from .plot import plot_pl
     from .support import (
         get_pl_profile,
@@ -67,7 +67,6 @@ __all__ = (
     "Action",
     # engine
     "run_strategy",
-    "StrategyEngine",
     # support
     "get_pl_profile",
     "get_pl_profile_stock",
@@ -109,7 +108,6 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "Country": (__package__, ".models"),
     "Action": (__package__, ".models"),
     # engine
-    "StrategyEngine": (__package__, ".engine"),
     "run_strategy": (__package__, ".engine"),
     # support
     "get_pl_profile": (__package__, ".support"),
