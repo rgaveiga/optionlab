@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.0 (2024-09-13)
+
+- Remove the deprecated `StrategyEngine` class (it remains commented in the code).
+- Update the README.md file to reflect the current state of the library.
+
 ## 1.2.1 (2024-06-03)
 
 - Add 1 to `time_to_target` and `time_to_maturity` in `engine.py` to consider the target and expiration dates as  trading days in the calculations
