@@ -4,7 +4,9 @@ from __future__ import print_function
 import datetime as dt
 from typing import Any
 
-from numpy import array, ndarray, zeros
+from numpy import array, zeros
+
+# from numpy import ndarray
 
 from optionlab.black_scholes import get_bs_info, get_implied_vol
 from optionlab.models import (
@@ -28,7 +30,9 @@ from optionlab.support import (
     create_price_samples,
     get_pop,
 )
-from optionlab.utils import get_nonbusiness_days, get_pl, pl_to_csv
+from optionlab.utils import get_nonbusiness_days
+
+# from optionlab.utils import get_pl, pl_to_csv
 
 
 def run_strategy(inputs_data: Inputs | dict) -> Outputs:
@@ -202,7 +206,7 @@ def _run(data: EngineData) -> EngineData:
         data.profit_target_probability = get_pop(data._profit_target_range, pop_inputs)
 
     if inputs.loss_limit is not None:
-        data._loss_limit_rangesm = get_profit_range(
+        data._loss_limit_ranges = get_profit_range(
             data.stock_price_array, data.strategy_profit, inputs.loss_limit + 0.01
         )
         data.loss_limit_probability = 1.0 - get_pop(data._loss_limit_ranges, pop_inputs)
@@ -461,71 +465,72 @@ def _generate_outputs(data: EngineData) -> Outputs:
     )
 
 
-class StrategyEngine:
-    def __init__(self, inputs_data: Inputs | dict):
-        """
-        __init__ -> initializes class variables.
+# TODO: Delete this class in the next version; for now, leave it as a comment
+# class StrategyEngine:
+#     def __init__(self, inputs_data: Inputs | dict):
+#         """
+#         __init__ -> initializes class variables.
 
-        Returns
-        -------
-        None.
-        """
-        inputs = (
-            inputs_data
-            if isinstance(inputs_data, Inputs)
-            else Inputs.model_validate(inputs_data)
-        )
+#         Returns
+#         -------
+#         None.
+#         """
+#         inputs = (
+#             inputs_data
+#             if isinstance(inputs_data, Inputs)
+#             else Inputs.model_validate(inputs_data)
+#         )
 
-        self.data = _init_inputs(inputs)
+#         self.data = _init_inputs(inputs)
 
-    def run(self) -> Outputs:
-        """
-        run -> runs calculations for an options strategy.
+#     def run(self) -> Outputs:
+#         """
+#         run -> runs calculations for an options strategy.
 
-        Returns
-        -------
-        output : Outputs
-            An Outputs object containing the output of a calculation.
-        """
+#         Returns
+#         -------
+#         output : Outputs
+#             An Outputs object containing the output of a calculation.
+#         """
 
-        self.data = _run(self.data)
+#         self.data = _run(self.data)
 
-        return _generate_outputs(self.data)
+#         return _generate_outputs(self.data)
 
-    def get_pl(self, leg: int | None = None) -> tuple[ndarray, ndarray]:
-        """
-        get_pl -> returns the profit/loss profile of either a leg or the whole
-        strategy.
+#     def get_pl(self, leg: int | None = None) -> tuple[ndarray, ndarray]:
+#         """
+#         get_pl -> returns the profit/loss profile of either a leg or the whole
+#         strategy.
 
-        Parameters
-        ----------
-        leg : int, optional
-            Index of the leg. Default is None (whole strategy).
+#         Parameters
+#         ----------
+#         leg : int, optional
+#             Index of the leg. Default is None (whole strategy).
 
-        Returns
-        -------
-        stock prices : numpy array
-            Sequence of stock prices within the bounds of the stock price domain.
-        P/L profile : numpy array
-            Profit/loss profile of either a leg or the whole strategy.
-        """
+#         Returns
+#         -------
+#         stock prices : numpy array
+#             Sequence of stock prices within the bounds of the stock price domain.
+#         P/L profile : numpy array
+#             Profit/loss profile of either a leg or the whole strategy.
+#         """
 
-        return get_pl(self.data, leg)
+#         return get_pl(self.data, leg)
 
-    def pl_to_csv(self, filename: str = "pl.csv", leg: int | None = None) -> None:
-        """
-        pl_to_csv -> saves the profit/loss data to a .csv file.
+#     def pl_to_csv(self, filename: str = "pl.csv", leg: int | None = None) -> None:
+#         """
+#         pl_to_csv -> saves the profit/loss data to a .csv file.
 
-        Parameters
-        ----------
-        filename : string, optional
-            Name of the .csv file. Default is 'pl.csv'.
-        leg : int, optional
-            Index of the leg. Default is None (whole strategy).
+#         Parameters
+#         ----------
+#         filename : string, optional
+#             Name of the .csv file. Default is 'pl.csv'.
+#         leg : int, optional
+#             Index of the leg. Default is None (whole strategy).
 
-        Returns
-        -------
-        None.
-        """
+#         Returns
+#         -------
+#         None.
+#         """
 
-        pl_to_csv(self.data, filename, leg)
+#         pl_to_csv(self.data, filename, leg)

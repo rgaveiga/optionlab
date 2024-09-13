@@ -1,8 +1,9 @@
 import pytest
 
 from optionlab.models import Inputs, Outputs
-from optionlab.engine import StrategyEngine, run_strategy
+from optionlab.engine import run_strategy
 from optionlab.support import create_price_samples
+from optionlab.black_scholes import get_bs_info
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945269,
@@ -35,6 +36,35 @@ PROB_100_ITM_RESULT = {
 }
 
 
+def test_black_scholes():
+    stockprice = 100.0
+    strike = 105.0
+    interestrate = 1.0
+    dividendyield = 0.0
+    volatility = 20.0
+    days2maturity = 60
+
+    interestrate = interestrate / 100
+    dividendyield = dividendyield / 100
+    volatility = volatility / 100
+    time_to_maturity = days2maturity / 365
+
+    bs = get_bs_info(
+        stockprice, strike, interestrate, volatility, time_to_maturity, dividendyield
+    )
+
+    assert bs.call_price == 1.44
+    assert bs.call_delta == 0.2942972000055033
+    assert bs.call_theta == -8.780589609657586
+    assert bs.call_itm_prob == 0.2669832523577367
+    assert bs.put_price == 6.27
+    assert bs.put_delta == -0.7057027999944967
+    assert bs.put_theta == -7.732314219179215
+    assert bs.put_itm_prob == 0.7330167476422633
+    assert bs.gamma == 0.042503588182705464
+    assert bs.vega == 0.13973782416231934
+
+
 def test_covered_call(nvidia):
     # https://medium.com/@rgaveiga/python-for-options-trading-2-mixing-options-and-stocks-1e9f59f388f
 
@@ -56,16 +86,6 @@ def test_covered_call(nvidia):
         }
     )
 
-    # test with engine object
-    st = StrategyEngine(inputs)
-    outputs = st.run()
-
-    assert isinstance(outputs, Outputs)
-    assert outputs.model_dump(
-        exclude={"data", "inputs"}, exclude_none=True
-    ) == pytest.approx(COVERED_CALL_RESULT)
-
-    # test with function
     outputs = run_strategy(inputs)
 
     assert isinstance(outputs, Outputs)
@@ -94,8 +114,7 @@ def test_covered_call_w_days_to_target(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
@@ -125,8 +144,7 @@ def test_covered_call_w_prev_position(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
@@ -174,8 +192,7 @@ def test_100_perc_itm(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert outputs.model_dump(
@@ -210,8 +227,7 @@ def test_3_legs(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
@@ -241,8 +257,7 @@ def test_run_with_mc_array(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
@@ -296,8 +311,7 @@ def test_100_itm_with_compute_expectation(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
@@ -332,8 +346,7 @@ def test_covered_call_w_normal_distribution(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)
@@ -364,8 +377,7 @@ def test_covered_call_w_laplace_distribution(nvidia):
         }
     )
 
-    st = StrategyEngine(inputs)
-    outputs = st.run()
+    outputs = run_strategy(inputs)
 
     # Print useful information on screen
     assert isinstance(outputs, Outputs)

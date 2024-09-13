@@ -37,16 +37,13 @@ pip install optionlab
 
 ## Basic usage
 
-Usage examples for several strategies can be found in the **examples** directory.
+Usage examples for several strategies can be found in Jupyter notebooks in the **examples** 
+directory.
 
-To evaluate an option strategy, an `Inputs` model needs to be created:
+The evaluation of a strategy is done by calling the `run_strategy` function provided by the library. 
+This function receives the input data either as a Python dictionary or an `Inputs` object.
 
-```python
-from optionlab import Inputs
-inputs = Inputs.model_validate(inputs_data)
-```
-
-The input data passed to `model_validate` above needs to be of the following structure: 
+The description of the input data follows: 
 
 ---
 
@@ -194,7 +191,7 @@ calls on Apple stocks with maturity on December 17, 2021. The strategy setup con
 of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.
 
 ```python
-inputs_data = {
+input_data = {
     "stock_price": 164.04,
     "start_date": "2021-11-22",
     "target_date": "2021-12-17",
@@ -214,27 +211,18 @@ inputs_data = {
 }
 ```
 
-The simplest way to perform the calculations is by calling the `run_strategy` function 
-as follows:
+After defining the input data as a Python dictionary, we pass it to the `run_strategy` 
+function as shown below:
 
 ```python
-from optionlab import run_strategy
+from optionlab import run_strategy, plot_pl
 
-out = run_strategy(inputs_data)
+out = run_strategy(input_data)
+
+plot_pl(out)
 ```
 
-Alternatively, an `Inputs` object can be passed to the `StrategyEngine` object and 
-the calculations are performed by calling the `run` method of the `StrategyEngine` 
-object:
-
-```python
-from optionlab import StrategyEngine
-
-st = StrategyEngine(Inputs.model_validate(inputs_data))
-out = st.run()
-```
-
-In both cases, `out` contains an `Outputs` object with the following structure:
+The variable `out` contains an `Outputs` object with the following structure:
 
 ---
 
@@ -301,8 +289,11 @@ In both cases, `out` contains an `Outputs` object with the following structure:
 To obtain the probability of profit of the naked call example above:
 
 ```python
-print("Probability of Profit (PoP): %.1f%%" % (out.probability_of_profit * 100.0)) # 84.5%, according to the calculations
+print(f"Probability of Profit (PoP): {(out.probability_of_profit * 100.0):.1f}%%") # 84.5%, according to the calculations
 ```
+
+The `plot_pl` function takes an `Outputs` object as its argument and plots the profit/loss 
+diagram for the strategy.
 
 ## Contributions
 
