@@ -5,7 +5,8 @@ import datetime as dt
 from typing import Any
 
 from numpy import array, zeros
-#from numpy import ndarray
+
+# from numpy import ndarray
 
 from optionlab.black_scholes import get_bs_info, get_implied_vol
 from optionlab.models import (
@@ -29,8 +30,9 @@ from optionlab.support import (
     create_price_samples,
     get_pop,
 )
-from optionlab.utils import get_nonbusiness_days 
-#from optionlab.utils import get_pl, pl_to_csv
+from optionlab.utils import get_nonbusiness_days
+
+# from optionlab.utils import get_pl, pl_to_csv
 
 
 def run_strategy(inputs_data: Inputs | dict) -> Outputs:
@@ -461,6 +463,7 @@ def _generate_outputs(data: EngineData) -> Outputs:
             "vega": data.vega,
         }
     )
+
 
 # TODO: Delete this class in the next version; for now, leave it as a comment
 # class StrategyEngine:
