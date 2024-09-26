@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Literal
+from typing import Literal, Union
 
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
@@ -107,7 +107,7 @@ class ClosedPosition(BaseModel):
     prev_pos: float
 
 
-Strategy = StockStrategy | OptionStrategy | ClosedPosition
+Strategy: Union[StockStrategy, OptionStrategy, ClosedPosition] = Field(discriminator = "type")
 
 
 class ProbabilityOfProfitInputs(BaseModel):
@@ -203,7 +203,7 @@ class Inputs(BaseModel):
     interest_rate: float = Field(gt=0, le=0.2)
     min_stock: float
     max_stock: float
-    strategy: list[Strategy] = Field(..., min_length=1, discriminator="type")
+    strategy: list[Strategy] = Field(..., min_length=1)
     dividend_yield: float = 0.0
     profit_target: float | None = None
     loss_limit: float | None = None
