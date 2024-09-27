@@ -32,7 +32,7 @@ class BaseStrategy(BaseModel):
     prev_pos: float | None = None
 
 
-class StockStrategy(BaseStrategy):
+class Stock(BaseStrategy):
     """
     "type" : string
         It must be 'stock'. It is mandatory.
@@ -56,7 +56,7 @@ class StockStrategy(BaseStrategy):
     premium: float | None = None
 
 
-class OptionStrategy(BaseStrategy):
+class Option(BaseStrategy):
     """
     "type" : string
         Either 'call' or 'put'. It is mandatory.
@@ -107,7 +107,7 @@ class ClosedPosition(BaseModel):
     prev_pos: float
 
 
-StrategyLeg = StockStrategy | OptionStrategy | ClosedPosition
+StrategyLeg = Stock | Option | ClosedPosition
 
 
 class ProbabilityOfProfitInputs(BaseModel):
@@ -232,7 +232,7 @@ class Inputs(BaseModel):
         expiration_dates = [
             strategy.expiration
             for strategy in self.strategy
-            if isinstance(strategy, OptionStrategy)
+            if isinstance(strategy, Option)
             and isinstance(strategy.expiration, dt.date)
         ]
         if self.start_date and self.target_date:
