@@ -193,7 +193,6 @@ class Inputs(BaseModel):
     mc_prices_number : int, optional
         Number of random terminal prices to be generated when calculationg
         the average profit and loss of a strategy. Default is 100,000.
-
     """
 
     stock_price: float = Field(gt=0)
