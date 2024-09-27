@@ -202,7 +202,7 @@ def _run(data: EngineData) -> EngineData:
         data.profit_target_probability = get_pop(data._profit_target_range, pop_inputs)
 
     if inputs.loss_limit is not None:
-        data._loss_limit_rangesm = get_profit_range(
+        data._loss_limit_ranges = get_profit_range(
             data.stock_price_array, data.strategy_profit, inputs.loss_limit + 0.01
         )
         data.loss_limit_probability = 1.0 - get_pop(data._loss_limit_ranges, pop_inputs)
