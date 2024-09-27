@@ -1,7 +1,7 @@
 import typing
 
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 
 if typing.TYPE_CHECKING:
@@ -11,16 +11,16 @@ if typing.TYPE_CHECKING:
         Inputs,
         OptionType,
         OptionInfo,
-        OptionStrategy,
+        Option,
         Outputs,
         ClosedPosition,
         ProbabilityOfProfitArrayInputs,
         ProbabilityOfProfitInputs,
         BlackScholesInfo,
         Distribution,
-        Strategy,
+        StrategyLeg,
         StrategyType,
-        StockStrategy,
+        Stock,
         Country,
         Action,
     )
@@ -53,16 +53,16 @@ __all__ = (
     "Inputs",
     "OptionType",
     "OptionInfo",
-    "OptionStrategy",
+    "Option",
     "Outputs",
     "ClosedPosition",
     "ProbabilityOfProfitArrayInputs",
     "ProbabilityOfProfitInputs",
     "BlackScholesInfo",
     "Distribution",
-    "Strategy",
+    "StrategyLeg",
     "StrategyType",
-    "StockStrategy",
+    "Stock",
     "Country",
     "Action",
     # engine
@@ -96,15 +96,15 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "Outputs": (__package__, ".models"),
     "OptionType": (__package__, ".models"),
     "OptionInfo": (__package__, ".models"),
-    "OptionStrategy": (__package__, ".models"),
+    "Option": (__package__, ".models"),
     "ClosedPosition": (__package__, ".models"),
     "ProbabilityOfProfitArrayInputs": (__package__, ".models"),
     "ProbabilityOfProfitInputs": (__package__, ".models"),
     "BlackScholesInfo": (__package__, ".models"),
     "Distribution": (__package__, ".models"),
-    "Strategy": (__package__, ".models"),
+    "StrategyLeg": (__package__, ".models"),
     "StrategyType": (__package__, ".models"),
-    "StockStrategy": (__package__, ".models"),
+    "Stock": (__package__, ".models"),
     "Country": (__package__, ".models"),
     "Action": (__package__, ".models"),
     # engine

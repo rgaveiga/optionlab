@@ -12,8 +12,8 @@ from optionlab.black_scholes import get_bs_info, get_implied_vol
 from optionlab.models import (
     Inputs,
     Action,
-    OptionStrategy,
-    StockStrategy,
+    Option,
+    Stock,
     ClosedPosition,
     Outputs,
     ProbabilityOfProfitInputs,
@@ -75,7 +75,7 @@ def _init_inputs(inputs: Inputs) -> EngineData:
     for i, strategy in enumerate(inputs.strategy):
         data.type.append(strategy.type)
 
-        if isinstance(strategy, OptionStrategy):
+        if isinstance(strategy, Option):
             data.strike.append(strategy.strike)
             data.premium.append(strategy.premium)
             data.n.append(strategy.n)
@@ -110,7 +110,7 @@ def _init_inputs(inputs: Inputs) -> EngineData:
             else:
                 raise ValueError("Expiration must be a date, an int or None.")
 
-        elif isinstance(strategy, StockStrategy):
+        elif isinstance(strategy, Stock):
             data.n.append(strategy.n)
             data.action.append(strategy.action)
             data._previous_position.append(strategy.prev_pos or 0.0)
