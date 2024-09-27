@@ -1,15 +1,25 @@
 # CHANGELOG
 
+## 1.2.2 (2024-09-27)
+
+- discriminator="type" removed from strategy: list[StrategyLeg] = Field(..., min_length=1) in models.py, since
+it was causing errors in new Pydantic versions.
+- Changed StotckStrategy and OptionStrategy to Stock and Option in models.py, respectively.
+- Changed BaseStrategy to BaseLeg in models.py.
+- Changed Strategy to StrategyLeg in models.py.
+- Removed premium field from Stock in models.py.
+- Moved n field to BaseLeg in models.py.
+
 ## 1.2.1 (2024-06-03)
 
 - Add 1 to `time_to_target` and `time_to_maturity` in `engine.py` to consider the target and expiration dates as  trading days in the calculations
-- Change Jupyter notebooks in the `examples` directory to utilize the `run_strategy()` function for performing options strategy calculations, instead of using the `StrategyEngine` class (deprecated) 
-- Correct the PoP Calculator notebook
-- Change the name of variable `project_target_ranges` in `models.py` and `engine.py` to `profit_target_ranges`
+- Changed Jupyter notebooks in the `examples` directory to utilize the `run_strategy()` function for performing options strategy calculations, instead of using the `StrategyEngine` class (deprecated) 
+- Corrected the PoP Calculator notebook
+- Changed the name of variable `project_target_ranges` in `models.py` and `engine.py` to `profit_target_ranges`
 
 ## 1.2.0 (2024-03-31)
 
-- Add functions to run engine.
+- Added functions to run engine.
 
 ## 1.1.0 (2024-03-24)
 

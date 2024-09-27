@@ -75,7 +75,7 @@ class Option(BaseLeg):
         between this price and the current price is considered in
         the payoff calculation.
     "expiration" : string | int, optional.
-        Expiration date or days to maturity. If not defined, will use `target_date` 
+        Expiration date or days to maturity. If not defined, will use `target_date`
         or `days_to_target_date`.
     """
 
@@ -229,8 +229,7 @@ class Inputs(BaseModel):
         expiration_dates = [
             strategy.expiration
             for strategy in self.strategy
-            if isinstance(strategy, Option)
-            and isinstance(strategy.expiration, dt.date)
+            if isinstance(strategy, Option) and isinstance(strategy.expiration, dt.date)
         ]
         if self.start_date and self.target_date:
             if any(
