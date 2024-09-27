@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Literal, Union
+from typing import Literal
 
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
@@ -107,7 +107,7 @@ class ClosedPosition(BaseModel):
     prev_pos: float
 
 
-Strategy: Union[StockStrategy, OptionStrategy, ClosedPosition] = Field(discriminator = "type")
+StrategyLeg = StockStrategy | OptionStrategy | ClosedPosition
 
 
 class ProbabilityOfProfitInputs(BaseModel):
@@ -203,7 +203,7 @@ class Inputs(BaseModel):
     interest_rate: float = Field(gt=0, le=0.2)
     min_stock: float
     max_stock: float
-    strategy: list[Strategy] = Field(..., min_length=1)
+    strategy: list[StrategyLeg] = Field(..., min_length=1)
     dividend_yield: float = 0.0
     profit_target: float | None = None
     loss_limit: float | None = None
@@ -221,7 +221,7 @@ class Inputs(BaseModel):
 
     @field_validator("strategy")
     @classmethod
-    def validate_strategy(cls, v: list[Strategy]) -> list[Strategy]:
+    def validate_strategy(cls, v: list[StrategyLeg]) -> list[StrategyLeg]:
         types = [strategy.type for strategy in v]
         if types.count("closed") > 1:
             raise ValueError("Only one position of type 'closed' is allowed!")
