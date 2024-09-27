@@ -63,7 +63,7 @@ The description of the input data follows:
   - Maximum value of the stock in the stock price domain.
 
 - `strategy` : list
-  - A list of `Strategy`.
+  - A list of strategy legs.
 
 - `dividend_yield` : float, optional
   - Annualized dividend yield. Default is 0.0.
@@ -115,10 +115,10 @@ The description of the input data follows:
 
 ---
 
-The `strategy` attribute can be either of type `OptionStrategy`, `StockStrategy`, or 
-`ClosedPosition`.
+The `strategy` attribute is a list of strategy legs, where each leg can be of type 
+`Option`, `Stock`, or `ClosedPosition`.
 
-The `OptionStrategy` structure:
+The `Option` structure:
 
 ---
 
@@ -149,7 +149,7 @@ The `OptionStrategy` structure:
 
 ---
 
-`StockStrategy`:
+`Stock`:
 
 ---
 
