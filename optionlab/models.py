@@ -27,12 +27,13 @@ Country = Literal[
 ]
 
 
-class BaseStrategy(BaseModel):
+class BaseLeg(BaseModel):
+    n: int = Field(gt=0)
     action: Action
     prev_pos: float | None = None
 
 
-class Stock(BaseStrategy):
+class Stock(BaseLeg):
     """
     "type" : string
         It must be 'stock'. It is mandatory.
@@ -48,15 +49,12 @@ class Stock(BaseStrategy):
         negative, it means that the position is closed and the
         difference between this price and the current price is
         considered in the payoff calculation.
-
     """
 
     type: Literal["stock"] = "stock"
-    n: int = Field(gt=0)
-    premium: float | None = None
 
 
-class Option(BaseStrategy):
+class Option(BaseLeg):
     """
     "type" : string
         Either 'call' or 'put'. It is mandatory.
@@ -65,7 +63,7 @@ class Option(BaseStrategy):
     "premium" : float
         Option premium. It is mandatory.
     "n" : int
-        Number of options. It is mandatory
+        Number of options. It is mandatory.
     "action" : string
         Either 'buy' or 'sell'. It is mandatory.
     "prev_pos" : float
@@ -77,13 +75,13 @@ class Option(BaseStrategy):
         between this price and the current price is considered in
         the payoff calculation.
     "expiration" : string | int, optional.
-        Expiration date or days to maturity. If not defined, will use `target_date` or `days_to_target_date`.
+        Expiration date or days to maturity. If not defined, will use `target_date` 
+        or `days_to_target_date`.
     """
 
     type: OptionType
     strike: float = Field(gt=0)
     premium: float = Field(gt=0)
-    n: int = Field(gt=0)
     expiration: dt.date | int | None = None
 
     @field_validator("expiration")
