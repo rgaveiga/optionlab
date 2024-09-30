@@ -27,12 +27,13 @@ Country = Literal[
 ]
 
 
-class BaseStrategy(BaseModel):
+class BaseLeg(BaseModel):
+    n: int = Field(gt=0)
     action: Action
     prev_pos: float | None = None
 
 
-class StockStrategy(BaseStrategy):
+class Stock(BaseLeg):
     """
     "type" : string
         It must be 'stock'. It is mandatory.
@@ -48,15 +49,12 @@ class StockStrategy(BaseStrategy):
         negative, it means that the position is closed and the
         difference between this price and the current price is
         considered in the payoff calculation.
-
     """
 
     type: Literal["stock"] = "stock"
-    n: int = Field(gt=0)
-    premium: float | None = None
 
 
-class OptionStrategy(BaseStrategy):
+class Option(BaseLeg):
     """
     "type" : string
         Either 'call' or 'put'. It is mandatory.
@@ -83,7 +81,6 @@ class OptionStrategy(BaseStrategy):
     type: OptionType
     strike: float = Field(gt=0)
     premium: float = Field(gt=0)
-    n: int = Field(gt=0)
     expiration: dt.date | int | None = None
 
     @field_validator("expiration")
@@ -107,7 +104,7 @@ class ClosedPosition(BaseModel):
     prev_pos: float
 
 
-Strategy = StockStrategy | OptionStrategy | ClosedPosition
+StrategyLeg = Stock | Option | ClosedPosition
 
 
 class ProbabilityOfProfitInputs(BaseModel):
@@ -203,7 +200,7 @@ class Inputs(BaseModel):
     interest_rate: float = Field(gt=0, le=0.2)
     min_stock: float
     max_stock: float
-    strategy: list[Strategy] = Field(..., min_length=1, discriminator="type")
+    strategy: list[StrategyLeg] = Field(..., min_length=1)
     dividend_yield: float = 0.0
     profit_target: float | None = None
     loss_limit: float | None = None
@@ -221,7 +218,7 @@ class Inputs(BaseModel):
 
     @field_validator("strategy")
     @classmethod
-    def validate_strategy(cls, v: list[Strategy]) -> list[Strategy]:
+    def validate_strategy(cls, v: list[StrategyLeg]) -> list[StrategyLeg]:
         types = [strategy.type for strategy in v]
         if types.count("closed") > 1:
             raise ValueError("Only one position of type 'closed' is allowed!")
@@ -232,8 +229,7 @@ class Inputs(BaseModel):
         expiration_dates = [
             strategy.expiration
             for strategy in self.strategy
-            if isinstance(strategy, OptionStrategy)
-            and isinstance(strategy.expiration, dt.date)
+            if isinstance(strategy, Option) and isinstance(strategy.expiration, dt.date)
         ]
         if self.start_date and self.target_date:
             if any(
