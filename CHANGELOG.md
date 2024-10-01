@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.3.1 (2024-09-27)
+
+- discriminator="type" removed from strategy: list[StrategyLeg] = Field(..., min_length=1) in models.py, since
+it was causing errors in new Pydantic versions.
+- Changed StotckStrategy and OptionStrategy to Stock and Option in models.py, respectively.
+- Changed BaseStrategy to BaseLeg in models.py.
+- Changed Strategy to StrategyLeg in models.py.
+- Removed premium field from Stock in models.py.
+- Moved n field to BaseLeg in models.py.
+
 ## 1.3.0 (2024-09-13)
 
 - Remove the deprecated `StrategyEngine` class (it remains commented in the code).
