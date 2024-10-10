@@ -41,7 +41,7 @@ class Stock(BaseLeg):
         Number of shares. It is mandatory.
     "action" : string
         Either 'buy' or 'sell'. It is mandatory.
-    "prev_pos" : float
+    "prev_pos" : float # FIXME: is this optional?
         Stock price effectively paid or received in a previously
         opened position. If positive, it means that the position
         remains open and the payoff calculation takes this price
