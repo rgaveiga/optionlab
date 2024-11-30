@@ -187,15 +187,15 @@ def create_price_samples(
         return exp(normal((log(s0) + drift), volatility * sqrt(years_to_maturity), n))
     elif distribution == "laplace":
         return exp(
-            laplace((log(s0) + drift), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n)
+            laplace(
+                (log(s0) + drift), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n
+            )
         )
     else:
         raise ValueError("Distribution not implemented yet!")
 
 
-def get_profit_range(
-    s: ndarray, profit: ndarray, target: float = 0.01
-) -> list[Range]:
+def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[Range]:
     """
     get_profit_range(s, profit, target) -> returns pairs of stock prices, as a list,
     for which an option trade is expected to get the desired profit in between.
@@ -249,11 +249,11 @@ def get_pop(
     get_pop(profit_ranges, source, kwargs) -> estimates the probability of profit
     (PoP) of an option trade.
 
-    * For 'source="black-scholes"' (default; 'normal' is equivalent): the probability 
-    of profit is calculated assuming a (log)normal distribution as implemented in 
+    * For 'source="black-scholes"' (default; 'normal' is equivalent): the probability
+    of profit is calculated assuming a (log)normal distribution as implemented in
     the Black-Scholes model.
-    
-    * For 'source="laplace"': the probability of profit is calculated assuming 
+
+    * For 'source="laplace"': the probability of profit is calculated assuming
     a (log)Laplace distribution of terminal stock prices at maturity.
 
     * For 'source="array"': the probability of profit is calculated
@@ -278,14 +278,16 @@ def get_pop(
         stock_price = inputs.stock_price
         volatility = inputs.volatility
         years_to_maturity = inputs.years_to_maturity
-        r = (inputs.interest_rate or 0.0)  # 'or' just for typing purposes, as `interest_rate` must be non-zero
+        r = (
+            inputs.interest_rate or 0.0
+        )  # 'or' just for typing purposes, as `interest_rate` must be non-zero
         y = inputs.dividend_yield
         drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
         sigma = volatility * sqrt(years_to_maturity)
 
         if sigma == 0.0:
             sigma = 1e-10
-       
+
         beta = sigma / sqrt(2.0)
 
         for p_range in profit_ranges:
