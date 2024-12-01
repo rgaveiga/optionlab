@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.3 (2024-12-02)
+
+- Updated docstrings for compatibility with sphinx.
+
 ## 1.3.2 (2024-11-30)
 
 - Changed Laplace distribution implementation in `create_price_samples` and `get_pop` functions in support.py.
