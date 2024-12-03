@@ -183,6 +183,7 @@ def _run(data: EngineData) -> EngineData:
     data._profit_ranges = get_profit_range(data.stock_price_array, data.strategy_profit)
 
     pop_inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
+
     if inputs.distribution in ("normal", "laplace", "black-scholes"):
         pop_inputs = ProbabilityOfProfitInputs(
             source=inputs.distribution,  # type: ignore

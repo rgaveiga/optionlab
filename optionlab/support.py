@@ -2,7 +2,6 @@ from __future__ import division
 
 from functools import lru_cache
 
-import numpy as np
 from numpy import ndarray, exp, abs, round, diff, flatnonzero, arange, inf
 from numpy.lib.scimath import log, sqrt
 from numpy.random import normal, laplace
@@ -25,9 +24,9 @@ def get_pl_profile(
     x: float,
     val: float,
     n: int,
-    s: np.ndarray,
+    s: ndarray,
     commission: float = 0.0,
-) -> tuple[np.ndarray, float]:
+) -> tuple[ndarray, float]:
     """
     get_pl_profile(option_type, action, x, val, n, s, commission) -> returns the profit/loss
     profile and cost of an option trade at expiration.
@@ -60,8 +59,8 @@ def get_pl_profile(
 
 
 def get_pl_profile_stock(
-    s0: float, action: Action, n: int, s: np.ndarray, commission: float = 0.0
-) -> tuple[np.ndarray, float]:
+    s0: float, action: Action, n: int, s: ndarray, commission: float = 0.0
+) -> tuple[ndarray, float]:
     """
     get_pl_profile_stock(s0, action, n, s, commission) -> returns the profit/loss
     profile and cost of a stock position.
@@ -94,7 +93,7 @@ def get_pl_profile_bs(
     target_to_maturity_years: float,
     volatility: float,
     n: int,
-    s: np.ndarray,
+    s: ndarray,
     y: float = 0.0,
     commission: float = 0.0,
 ):
@@ -137,7 +136,7 @@ def get_pl_profile_bs(
 
 
 @lru_cache
-def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
+def create_price_seq(min_price: float, max_price: float) -> ndarray:
     """
     create_price_seq(min_price, max_price) -> generates a sequence of stock prices
     from 'min_price' to 'max_price' with increment $0.01.
@@ -164,7 +163,7 @@ def create_price_samples(
     distribution: Distribution = "black-scholes",
     y: float = 0.0,
     n: int = 100_000,
-) -> np.ndarray:
+) -> ndarray:
     """
     create_price_samples(s0, volatility, years_to_maturity, r, distribution, y, n) -> generates
     random stock prices at maturity according to a statistical distribution.
@@ -177,28 +176,26 @@ def create_price_samples(
     r: annualized risk-free interest rate (default is 0.01). Used only if
        distribution is 'black-scholes'.
     distribution: statistical distribution used to generate random stock prices
-                  at maturity. It can be 'black-scholes' (default), 'normal' or
-                  'laplace'.
+                  at maturity. It can be 'black-scholes' (default; 'normal' is
+                  equivalent) or 'laplace'.
     y: annualized dividend yield (default is zero).
     n: number of randomly generated terminal prices.
     """
-    if distribution == "normal":
-        return exp(normal(log(s0), volatility * sqrt(years_to_maturity), n))
-    elif distribution == "black-scholes":
-        drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
+    drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
 
+    if distribution in ("black-scholes", "normal"):
         return exp(normal((log(s0) + drift), volatility * sqrt(years_to_maturity), n))
     elif distribution == "laplace":
         return exp(
-            laplace(log(s0), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n)
+            laplace(
+                (log(s0) + drift), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n
+            )
         )
     else:
         raise ValueError("Distribution not implemented yet!")
 
 
-def get_profit_range(
-    s: np.ndarray, profit: np.ndarray, target: float = 0.01
-) -> list[Range]:
+def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[Range]:
     """
     get_profit_range(s, profit, target) -> returns pairs of stock prices, as a list,
     for which an option trade is expected to get the desired profit in between.
@@ -252,13 +249,12 @@ def get_pop(
     get_pop(profit_ranges, source, kwargs) -> estimates the probability of profit
     (PoP) of an option trade.
 
-    * For 'source="normal"' or 'source="laplace"': the probability of
-    profit is calculated assuming either a (log)normal or a (log)Laplace
-    distribution of terminal stock prices at maturity.
+    * For 'source="black-scholes"' (default; 'normal' is equivalent): the probability
+    of profit is calculated assuming a (log)normal distribution as implemented in
+    the Black-Scholes model.
 
-    * For 'source="black-scholes"' (default): the probability of profit
-    is calculated assuming a (log)normal distribution with risk neutrality
-    as implemented in the Black-Scholes model.
+    * For 'source="laplace"': the probability of profit is calculated assuming
+    a (log)Laplace distribution of terminal stock prices at maturity.
 
     * For 'source="array"': the probability of profit is calculated
     from a 1D numpy array of stock prices typically at maturity generated
@@ -282,24 +278,17 @@ def get_pop(
         stock_price = inputs.stock_price
         volatility = inputs.volatility
         years_to_maturity = inputs.years_to_maturity
-        drift = 0.0
-
-        if inputs.source == "black-scholes":
-            r = (
-                inputs.interest_rate or 0.0
-            )  # 'or' just for typing purposes, as `interest_rate` must be non-zero
-            y = inputs.dividend_yield
-
-            drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
-
+        r = (
+            inputs.interest_rate or 0.0
+        )  # 'or' just for typing purposes, as `interest_rate` must be non-zero
+        y = inputs.dividend_yield
+        drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
         sigma = volatility * sqrt(years_to_maturity)
 
         if sigma == 0.0:
             sigma = 1e-10
 
-        beta = 0.0
-        if inputs.source == "laplace":
-            beta = sigma / sqrt(2.0)
+        beta = sigma / sqrt(2.0)
 
         for p_range in profit_ranges:
             lval = p_range[0]
@@ -314,8 +303,8 @@ def get_pop(
                 ) - stats.norm.cdf((log(lval / stock_price) - drift) / sigma)
             else:
                 pop += stats.laplace.cdf(
-                    log(hval / stock_price) / beta
-                ) - stats.laplace.cdf(log(lval / stock_price) / beta)
+                    (log(hval / stock_price) - drift) / beta
+                ) - stats.laplace.cdf((log(lval / stock_price) - drift) / beta)
 
     elif isinstance(inputs, ProbabilityOfProfitArrayInputs):
         stocks = inputs.array
@@ -338,8 +327,8 @@ def get_pop(
 
 
 def _get_pl_option(
-    option_type: OptionType, opvalue: float, action: Action, s: np.ndarray, x: float
-) -> np.ndarray:
+    option_type: OptionType, opvalue: float, action: Action, s: ndarray, x: float
+) -> ndarray:
     """
     getPLoption(option_type,opvalue,action,s,x) -> returns the profit (P) or loss
     (L) per option of an option trade at expiration.
@@ -361,7 +350,7 @@ def _get_pl_option(
         raise ValueError("Action must be either 'sell' or 'buy'!")
 
 
-def _get_payoff(option_type: OptionType, s: np.ndarray, x: float) -> np.ndarray:
+def _get_payoff(option_type: OptionType, s: ndarray, x: float) -> ndarray:
     """
     get_payoff(option_type, s, x) -> returns the payoff of an option trade at expiration.
 
@@ -380,7 +369,7 @@ def _get_payoff(option_type: OptionType, s: np.ndarray, x: float) -> np.ndarray:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
 
-def _get_pl_stock(s0: float, action: Action, s: np.ndarray) -> np.ndarray:
+def _get_pl_stock(s0: float, action: Action, s: ndarray) -> ndarray:
     """
     get_pl_stock(s0,action,s) -> returns the profit (P) or loss (L) of a stock
     position.

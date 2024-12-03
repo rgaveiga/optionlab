@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.2 (2024-11-30)
+
+- Changed Laplace distribution implementation in `create_price_samples` and `get_pop` functions in support.py.
+
 ## 1.3.1 (2024-09-27)
 
 - discriminator="type" removed from strategy: list[StrategyLeg] = Field(..., min_length=1) in models.py, since
