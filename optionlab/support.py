@@ -28,18 +28,29 @@ def get_pl_profile(
     commission: float = 0.0,
 ) -> tuple[ndarray, float]:
     """
-    get_pl_profile(option_type, action, x, val, n, s, commission) -> returns the profit/loss
-    profile and cost of an option trade at expiration.
+    Returns the profit/loss profile and cost of an option trade at expiration.
 
-    Arguments:
+    Parameters
     ----------
-    option_type: option type ('call' or 'put').
-    action: either 'buy' or 'sell' the option.
-    x: strike price.
-    val: option price.
-    n: number of options.
-    s: a numpy array of stock prices.
-    commission: commission charged by the broker (default is zero).
+    option_type : OptionType
+        Either 'call' or 'put'.
+    action : Action
+        Either 'buy' or 'sell' the option.
+    x : float
+        Strike price.
+    val : float
+        Option price.
+    n : int
+        Number of options.
+    s : ndarray
+        Array of stock prices.
+    commission : float, optional
+        Commission charged by the broker. The default is 0.0.
+
+    Returns
+    -------
+    tuple[ndarray, float]
+        Profit/loss profile and cost of an option trade at expiration.
     """
 
     if action == "buy":
@@ -62,16 +73,25 @@ def get_pl_profile_stock(
     s0: float, action: Action, n: int, s: ndarray, commission: float = 0.0
 ) -> tuple[ndarray, float]:
     """
-    get_pl_profile_stock(s0, action, n, s, commission) -> returns the profit/loss
-    profile and cost of a stock position.
+    Returns the profit/loss profile and cost of a stock position.
 
-    Arguments:
+    Parameters
     ----------
-    s0: initial stock price.
-    action: either 'buy' or 'sell' the shares.
-    n: number of shares.
-    s: a numpy array of stock prices.
-    commission: commission charged by the broker (default is zero).
+    s0 : float
+        Initial stock price.
+    action : Action
+        Either 'buy' or 'sell' the shares.
+    n : int
+        Number of shares.
+    s : ndarray
+        Array of stock prices.
+    commission : float, optional
+        Commission charged by the broker. The default is 0.0.
+
+    Returns
+    -------
+    tuple[ndarray, float]
+        Profit/loss profile and cost of a stock position.
     """
 
     if action == "buy":
@@ -96,26 +116,40 @@ def get_pl_profile_bs(
     s: ndarray,
     y: float = 0.0,
     commission: float = 0.0,
-):
+) -> tuple[ndarray, float]:
     """
-    get_pl_profile_bs(option_type, action, x, val, r, target_to_maturity, volatility, n, s, y,
-    commission) -> returns the profit/loss profile and cost of an option trade
-    on a target date before maturity using the Black-Scholes model for option
-    pricing.
+    Returns the profit/loss profile and cost of an option trade on a target date 
+    before maturity using the Black-Scholes model for option pricing.
 
-    Arguments:
+    Parameters
     ----------
-    option_type: option type (either 'call' or 'put').
-    action: either 'buy' or 'sell' the option.
-    x: strike.
-    val: option price when the trade was open.
-    r: risk-free interest rate.
-    target_to_maturity_years: time remaining to maturity from the target date, in years.
-    volatility: annualized volatility of the underlying asset.
-    n: number of options.
-    s: a numpy array of stock prices.
-    y: annualized dividend yield (default is zero)
-    commission: commission charged by the broker (default is zero).
+    option_type : OptionType
+        Either 'call' or 'put'.
+    action : Action
+        Either 'buy' or 'sell' the option.
+    x : float
+        Strike price.
+    val : float
+        Option price when the trade is open.
+    r : float
+        Risk-free interest rate.
+    target_to_maturity_years : float
+        Time remaining to maturity from the target date, in years.
+    volatility : float
+        Annualized volatility of the underlying asset.
+    n : int
+        Number of options.
+    s : ndarray
+        Array of stock prices.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+    commission : float, optional
+        Commission charged by the broker. The default is 0.0.
+
+    Returns
+    -------
+    tuple[ndarray, float]
+        Profit/loss profile and cost of an option trade before expiration.
     """
 
     if action == "buy":
@@ -138,14 +172,22 @@ def get_pl_profile_bs(
 @lru_cache
 def create_price_seq(min_price: float, max_price: float) -> ndarray:
     """
-    create_price_seq(min_price, max_price) -> generates a sequence of stock prices
-    from 'min_price' to 'max_price' with increment $0.01.
+    Generates a sequence of stock prices from a minimum to a maximum price with 
+    increment $0.01.
 
-    Arguments:
+    Parameters
     ----------
-    min_price: minimum stock price in the range.
-    max_price: maximum stock price in the range.
+    min_price : float
+        Minimum stock price in the range.
+    max_price : float
+        Maximum stock price in the range.
+
+    Returns
+    -------
+    ndarray
+        Array of sequential stock prices.
     """
+
     if max_price > min_price:
         return round(
             (arange(int(max_price - min_price) * 100 + 1) * 0.01 + min_price), 2
@@ -153,7 +195,7 @@ def create_price_seq(min_price: float, max_price: float) -> ndarray:
     else:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
-
+#TODO: Add a distribution, 'external', to allow customization.
 @lru_cache
 def create_price_samples(
     s0: float,
@@ -165,22 +207,33 @@ def create_price_samples(
     n: int = 100_000,
 ) -> ndarray:
     """
-    create_price_samples(s0, volatility, years_to_maturity, r, distribution, y, n) -> generates
-    random stock prices at maturity according to a statistical distribution.
+    Generates terminal stock prices assuming a statistical distribution.
 
-    Arguments:
+    Parameters
     ----------
-    s0: spot price of the stock.
-    volatility: annualized volatility.
-    years_to_maturity: time left to maturity in units of year.
-    r: annualized risk-free interest rate (default is 0.01). Used only if
-       distribution is 'black-scholes'.
-    distribution: statistical distribution used to generate random stock prices
-                  at maturity. It can be 'black-scholes' (default; 'normal' is
-                  equivalent) or 'laplace'.
-    y: annualized dividend yield (default is zero).
-    n: number of randomly generated terminal prices.
+    s0 : float
+        Spot price of the stock.
+    volatility : float
+        Annualized volatility of the underlying asset.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    r : float, optional
+        Annualized risk-free interest rate. The default is 0.01.
+    distribution : Distribution, optional
+        Statistical distribution used to generate terminal stock prices. 
+        It can be 'black-scholes' ('normal') or 'laplace'. The default is 
+        'black-scholes'.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+    n : int, optional
+        Number of terminal prices. The default is 100_000.
+
+    Returns
+    -------
+    ndarray
+        Array of terminal prices.
     """
+    
     drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
 
     if distribution in ("black-scholes", "normal"):
@@ -197,15 +250,22 @@ def create_price_samples(
 
 def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[Range]:
     """
-    get_profit_range(s, profit, target) -> returns pairs of stock prices, as a list,
-    for which an option trade is expected to get the desired profit in between.
+    Returns a list of stock price pairs, where each pair represents the lower and 
+    upper bounds within which an options trade is expected to make the desired profit.
 
-    Arguments:
+    Parameters
     ----------
-    s: a numpy array of stock prices.
-    profit: a numpy array containing the profit (or loss) of the trade for each
-            stock price in the stock price array.
-    target: profit target (0.01 is the default).
+    s : ndarray
+        Array of stock prices.
+    profit : ndarray
+        Array of profits and losses.
+    target : float, optional
+        Profit target. The default is 0.01.
+
+    Returns
+    -------
+    list[Range]
+        List of stock price pairs.
     """
 
     t = s[profit >= target]
@@ -246,27 +306,20 @@ def get_pop(
     inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs,
 ) -> float:
     """
-    get_pop(profit_ranges, source, kwargs) -> estimates the probability of profit
-    (PoP) of an option trade.
+    Estimates the probability of profit (PoP) of an options trade.
 
-    * For 'source="black-scholes"' (default; 'normal' is equivalent): the probability
-    of profit is calculated assuming a (log)normal distribution as implemented in
-    the Black-Scholes model.
-
-    * For 'source="laplace"': the probability of profit is calculated assuming
-    a (log)Laplace distribution of terminal stock prices at maturity.
-
-    * For 'source="array"': the probability of profit is calculated
-    from a 1D numpy array of stock prices typically at maturity generated
-    by a Monte Carlo simulation (or another user-defined data generation
-    process).
-
-    Arguments:
+    Parameters
     ----------
-    profit_ranges: a Python list containing the stock price ranges, as given by
-        'get_profit_range()', for which a trade results in profit.
-    inputs: A `ProbabilityOfProfitInputs` or `ProbabilityOfProfitArrayInputs` object,
-        depending on `source`.
+    profit_ranges : list[Range]
+        List of stock price pairs, where each pair represents the lower and upper 
+        bounds within which the options trade makes a profit.
+    inputs : ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
+        Inputs for the probability of profit calculation.
+
+    Returns
+    -------
+    float
+        Probability of profit.
     """
 
     pop = 0.0
@@ -330,16 +383,25 @@ def _get_pl_option(
     option_type: OptionType, opvalue: float, action: Action, s: ndarray, x: float
 ) -> ndarray:
     """
-    getPLoption(option_type,opvalue,action,s,x) -> returns the profit (P) or loss
-    (L) per option of an option trade at expiration.
+    Returns the profit or loss profile of an option leg at expiration.
 
-    Arguments:
+    Parameters
     ----------
-    option_type: option type (either 'call' or 'put').
-    opvalue: option price.
-    action: either 'buy' or 'sell' the option.
-    s: a numpy array of stock prices.
-    x: strike price.
+    option_type : OptionType
+        Either 'call' or 'put'.
+    opvalue : float
+        Option price.
+    action : Action
+        Either 'buy' or 'sell' the option.
+    s : ndarray
+        Array of stock prices.
+    x : float
+        Strike price.
+
+    Returns
+    -------
+    ndarray
+        Profit or loss profile of an option leg at expiration.
     """
 
     if action == "sell":
@@ -352,13 +414,21 @@ def _get_pl_option(
 
 def _get_payoff(option_type: OptionType, s: ndarray, x: float) -> ndarray:
     """
-    get_payoff(option_type, s, x) -> returns the payoff of an option trade at expiration.
+    Returns the payoff of an option leg at expiration.
 
-    Arguments:
+    Parameters
     ----------
-    option_type: option type (either 'call' or 'put').
-    s: a numpy array of stock prices.
-    x: strike price.
+    option_type : OptionType
+        Either 'call' or 'put'.
+    s : ndarray
+        Array of stock prices.
+    x : float
+        Strike price.
+
+    Returns
+    -------
+    ndarray
+        Payoff of an option leg at expiration.
     """
 
     if option_type == "call":
@@ -371,14 +441,21 @@ def _get_payoff(option_type: OptionType, s: ndarray, x: float) -> ndarray:
 
 def _get_pl_stock(s0: float, action: Action, s: ndarray) -> ndarray:
     """
-    get_pl_stock(s0,action,s) -> returns the profit (P) or loss (L) of a stock
-    position.
+    Returns the profit or loss profile of a stock position.
 
-    Arguments:
+    Parameters
     ----------
-    s0: initial stock price.
-    action: either 'buy' or 'sell' the stock.
-    s: a numpy array of stock prices.
+    s0 : float
+        Spot price of the underlying asset.
+    action : Action
+        Either 'buy' or 'sell' the stock.
+    s : ndarray
+        Array of stock prices.
+
+    Returns
+    -------
+    ndarray
+        Profit or loss profile of a stock position.
     """
 
     if action == "sell":
