@@ -36,6 +36,20 @@ from optionlab.utils import get_nonbusiness_days
 
 
 def run_strategy(inputs_data: Inputs | dict) -> Outputs:
+    """
+    Runs the calculations for an options trading strategy.
+
+    Parameters
+    ----------
+    inputs_data : Inputs | dict
+        Inputs of the calculations. See the documentation of the 'Inputs' class.
+
+    Returns
+    -------
+    Outputs
+        Outputs of the calculations. See the documentation of the 'Outputs' class.
+    """
+    
     inputs = (
         inputs_data
         if isinstance(inputs_data, Inputs)
@@ -133,15 +147,7 @@ def _init_inputs(inputs: Inputs) -> EngineData:
     return data
 
 
-def _run(data: EngineData) -> EngineData:
-    """
-    run -> runs calculations for an options strategy.
-
-    Returns
-    -------
-    output : Outputs
-        An Outputs object containing the output of a calculation.
-    """
+def _run(data: EngineData) -> EngineData:   
     inputs = data.inputs
 
     time_to_target = (
