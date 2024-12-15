@@ -32,7 +32,7 @@ def get_bs_info(
     -------
     BlackScholesInfo
         Information calculated using the Black-Scholes formula. See the documentation 
-        of the 'BlackScholesInfo' class.
+        of the `BlackScholesInfo` class.
     """
     
     d1, d2 = get_d1_d2(s, x, r, vol, years_to_maturity, y)
@@ -87,9 +87,9 @@ def get_option_price(
     years_to_maturity : float
         Time remaining to maturity, in years.
     d1 : float
-        'd1' in Black-Scholes formula.
+        `d1` in Black-Scholes formula.
     d2 : float
-        'd2' in Black-Scholes formula.
+        `d2` in Black-Scholes formula.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
 
@@ -131,7 +131,7 @@ def get_delta(
     option_type : OptionType
         Either 'call' or 'put'.
     d1 : float
-        'd1' in Black-Scholes formula.
+        `d1` in Black-Scholes formula.
     years_to_maturity : float, optional
         Time remaining to maturity, in years. The default is 0.0.
     y : float, optional
@@ -171,7 +171,7 @@ def get_gamma(
     years_to_maturity : float
         Time remaining to maturity, in years.
     d1 : float
-        'd1' in Black-Scholes formula.
+        `d1` in Black-Scholes formula.
     y : float, optional
         Annualized divident yield. The default is 0.0.
 
@@ -220,9 +220,9 @@ def get_theta(
     years_to_maturity : float
         Time remaining to maturity, in years.
     d1 : float
-        'd1' in Black-Scholes formula.
+        `d1` in Black-Scholes formula.
     d2 : float
-        'd2' in Black-Scholes formula.
+        `d2` in Black-Scholes formula.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
 
@@ -266,7 +266,7 @@ def get_vega(s0: float, years_to_maturity: float, d1: float, y: float = 0.0) -> 
     years_to_maturity : float
         Time remaining to maturity, in years.
     d1 : float
-        'd1' in Black-Scholes formula.
+        `d1` in Black-Scholes formula.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
 
@@ -295,7 +295,7 @@ def get_d1_d2(
     y: float = 0.0,
 ) -> tuple[float, float]:
     """
-    Returns 'd1' and 'd2' required in Black-Scholes formula.
+    Returns `d1` and `d2` required in Black-Scholes formula.
 
     Parameters
     ----------
@@ -315,7 +315,7 @@ def get_d1_d2(
     Returns
     -------
     tuple[float, float]
-        'd1' and 'd2'.
+        `d1` and `d2`.
     """
     
     d1 = (log(s0 / x) + (r - y + vol * vol / 2.0) * years_to_maturity) / (
@@ -381,7 +381,7 @@ def get_itm_probability(
     option_type : OptionType
         Either 'call' or 'put'.
     d2 : float
-        'd2' in Black-Scholes formula.
+        `d2` in Black-Scholes formula.
     years_to_maturity : float, optional
         Time remaining to maturity, in years. The default is 0.0.
     y : float, optional
