@@ -9,21 +9,21 @@ Action = Literal["buy", "sell"]
 StrategyType = Literal["stock"] | OptionType | Literal["closed"]
 Range = tuple[float, float]
 Distribution = Literal["black-scholes", "normal", "laplace", "array"]
-Country = Literal[
+Country = Literal[   #TODO: Remove this.
     "US",
     "Canada",
     "Mexico",
     "Brazil",
     "China",
     "India",
-    "South Korea",
+    "SouthKorea",
     "Russia",
     "Japan",
     "UK",
     "France",
     "Germany",
     "Italy",
-    "Australia",
+    "Australia"
 ]
 
 
@@ -404,7 +404,7 @@ class Outputs(BaseModel):
     probability_of_profit_from_mc : float | None, optional
         Probability of the strategy yielding at least $0.01 calculated from 
         terminal prices created by Monte Carlo simulations. The default is None.
-    data : EngineData
+    data : EngineDataResults
         Further data from the strategy calculation that can be used in the 
         post-processing of the outputs.
     inputs : Inputs

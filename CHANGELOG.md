@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## 1.3.3 (2024-12-02)
+## 1.3.3 (2024-12-15)
 
-- Updated docstrings for compatibility with sphinx.
+- Updated docstrings to comply with reStructuredText (RST) standards.
+- Changed the `country` argument in `get_nonbusiness_days` in utils.py to accept a string.
+- Changed the `data` argument in `get_pl` and `pl_to_csv` in utils.py to accept an `Outputs` object instead of `EngineData`.
 
 ## 1.3.2 (2024-11-30)
 

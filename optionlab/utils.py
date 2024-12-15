@@ -7,12 +7,12 @@ from functools import lru_cache
 import numpy as np
 from holidays import country_holidays
 
-from optionlab.models import Country, EngineData
+from optionlab.models import Outputs
 
 
 @lru_cache
 def get_nonbusiness_days(
-    start_date: dt.date, end_date: dt.date, country: Country = "US"
+    start_date: dt.date, end_date: dt.date, country: str = "US"
 ) -> int:
     """
     Returns the number of non-business days (i.e., weekends and holidays) between 
@@ -20,16 +20,18 @@ def get_nonbusiness_days(
 
     Parameters
     ----------
-    start_date : dt.date
+    start_date : datetime.date
         Start date.
-    end_date : dt.date
+    end_date : datetime.date
         End date.
-    country : Country, optional
-        Country of the stock exchange. The default is "US".
+    country : str, optional
+        Country of the stock exchange. A list of available countries can be found 
+        in the `holidays library documentation <https://holidays.readthedocs.io/en/latest/>`_. 
+        The default value is 'US'.
 
     Returns
     -------
-    nonbusiness_days : int
+    int
         Number of weekends and holidays between the start and end date.
     """
 
@@ -50,15 +52,15 @@ def get_nonbusiness_days(
     return nonbusiness_days
 
 
-def get_pl(data: EngineData, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
+def get_pl(data: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Returns the stock prices and the corresponding profit/loss profile of either 
     a leg or the whole strategy.
 
     Parameters
     ----------
-    data : EngineData
-        Stock price and profit/loss data.
+    data : Outputs
+        Output data from a strategy calculation.
     leg : int | None, optional
         Index of a strategy leg. The default is None, which means the whole strategy.
 
@@ -75,7 +77,7 @@ def get_pl(data: EngineData, leg: int | None = None) -> tuple[np.ndarray, np.nda
 
 
 def pl_to_csv(
-    data: EngineData, filename: str = "pl.csv", leg: int | None = None
+    data: Outputs, filename: str = "pl.csv", leg: int | None = None
 ) -> None:
     """
     Saves the stock prices and corresponding profit/loss profile of either a leg 
@@ -83,10 +85,10 @@ def pl_to_csv(
 
     Parameters
     ----------
-    data : EngineData
-        Stock price and profit/loss data.
+    data : Outputs
+        Output data from a strategy calculation.
     filename : str, optional
-        Name of the CSV file. The default is "pl.csv".
+        Name of the CSV file. The default is 'pl.csv'.
     leg : int | None, optional
         Index of a strategy leg. The default is None, which means the whole strategy.
 
