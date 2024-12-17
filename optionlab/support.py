@@ -28,28 +28,28 @@ def get_pl_profile(
     commission: float = 0.0,
 ) -> tuple[ndarray, float]:
     """
-    Returns the profit/loss profile and cost of an option trade at expiration.
+    Returns the profit/loss profile and cost of an options trade at expiration.
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
-    action : Action
-        Either 'buy' or 'sell' the option.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
+    action : str
+        `Action` literal value, which must be either 'buy' or 'sell'.
     x : float
         Strike price.
     val : float
         Option price.
     n : int
         Number of options.
-    s : ndarray
+    s : numpy.ndarray
         Array of stock prices.
     commission : float, optional
-        Commission charged by the broker. The default is 0.0.
+        Brokerage commission. The default is 0.0.
 
     Returns
     -------
-    tuple[ndarray, float]
+    tuple[numpy.ndarray, float]
         Profit/loss profile and cost of an option trade at expiration.
     """
 
@@ -79,18 +79,18 @@ def get_pl_profile_stock(
     ----------
     s0 : float
         Initial stock price.
-    action : Action
-        Either 'buy' or 'sell' the shares.
+    action : str
+        `Action` literal value, which must be either 'buy' or 'sell'.
     n : int
         Number of shares.
-    s : ndarray
+    s : numpy.ndarray
         Array of stock prices.
     commission : float, optional
-        Commission charged by the broker. The default is 0.0.
+        Brokerage commission. The default is 0.0.
 
     Returns
     -------
-    tuple[ndarray, float]
+    tuple[numpy.ndarray, float]
         Profit/loss profile and cost of a stock position.
     """
 
@@ -118,37 +118,37 @@ def get_pl_profile_bs(
     commission: float = 0.0,
 ) -> tuple[ndarray, float]:
     """
-    Returns the profit/loss profile and cost of an option trade on a target date 
-    before maturity using the Black-Scholes model for option pricing.
+    Returns the profit/loss profile and cost of an options trade on a target date 
+    before expiration using the Black-Scholes model for option pricing.
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
-    action : Action
-        Either 'buy' or 'sell' the option.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
+    action : str
+        `Action` literal value, which must be either 'buy' or 'sell'.
     x : float
         Strike price.
     val : float
-        Option price when the trade is open.
+        Initial option price.
     r : float
-        Risk-free interest rate.
+        Annualized risk-free interest rate.
     target_to_maturity_years : float
         Time remaining to maturity from the target date, in years.
     volatility : float
         Annualized volatility of the underlying asset.
     n : int
         Number of options.
-    s : ndarray
+    s : numpy.ndarray
         Array of stock prices.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
     commission : float, optional
-        Commission charged by the broker. The default is 0.0.
+        Brokerage commission. The default is 0.0.
 
     Returns
     -------
-    tuple[ndarray, float]
+    tuple[numpy.ndarray, float]
         Profit/loss profile and cost of an option trade before expiration.
     """
 
@@ -184,7 +184,7 @@ def create_price_seq(min_price: float, max_price: float) -> ndarray:
 
     Returns
     -------
-    ndarray
+    numpy.ndarray
         Array of sequential stock prices.
     """
 
@@ -219,18 +219,17 @@ def create_price_samples(
         Time remaining to maturity, in years.
     r : float, optional
         Annualized risk-free interest rate. The default is 0.01.
-    distribution : Distribution, optional
-        Statistical distribution used to generate terminal stock prices. 
-        It can be 'black-scholes' ('normal') or 'laplace'. The default is 
-        'black-scholes'.
+    distribution : str, optional
+        `Distribution` literal value, which can be 'black-scholes' (the same as 
+        'normal') or 'laplace'. The default is 'black-scholes'.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
     n : int, optional
-        Number of terminal prices. The default is 100_000.
+        Number of terminal prices. The default is 100,000.
 
     Returns
     -------
-    ndarray
+    numpy.ndarray
         Array of terminal prices.
     """
     
@@ -255,9 +254,9 @@ def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[
 
     Parameters
     ----------
-    s : ndarray
+    s : numpy.ndarray
         Array of stock prices.
-    profit : ndarray
+    profit : numpy.ndarray
         Array of profits and losses.
     target : float, optional
         Profit target. The default is 0.01.
@@ -301,6 +300,7 @@ def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[
     return [(r[0], r[1]) for r in profit_range]
 
 
+#TODO: Improve the description of the inputs.
 def get_pop(
     profit_ranges: list[Range],
     inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs,
@@ -314,7 +314,9 @@ def get_pop(
         List of stock price pairs, where each pair represents the lower and upper 
         bounds within which the options trade makes a profit.
     inputs : ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
-        Inputs for the probability of profit calculation.
+        Inputs for the probability of profit calculation. See the documentation 
+        for `ProbabilityOfProfitInputs` and `ProbabilityOfProfitArrayInputs` for 
+        more details.
 
     Returns
     -------
@@ -363,7 +365,7 @@ def get_pop(
         stocks = inputs.array
 
         if stocks.shape[0] == 0:
-            raise ValueError("The array of stock prices is empty!")
+            raise ValueError("The array of terminal stock prices is empty!")
 
         for i, p_range in enumerate(profit_ranges):
             lval, hval = p_range
@@ -387,20 +389,20 @@ def _get_pl_option(
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
     opvalue : float
         Option price.
-    action : Action
-        Either 'buy' or 'sell' the option.
-    s : ndarray
+    action : str
+        `Action` literal value, which must be either 'buy' or 'sell'.
+    s : numpy.ndarray
         Array of stock prices.
     x : float
         Strike price.
 
     Returns
     -------
-    ndarray
+    numpy.ndarray
         Profit or loss profile of an option leg at expiration.
     """
 
@@ -418,16 +420,16 @@ def _get_payoff(option_type: OptionType, s: ndarray, x: float) -> ndarray:
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
-    s : ndarray
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
+    s : numpy.ndarray
         Array of stock prices.
     x : float
         Strike price.
 
     Returns
     -------
-    ndarray
+    numpy.ndarray
         Payoff of an option leg at expiration.
     """
 
@@ -447,14 +449,14 @@ def _get_pl_stock(s0: float, action: Action, s: ndarray) -> ndarray:
     ----------
     s0 : float
         Spot price of the underlying asset.
-    action : Action
-        Either 'buy' or 'sell' the stock.
-    s : ndarray
+    action : str
+        `Action` literal value, which must be either 'buy' or 'sell'.
+    s : numpy.ndarray
         Array of stock prices.
 
     Returns
     -------
-    ndarray
+    numpy.ndarray
         Profit or loss profile of a stock position.
     """
 
