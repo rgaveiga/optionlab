@@ -5,6 +5,9 @@
 - Updated docstrings to comply with reStructuredText (RST) standards.
 - Changed the `country` argument in `get_nonbusiness_days` in utils.py to accept a string.
 - Changed the `data` argument in `get_pl` and `pl_to_csv` in utils.py to accept an `Outputs` object instead of `EngineData`.
+- Commented 'source: Literal["array"] = "array"' in `ProbabilityOfProfitArrayInputs` class in models.py, because `source` is not necessary.
+- Commented `OptionInfo` class in models.py, because it is not used anywhere.
+- Commented `return_in_the_domain_ratio` in `Outputs` in models.py, because it is not necessary.
 
 ## 1.3.2 (2024-11-30)
 
