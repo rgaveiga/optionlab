@@ -44,13 +44,14 @@ class Stock(BaseLeg):
     n : int
         Number of shares. It is mandatory.
     action : str
-        Either 'buy' or 'sell'. It is mandatory.
-    prev_pos : float
+        `Action` literal value, which must be either 'buy' or 'sell'. It is mandatory.
+    prev_pos : float | None, optional
         Stock price effectively paid or received in a previously opened position. 
         If positive, the position remains open and the payoff calculation considers 
         this price instead of the current stock price. If negative, the position 
         is closed and the difference between this price and the current price is 
-        included in the payoff calculation.
+        included in the payoff calculation. The default is None, which means this 
+        stock position is not a previously opened position.
     """
 
     type: Literal["stock"] = "stock"
@@ -63,23 +64,26 @@ class Option(BaseLeg):
     Attributes
     ----------
     type : str
-        Either 'call' or 'put'. It is mandatory.
+        `OptionType` literal value, which must be either 'call' or 'put'. It is 
+        mandatory.
     strike : float
         Option strike price. It is mandatory.
     premium : float
         Option premium. It is mandatory.
     n : int
         Number of options. It is mandatory
-    action : string
-        Either 'buy' or 'sell'. It is mandatory.
-    prev_pos : float
+    action : str
+        `Action` literal value, which must be either 'buy' or 'sell'.
+    prev_pos : float | None, optional
         Premium effectively paid or received in a previously opened position. If 
         positive, the position remains open and the payoff calculation considers 
         this price instead of the current price of the option. If negative, the 
         position is closed and the difference between this price and the current 
-        price is included in the payoff calculation.
-    expiration : str | int, optional.
-        Expiration date or number of days remaining to maturity.
+        price is included in the payoff calculation. The default is None, which 
+        means this option position is not a previously opened position.
+    expiration : str | int | None, optional.
+        Expiration date or number of days remaining to maturity. The default is 
+        None.
     """
 
     type: OptionType
@@ -113,8 +117,29 @@ class ClosedPosition(BaseModel):
 
 StrategyLeg = Stock | Option | ClosedPosition
 
-
+#TODO: Check the conditions imposed to interest-rate and its optionality; the validator can be removed
 class ProbabilityOfProfitInputs(BaseModel):
+    """
+    Defines the input for the probability of profit calculation from a statistical 
+    distribution.
+    
+    Attributes
+    ----------
+    source : str
+        Statistical distribution. It can be 'black-scholes' (the same as 'normal') 
+        or 'laplace'.
+    stock_price : float
+        Stock price.
+    volatility : float
+        Annualized volatility of the underlying asset.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    interest_rate : float
+        Annualized risk-free interest rate.
+    dividend_yield : float
+        Annualized dividend yield.
+    """
+    
     source: Literal["black-scholes", "normal", "laplace"]
     stock_price: float = Field(gt=0)
     volatility: float = Field(gt=0, le=1)
@@ -122,17 +147,27 @@ class ProbabilityOfProfitInputs(BaseModel):
     interest_rate: float | None = Field(None, gt=0, le=0.2)
     dividend_yield: float = Field(0, ge=0, le=1)
 
-    @model_validator(mode="after")
-    def validate_black_scholes_model(self) -> "ProbabilityOfProfitInputs":
-        if self.source == "black-scholes" and not self.interest_rate:
-            raise ValueError(
-                "Risk-free interest rate must be provided for 'black-scholes' PoP calculations!"
-            )
-        return self
+    # @model_validator(mode="after")
+    # def validate_black_scholes_model(self) -> "ProbabilityOfProfitInputs":
+    #     if self.source == "black-scholes" and not self.interest_rate:
+    #         raise ValueError(
+    #             "Risk-free interest rate must be provided for 'black-scholes' PoP calculations!"
+    #         )
+    #     return self
 
-#TODO: Check if source is required here.
+#TODO: Check if source is really required here.
 class ProbabilityOfProfitArrayInputs(BaseModel):
-    source: Literal["array"] = "array"
+    """
+    Defines the input for the probability of profit calculation when using an 
+    array of terminal stock prices provided by the user.
+    
+    Attributes
+    ----------
+    array : numpy.ndarray
+        Array of terminal stock prices.
+    """
+    
+#    source: Literal["array"] = "array"   # It seems it is not necessary.
     array: np.ndarray
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -171,9 +206,9 @@ class Inputs(BaseModel):
     loss_limit : float, optional
         Limit loss level. The default is None, which means it is not calculated.
     opt_commission : float
-        Broker commission for options transactions. The default is 0.0.
+        Brokerage commission for options transactions. The default is 0.0.
     stock_commission : float
-        Broker commission for stocks transactions. The default is 0.0.
+        Brokerage commission for stocks transactions. The default is 0.0.
     compute_expectation : bool, optional
         Computes the strategy's average profit and loss from a numpy array of random 
         terminal prices generated from a distribution. The default is False.
@@ -307,10 +342,10 @@ class BlackScholesInfo(BaseModel):
     put_itm_prob: float
 
 #TODO: Remove this.
-class OptionInfo(BaseModel):
-    price: float
-    delta: float
-    theta: float
+# class OptionInfo(BaseModel):
+#     price: float
+#     delta: float
+#     theta: float
 
 
 def init_empty_array() -> np.ndarray:
@@ -433,8 +468,8 @@ class Outputs(BaseModel):
     probability_of_profit_from_mc: float | None = None
 
 #TODO: Remove this.
-    @property
-    def return_in_the_domain_ratio(self) -> float:
-        return abs(
-            self.maximum_return_in_the_domain / self.minimum_return_in_the_domain
-        )
+    # @property
+    # def return_in_the_domain_ratio(self) -> float:
+    #     return abs(
+    #         self.maximum_return_in_the_domain / self.minimum_return_in_the_domain
+    #     )
