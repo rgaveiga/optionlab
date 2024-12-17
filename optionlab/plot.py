@@ -15,7 +15,11 @@ def plot_pl(outputs: Outputs) -> None:
     Parameters
     ----------
     outputs : Outputs
-        Outputs of the calculation of an options trading strategy.
+        Output data from a strategy calculation.
+        
+    Returns
+    -------
+    None.
     """
     
     st = outputs.data
