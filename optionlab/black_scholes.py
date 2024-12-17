@@ -76,8 +76,8 @@ def get_option_price(
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
     s0 : float
         Spot price of the underlying asset.
     x : float
@@ -128,8 +128,8 @@ def get_delta(
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
     d1 : float
         `d1` in Black-Scholes formula.
     years_to_maturity : float, optional
@@ -207,8 +207,8 @@ def get_theta(
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
     s0 : float
         Spot price of the underlying asset.
     x : float
@@ -340,8 +340,8 @@ def get_implied_vol(
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
     oprice : float
         Market price of an option.
     s0 : float
@@ -378,8 +378,8 @@ def get_itm_probability(
 
     Parameters
     ----------
-    option_type : OptionType
-        Either 'call' or 'put'.
+    option_type : str
+        `OptionType` literal value, which must be either 'call' or 'put'.
     d2 : float
         `d2` in Black-Scholes formula.
     years_to_maturity : float, optional
