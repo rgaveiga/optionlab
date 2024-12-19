@@ -15,7 +15,7 @@ def get_nonbusiness_days(
     start_date: dt.date, end_date: dt.date, country: str = "US"
 ) -> int:
     """
-    Returns the number of non-business days (i.e., weekends and holidays) between 
+    Returns the number of non-business days (i.e., weekends and holidays) between
     the start and end date.
 
     Parameters
@@ -25,8 +25,8 @@ def get_nonbusiness_days(
     end_date : datetime.date
         End date.
     country : str, optional
-        Country of the stock exchange. A list of available countries can be found 
-        in the `holidays library documentation <https://holidays.readthedocs.io/en/latest/>`_. 
+        Country of the stock exchange. A list of available countries can be found
+        in the `holidays library documentation <https://holidays.readthedocs.io/en/latest/>`_.
         The default value is 'US'.
 
     Returns
@@ -54,7 +54,7 @@ def get_nonbusiness_days(
 
 def get_pl(data: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
     """
-    Returns the stock prices and the corresponding profit/loss profile of either 
+    Returns the stock prices and the corresponding profit/loss profile of either
     a leg or the whole strategy.
 
     Parameters
@@ -76,11 +76,9 @@ def get_pl(data: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarra
     return data.stock_price_array, data.strategy_profit
 
 
-def pl_to_csv(
-    data: Outputs, filename: str = "pl.csv", leg: int | None = None
-) -> None:
+def pl_to_csv(data: Outputs, filename: str = "pl.csv", leg: int | None = None) -> None:
     """
-    Saves the stock prices and corresponding profit/loss profile of either a leg 
+    Saves the stock prices and corresponding profit/loss profile of either a leg
     or the whole strategy to a CSV file.
 
     Parameters
@@ -96,7 +94,7 @@ def pl_to_csv(
     -------
     None.
     """
-    
+
     if data.profit.size > 0 and leg and leg < data.profit.shape[0]:
         arr = np.stack((data.stock_price_array, data.profit[leg]))
     else:

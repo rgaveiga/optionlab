@@ -16,12 +16,12 @@ def plot_pl(outputs: Outputs) -> None:
     ----------
     outputs : Outputs
         Output data from a strategy calculation.
-        
+
     Returns
     -------
     None.
     """
-    
+
     st = outputs.data
     inputs = outputs.inputs
 

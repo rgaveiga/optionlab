@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.3.3 (2024-12-15)
+## 1.3.3 (2024-12-18)
 
 - Updated docstrings to comply with reStructuredText (RST) standards.
 - Changed the `country` argument in `get_nonbusiness_days` in utils.py to accept a string.
@@ -8,6 +8,8 @@
 - Commented 'source: Literal["array"] = "array"' in `ProbabilityOfProfitArrayInputs` class in models.py, because `source` is not necessary.
 - Commented `OptionInfo` class in models.py, because it is not used anywhere.
 - Commented `return_in_the_domain_ratio` in `Outputs` in models.py, because it is not necessary.
+- Commented `Country` in models.py, because it is not necessary.
+- Changed country: Country = "US" to country: str = "US" in models.py.
 
 ## 1.3.2 (2024-11-30)
 

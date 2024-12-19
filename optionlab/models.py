@@ -9,22 +9,22 @@ Action = Literal["buy", "sell"]
 StrategyType = Literal["stock"] | OptionType | Literal["closed"]
 Range = tuple[float, float]
 Distribution = Literal["black-scholes", "normal", "laplace", "array"]
-Country = Literal[   #TODO: Remove this.
-    "US",
-    "Canada",
-    "Mexico",
-    "Brazil",
-    "China",
-    "India",
-    "SouthKorea",
-    "Russia",
-    "Japan",
-    "UK",
-    "France",
-    "Germany",
-    "Italy",
-    "Australia"
-]
+# Country = Literal[   #TODO: Remove this.
+#     "US",
+#     "Canada",
+#     "Mexico",
+#     "Brazil",
+#     "China",
+#     "India",
+#     "SouthKorea",
+#     "Russia",
+#     "Japan",
+#     "UK",
+#     "France",
+#     "Germany",
+#     "Italy",
+#     "Australia"
+# ]
 
 
 class BaseLeg(BaseModel):
@@ -36,7 +36,7 @@ class BaseLeg(BaseModel):
 class Stock(BaseLeg):
     """
     Defines the attributes of a stock leg in a strategy.
-    
+
     Attributes
     ----------
     type : str
@@ -46,11 +46,11 @@ class Stock(BaseLeg):
     action : str
         `Action` literal value, which must be either 'buy' or 'sell'. It is mandatory.
     prev_pos : float | None, optional
-        Stock price effectively paid or received in a previously opened position. 
-        If positive, the position remains open and the payoff calculation considers 
-        this price instead of the current stock price. If negative, the position 
-        is closed and the difference between this price and the current price is 
-        included in the payoff calculation. The default is None, which means this 
+        Stock price effectively paid or received in a previously opened position.
+        If positive, the position remains open and the payoff calculation considers
+        this price instead of the current stock price. If negative, the position
+        is closed and the difference between this price and the current price is
+        included in the payoff calculation. The default is None, which means this
         stock position is not a previously opened position.
     """
 
@@ -60,11 +60,11 @@ class Stock(BaseLeg):
 class Option(BaseLeg):
     """
     Defines the attributes of an option leg in a strategy.
-    
+
     Attributes
     ----------
     type : str
-        `OptionType` literal value, which must be either 'call' or 'put'. It is 
+        `OptionType` literal value, which must be either 'call' or 'put'. It is
         mandatory.
     strike : float
         Option strike price. It is mandatory.
@@ -75,14 +75,14 @@ class Option(BaseLeg):
     action : str
         `Action` literal value, which must be either 'buy' or 'sell'.
     prev_pos : float | None, optional
-        Premium effectively paid or received in a previously opened position. If 
-        positive, the position remains open and the payoff calculation considers 
-        this price instead of the current price of the option. If negative, the 
-        position is closed and the difference between this price and the current 
-        price is included in the payoff calculation. The default is None, which 
+        Premium effectively paid or received in a previously opened position. If
+        positive, the position remains open and the payoff calculation considers
+        this price instead of the current price of the option. If negative, the
+        position is closed and the difference between this price and the current
+        price is included in the payoff calculation. The default is None, which
         means this option position is not a previously opened position.
     expiration : str | int | None, optional.
-        Expiration date or number of days remaining to maturity. The default is 
+        Expiration date or number of days remaining to maturity. The default is
         None.
     """
 
@@ -101,13 +101,13 @@ class Option(BaseLeg):
 class ClosedPosition(BaseModel):
     """
     Defines the attributes of a previously closed position in a strategy.
-    
+
     Attributes
     ----------
     type : str
         It must be 'closed'. It is mandatory.
     prev_pos : float
-        The total amount of the closed position. If positive, it resulted in a 
+        The total amount of the closed position. If positive, it resulted in a
         profit; if negative, it incurred a loss. It is mandatory.
     """
 
@@ -117,16 +117,17 @@ class ClosedPosition(BaseModel):
 
 StrategyLeg = Stock | Option | ClosedPosition
 
-#TODO: Check the conditions imposed to interest-rate and its optionality; the validator can be removed
+
+# TODO: Check the conditions imposed to interest-rate and its optionality; the validator can be removed
 class ProbabilityOfProfitInputs(BaseModel):
     """
-    Defines the input for the probability of profit calculation from a statistical 
+    Defines the input for the probability of profit calculation from a statistical
     distribution.
-    
+
     Attributes
     ----------
     source : str
-        Statistical distribution. It can be 'black-scholes' (the same as 'normal') 
+        Statistical distribution. It can be 'black-scholes' (the same as 'normal')
         or 'laplace'.
     stock_price : float
         Stock price.
@@ -139,7 +140,7 @@ class ProbabilityOfProfitInputs(BaseModel):
     dividend_yield : float
         Annualized dividend yield.
     """
-    
+
     source: Literal["black-scholes", "normal", "laplace"]
     stock_price: float = Field(gt=0)
     volatility: float = Field(gt=0, le=1)
@@ -155,19 +156,20 @@ class ProbabilityOfProfitInputs(BaseModel):
     #         )
     #     return self
 
-#TODO: Check if source is really required here.
+
+# TODO: Check if source is really required here.
 class ProbabilityOfProfitArrayInputs(BaseModel):
     """
-    Defines the input for the probability of profit calculation when using an 
+    Defines the input for the probability of profit calculation when using an
     array of terminal stock prices provided by the user.
-    
+
     Attributes
     ----------
     array : numpy.ndarray
         Array of terminal stock prices.
     """
-    
-#    source: Literal["array"] = "array"   # It seems it is not necessary.
+
+    #    source: Literal["array"] = "array"   # It seems it is not necessary.
     array: np.ndarray
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -183,7 +185,7 @@ class ProbabilityOfProfitArrayInputs(BaseModel):
 class Inputs(BaseModel):
     """
     Defines the input data for a strategy calculation.
-    
+
     Attributes
     ----------
     stock_price : float
@@ -210,26 +212,26 @@ class Inputs(BaseModel):
     stock_commission : float
         Brokerage commission for stocks transactions. The default is 0.0.
     compute_expectation : bool, optional
-        Computes the strategy's average profit and loss from a numpy array of random 
+        Computes the strategy's average profit and loss from a numpy array of random
         terminal prices generated from a distribution. The default is False.
     discard_nonbusinessdays : bool, optional
-        Discards weekends and holidays when counting the number of days between 
+        Discards weekends and holidays when counting the number of days between
         two dates. The default is True.
     country : str, optional
-        Country whose holidays will be counted if `discard_nonbusinessdays` is 
+        Country whose holidays will be counted if `discard_nonbusinessdays` is
         set to True. The default is 'US'.
     start_date : datetime.date, optional
-        Start date in the calculations. If not provided, `days_to_target_date` 
+        Start date in the calculations. If not provided, `days_to_target_date`
         must be provided.
     target_date : datetime.date, optional
-        Target date in the calculations. If not provided, `days_to_target_date` 
+        Target date in the calculations. If not provided, `days_to_target_date`
         must be provided.
     days_to_target_date : int, optional
-        Days remaining to the target date. If not provided, `start_date` and 
+        Days remaining to the target date. If not provided, `start_date` and
         `target_date` must be provided.
     distribution : str, optional
         Statistical distribution used to compute probabilities. It can be
-        'black-scholes' (the same as 'normal'), 'laplace' or 'array'. The default 
+        'black-scholes' (the same as 'normal'), 'laplace' or 'array'. The default
         is 'black-scholes'.
     mc_prices_number : int, optional
         Number of random terminal prices to be generated when calculationg
@@ -249,7 +251,7 @@ class Inputs(BaseModel):
     stock_commission: float = 0.0
     compute_expectation: bool = False
     discard_nonbusiness_days: bool = True
-    country: Country = "US"
+    country: str = "US"
     start_date: dt.date | None = None
     target_date: dt.date | None = None
     days_to_target_date: int = Field(0, ge=0)
@@ -309,7 +311,7 @@ class Inputs(BaseModel):
 class BlackScholesInfo(BaseModel):
     """
     Defines the data returned by a calculation using the Black-Scholes model.
-    
+
     Attributes
     ----------
     call_price : float
@@ -329,7 +331,7 @@ class BlackScholesInfo(BaseModel):
     put_itm_prob : float
         In-the-money probability of a put option.
     """
-    
+
     call_price: float
     put_price: float
     call_delta: float
@@ -341,7 +343,8 @@ class BlackScholesInfo(BaseModel):
     call_itm_prob: float
     put_itm_prob: float
 
-#TODO: Remove this.
+
+# TODO: Remove this.
 # class OptionInfo(BaseModel):
 #     price: float
 #     delta: float
@@ -364,7 +367,7 @@ class EngineDataResults(BaseModel):
     n: list[int] = []
     action: list[Action | Literal["n/a"]] = []
     type: list[StrategyType] = []
-    
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
@@ -393,13 +396,13 @@ class EngineData(EngineDataResults):
 class Outputs(BaseModel):
     """
     Defines the output data from a strategy calculation.
-    
+
     Attributes
     ----------
     probability_of_profit : float
         Probability of the strategy yielding at least $0.01.
     profit_ranges : list
-        A list of minimum and maximum stock prices defining ranges in which the 
+        A list of minimum and maximum stock prices defining ranges in which the
         strategy makes at least $0.01.
     strategy_cost : float
         Total strategy cost.
@@ -422,25 +425,25 @@ class Outputs(BaseModel):
     maximum_return_in_the_domain : float
         Maximum return of the strategy within the stock price domain.
     probability_of_profit_target : float | None, optional
-        Probability of the strategy yielding at least the profit target. The 
+        Probability of the strategy yielding at least the profit target. The
         default is None.
     profit_target_ranges : list | None, optional
-        List of minimum and maximum stock prices defining ranges in which the 
+        List of minimum and maximum stock prices defining ranges in which the
         strategy makes at least the profit target. The default is None.
     probability_of_loss_limit : float | None, optional
-        Probability of the strategy losing at least the loss limit. The default 
+        Probability of the strategy losing at least the loss limit. The default
         is None.
     average_profit_from_mc : float | None, optional
-        Average profit calculated from terminal stock prices created by Monte 
+        Average profit calculated from terminal stock prices created by Monte
         Carlo simulations. The default is None.
     average_loss_from_mc : float | None, optional
-        Average loss calculated from terminal stock prices created by Monte Carlo 
+        Average loss calculated from terminal stock prices created by Monte Carlo
         simulations. The default is None.
     probability_of_profit_from_mc : float | None, optional
-        Probability of the strategy yielding at least $0.01 calculated from 
+        Probability of the strategy yielding at least $0.01 calculated from
         terminal prices created by Monte Carlo simulations. The default is None.
     data : EngineDataResults
-        Further data from the strategy calculation that can be used in the 
+        Further data from the strategy calculation that can be used in the
         post-processing of the outputs.
     inputs : Inputs
         Input data used in the strategy calculation.
@@ -467,9 +470,10 @@ class Outputs(BaseModel):
     average_loss_from_mc: float | None = None
     probability_of_profit_from_mc: float | None = None
 
-#TODO: Remove this.
-    # @property
-    # def return_in_the_domain_ratio(self) -> float:
-    #     return abs(
-    #         self.maximum_return_in_the_domain / self.minimum_return_in_the_domain
-    #     )
+
+# TODO: Remove this.
+# @property
+# def return_in_the_domain_ratio(self) -> float:
+#     return abs(
+#         self.maximum_return_in_the_domain / self.minimum_return_in_the_domain
+#     )

@@ -118,7 +118,7 @@ def get_pl_profile_bs(
     commission: float = 0.0,
 ) -> tuple[ndarray, float]:
     """
-    Returns the profit/loss profile and cost of an options trade on a target date 
+    Returns the profit/loss profile and cost of an options trade on a target date
     before expiration using the Black-Scholes model for option pricing.
 
     Parameters
@@ -172,7 +172,7 @@ def get_pl_profile_bs(
 @lru_cache
 def create_price_seq(min_price: float, max_price: float) -> ndarray:
     """
-    Generates a sequence of stock prices from a minimum to a maximum price with 
+    Generates a sequence of stock prices from a minimum to a maximum price with
     increment $0.01.
 
     Parameters
@@ -195,7 +195,8 @@ def create_price_seq(min_price: float, max_price: float) -> ndarray:
     else:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
-#TODO: Add a distribution, 'external', to allow customization.
+
+# TODO: Add a distribution, 'external', to allow customization.
 @lru_cache
 def create_price_samples(
     s0: float,
@@ -220,7 +221,7 @@ def create_price_samples(
     r : float, optional
         Annualized risk-free interest rate. The default is 0.01.
     distribution : str, optional
-        `Distribution` literal value, which can be 'black-scholes' (the same as 
+        `Distribution` literal value, which can be 'black-scholes' (the same as
         'normal') or 'laplace'. The default is 'black-scholes'.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
@@ -232,7 +233,7 @@ def create_price_samples(
     numpy.ndarray
         Array of terminal prices.
     """
-    
+
     drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
 
     if distribution in ("black-scholes", "normal"):
@@ -249,7 +250,7 @@ def create_price_samples(
 
 def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[Range]:
     """
-    Returns a list of stock price pairs, where each pair represents the lower and 
+    Returns a list of stock price pairs, where each pair represents the lower and
     upper bounds within which an options trade is expected to make the desired profit.
 
     Parameters
@@ -300,7 +301,7 @@ def get_profit_range(s: ndarray, profit: ndarray, target: float = 0.01) -> list[
     return [(r[0], r[1]) for r in profit_range]
 
 
-#TODO: Improve the description of the inputs.
+# TODO: Improve the description of the inputs.
 def get_pop(
     profit_ranges: list[Range],
     inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs,
@@ -311,11 +312,11 @@ def get_pop(
     Parameters
     ----------
     profit_ranges : list[Range]
-        List of stock price pairs, where each pair represents the lower and upper 
+        List of stock price pairs, where each pair represents the lower and upper
         bounds within which the options trade makes a profit.
     inputs : ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
-        Inputs for the probability of profit calculation. See the documentation 
-        for `ProbabilityOfProfitInputs` and `ProbabilityOfProfitArrayInputs` for 
+        Inputs for the probability of profit calculation. See the documentation
+        for `ProbabilityOfProfitInputs` and `ProbabilityOfProfitArrayInputs` for
         more details.
 
     Returns

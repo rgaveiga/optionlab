@@ -31,10 +31,10 @@ def get_bs_info(
     Returns
     -------
     BlackScholesInfo
-        Information calculated using the Black-Scholes formula. See the documentation 
+        Information calculated using the Black-Scholes formula. See the documentation
         of the `BlackScholesInfo` class.
     """
-    
+
     d1, d2 = get_d1_d2(s, x, r, vol, years_to_maturity, y)
     call_price = get_option_price("call", s, x, r, years_to_maturity, d1, d2, y)
     put_price = get_option_price("put", s, x, r, years_to_maturity, d1, d2, y)
@@ -142,7 +142,7 @@ def get_delta(
     float
         Option's Greek Delta.
     """
-    
+
     if y > 0.0 and years_to_maturity > 0.0:
         yfac = exp(-y * years_to_maturity)
     else:
@@ -231,7 +231,7 @@ def get_theta(
     float
         Option's Greek Theta.
     """
-    
+
     if y > 0.0:
         s = s0 * exp(-y * years_to_maturity)
     else:
@@ -317,7 +317,7 @@ def get_d1_d2(
     tuple[float, float]
         `d1` and `d2`.
     """
-    
+
     d1 = (log(s0 / x) + (r - y + vol * vol / 2.0) * years_to_maturity) / (
         vol * sqrt(years_to_maturity)
     )
@@ -392,7 +392,7 @@ def get_itm_probability(
     float
         In-The-Money probability of the option.
     """
-    
+
     if y > 0.0 and years_to_maturity > 0.0:
         yfac = exp(-y * years_to_maturity)
     else:
