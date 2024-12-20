@@ -9,22 +9,6 @@ Action = Literal["buy", "sell"]
 StrategyType = Literal["stock"] | OptionType | Literal["closed"]
 Range = tuple[float, float]
 Distribution = Literal["black-scholes", "normal", "laplace", "array"]
-# Country = Literal[   #TODO: Remove this.
-#     "US",
-#     "Canada",
-#     "Mexico",
-#     "Brazil",
-#     "China",
-#     "India",
-#     "SouthKorea",
-#     "Russia",
-#     "Japan",
-#     "UK",
-#     "France",
-#     "Germany",
-#     "Italy",
-#     "Australia"
-# ]
 
 
 class BaseLeg(BaseModel):
@@ -157,7 +141,6 @@ class ProbabilityOfProfitInputs(BaseModel):
     #     return self
 
 
-# TODO: Check if source is really required here.
 class ProbabilityOfProfitArrayInputs(BaseModel):
     """
     Defines the input for the probability of profit calculation when using an
@@ -169,7 +152,6 @@ class ProbabilityOfProfitArrayInputs(BaseModel):
         Array of terminal stock prices.
     """
 
-    #    source: Literal["array"] = "array"   # It seems it is not necessary.
     array: np.ndarray
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -344,13 +326,6 @@ class BlackScholesInfo(BaseModel):
     put_itm_prob: float
 
 
-# TODO: Remove this.
-# class OptionInfo(BaseModel):
-#     price: float
-#     delta: float
-#     theta: float
-
-
 def init_empty_array() -> np.ndarray:
     return np.array([])
 
@@ -469,11 +444,3 @@ class Outputs(BaseModel):
     average_profit_from_mc: float | None = None
     average_loss_from_mc: float | None = None
     probability_of_profit_from_mc: float | None = None
-
-
-# TODO: Remove this.
-# @property
-# def return_in_the_domain_ratio(self) -> float:
-#     return abs(
-#         self.maximum_return_in_the_domain / self.minimum_return_in_the_domain
-#     )
