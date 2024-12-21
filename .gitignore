@@ -3,7 +3,3 @@
 __pycache__
 dist
 run_check
-examples/.ipynb_checkpoints
-optionlab/__pycache__
-tests/__pycache__
-tests/.benchmarks

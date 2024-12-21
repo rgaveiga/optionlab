@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.3.4 (2024-12-20)
+
+- Deleted `OptionInfo`class in models.py.
+- Deleted `return_in_the_domain_ratio` in `Outpus`in models.py
+- Deleted `Country`in models.py.
+- Deleted 'source: Literal["array"] = "array" in `ProbabilityOfProfitArrayInputs` class in models.py.
+
 ## 1.3.3 (2024-12-18)
 
 - Updated docstrings to comply with reStructuredText (RST) standards.
