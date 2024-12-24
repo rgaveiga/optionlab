@@ -72,7 +72,9 @@ def _init_inputs(inputs: Inputs) -> EngineData:
         inputs=inputs,
     )
 
-    data._days_in_year = 252 if inputs.discard_nonbusiness_days else 365
+    data._days_in_year = (
+        inputs.business_days_in_year if inputs.discard_nonbusiness_days else 365
+    )
 
     if inputs.start_date and inputs.target_date:
         if inputs.discard_nonbusiness_days:
@@ -236,6 +238,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         data.gamma.append(0.0)
         data.vega.append(0.0)
         data.theta.append(0.0)
+        data.rho.append(0.0)
 
         cost = (data.premium[i] + data._previous_position[i]) * data.n[i]
 
@@ -283,10 +286,12 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         data.itm_probability.append(bs.call_itm_prob)
         data.delta.append(bs.call_delta * negative_multiplier)
         data.theta.append(bs.call_theta / data._days_in_year * negative_multiplier)
+        data.rho.append(bs.call_rho * negative_multiplier)
     else:
         data.itm_probability.append(bs.put_itm_prob)
         data.delta.append(bs.put_delta * negative_multiplier)
         data.theta.append(bs.put_theta / data._days_in_year * negative_multiplier)
+        data.rho.append(bs.put_rho * negative_multiplier)
 
     if data._previous_position[i] > 0.0:  # Premium of the open position
         opt_value = data._previous_position[i]
@@ -355,11 +360,16 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
 
-    data.implied_volatility.append(0.0)
+    if action == "buy":
+        data.delta.append(1.0)
+    else:
+        data.delta.append(-1.0)
+
     data.itm_probability.append(1.0)
-    data.delta.append(1.0)
+    data.implied_volatility.append(0.0)
     data.gamma.append(0.0)
     data.vega.append(0.0)
+    data.rho.append(0.0)
     data.theta.append(0.0)
 
     if data._previous_position[i] < 0.0:  # Previous position is closed
@@ -409,6 +419,7 @@ def _run_closed_position_calcs(data: EngineData, i: int) -> EngineData:
     data.delta.append(0.0)
     data.gamma.append(0.0)
     data.vega.append(0.0)
+    data.rho.append(0.0)
     data.theta.append(0.0)
 
     data.cost[i] = data._previous_position[i]
@@ -470,6 +481,7 @@ def _generate_outputs(data: EngineData) -> Outputs:
             "gamma": data.gamma,
             "theta": data.theta,
             "vega": data.vega,
+            "rho": data.rho,
         }
     )
 

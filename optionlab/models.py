@@ -196,9 +196,11 @@ class Inputs(BaseModel):
     compute_expectation : bool, optional
         Computes the strategy's average profit and loss from a numpy array of random
         terminal prices generated from a distribution. The default is False.
-    discard_nonbusinessdays : bool, optional
+    discard_nonbusiness_days : bool, optional
         Discards weekends and holidays when counting the number of days between
         two dates. The default is True.
+    business_days_in_year : int, optional
+        Number of business days in a year. The default is 252.
     country : str, optional
         Country whose holidays will be counted if `discard_nonbusinessdays` is
         set to True. The default is 'US'.
@@ -233,6 +235,7 @@ class Inputs(BaseModel):
     stock_commission: float = 0.0
     compute_expectation: bool = False
     discard_nonbusiness_days: bool = True
+    business_days_in_year: int = 252
     country: str = "US"
     start_date: dt.date | None = None
     target_date: dt.date | None = None
@@ -296,34 +299,40 @@ class BlackScholesInfo(BaseModel):
 
     Attributes
     ----------
-    call_price : float
+    call_price : float | numpy.ndarray
         Price of a call option.
-    put_price : float
+    put_price : float | numpy.ndarray
         Price of a put option.
-    call_delta : float
+    call_delta : float | numpy.ndarray
         Delta of a call option.
-    put_delta : float
+    put_delta : float | numpy.ndarray
         Delta of a put option.
-    gamma : float
+    gamma : float | numpy.ndarray
         Gamma of an option.
-    vega : float
+    vega : float | numpy.ndarray
         Vega of an option.
-    call_itm_prob : float
+    call_rho : float | numpy.ndarray
+        Rho of a call option.
+    put_rho : float | numpy.ndarray
+        Rho of a put option.
+    call_itm_prob : float | numpy.ndarray
         In-the-money probability of a call option.
-    put_itm_prob : float
+    put_itm_prob : float | numpy.ndarray
         In-the-money probability of a put option.
     """
 
-    call_price: float
-    put_price: float
-    call_delta: float
-    put_delta: float
-    call_theta: float
-    put_theta: float
-    gamma: float
-    vega: float
-    call_itm_prob: float
-    put_itm_prob: float
+    call_price: float | np.ndarray
+    put_price: float | np.ndarray
+    call_delta: float | np.ndarray
+    put_delta: float | np.ndarray
+    call_theta: float | np.ndarray
+    put_theta: float | np.ndarray
+    gamma: float | np.ndarray
+    vega: float | np.ndarray
+    call_rho: float | np.ndarray
+    put_rho: float | np.ndarray
+    call_itm_prob: float | np.ndarray
+    put_itm_prob: float | np.ndarray
 
 
 def init_empty_array() -> np.ndarray:
@@ -361,6 +370,7 @@ class EngineData(EngineDataResults):
     delta: list[float] = []
     gamma: list[float] = []
     vega: list[float] = []
+    rho: list[float] = []
     theta: list[float] = []
     cost: list[float] = []
     profit_probability: float = 0.0
@@ -395,6 +405,8 @@ class Outputs(BaseModel):
         List of Theta values, one per strategy leg.
     vega : list
         List of Vega values, one per strategy leg.
+    rho : list
+        List of Rho values, one per strategy leg.
     minimum_return_in_the_domain : float
         Minimum return of the strategy within the stock price domain.
     maximum_return_in_the_domain : float
@@ -438,6 +450,7 @@ class Outputs(BaseModel):
     gamma: list[float]
     theta: list[float]
     vega: list[float]
+    rho: list[float]
     probability_of_profit_target: float | None = None
     profit_target_ranges: list[Range] | None = None
     probability_of_loss_limit: float | None = None
