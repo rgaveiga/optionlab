@@ -333,6 +333,7 @@ class BlackScholesInfo(BaseModel):
     put_rho: float | np.ndarray
     call_itm_prob: float | np.ndarray
     put_itm_prob: float | np.ndarray
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 def init_empty_array() -> np.ndarray:

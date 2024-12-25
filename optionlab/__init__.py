@@ -28,12 +28,14 @@ if typing.TYPE_CHECKING:
         get_itm_probability,
         get_implied_vol,
         get_option_price,
-        get_d1_d2,
+        get_d1,
+        get_d2,
         get_bs_info,
         get_vega,
         get_delta,
         get_gamma,
         get_theta,
+        get_rho
     )
     from .engine import run_strategy
     from .plot import plot_pl
@@ -76,7 +78,8 @@ __all__ = (
     "get_profit_range",
     "get_pop",
     # black_scholes
-    "get_d1_d2",
+    "get_d1",
+    "get_d2",
     "get_option_price",
     "get_itm_probability",
     "get_implied_vol",
@@ -85,6 +88,7 @@ __all__ = (
     "get_delta",
     "get_gamma",
     "get_theta",
+    "get_rho",
     # plot
     "plot_pl",
 )
@@ -118,7 +122,8 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_profit_range": (__package__, ".support"),
     "get_pop": (__package__, ".support"),
     # black_scholes
-    "get_d1_d2": (__package__, ".black_scholes"),
+    "get_d1": (__package__, ".black_scholes"),
+    "get_d2": (__package__, ".black_scholes"),
     "get_option_price": (__package__, ".black_scholes"),
     "get_itm_probability": (__package__, ".black_scholes"),
     "get_implied_vol": (__package__, ".black_scholes"),
@@ -127,6 +132,7 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_delta": (__package__, ".black_scholes"),
     "get_gamma": (__package__, ".black_scholes"),
     "get_theta": (__package__, ".black_scholes"),
+    "get_rho": (__package__, ".black_scholes"),
     # plot
     "plot_pl": (__package__, ".plot"),
 }

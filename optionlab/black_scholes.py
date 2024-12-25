@@ -74,7 +74,7 @@ def get_bs_info(
 
 def get_option_price(
     option_type: OptionType,
-    s0: float,
+    s0: float | ndarray,
     x: float | ndarray,
     r: float,
     years_to_maturity: float,
@@ -89,8 +89,8 @@ def get_option_price(
     ----------
     option_type : str
         `OptionType` literal value, which must be either 'call' or 'put'.
-    s0 : float
-        Spot price of the underlying asset.
+    s0 : float | numpy.ndarray
+        Spot price(s) of the underlying asset.
     x : float | numpy.ndarray
         Strike price(s).
     r : float
@@ -344,7 +344,7 @@ def get_rho(
 
 
 def get_d1(
-    s0: float,
+    s0: float | ndarray,
     x: float | ndarray,
     r: float,
     vol: float | ndarray,
@@ -356,8 +356,8 @@ def get_d1(
 
     Parameters
     ----------
-    s0 : float
-        Spot price of the underlying asset.
+    s0 : float | numpy.ndarray
+        Spot price(s) of the underlying asset.
     x : float | numpy.ndarray
         Strike price(s).
     r : float
@@ -381,7 +381,7 @@ def get_d1(
 
 
 def get_d2(
-    s0: float,
+    s0: float | ndarray,
     x: float | ndarray,
     r: float,
     vol: float | ndarray,
@@ -393,8 +393,8 @@ def get_d2(
 
     Parameters
     ----------
-    s0 : float
-        Spot price of the underlying asset.
+    s0 : float | numpy.ndarray
+        Spot price(s) of the underlying asset.
     x : float | numpy.ndarray
         Strike price(s).
     r : float
@@ -415,36 +415,6 @@ def get_d2(
     return (log(s0 / x) + (r - y - vol * vol / 2.0) * years_to_maturity) / (
         vol * sqrt(years_to_maturity)
     )
-
-
-# TODO: Check if the version above works
-# def get_d2(
-#     d1: float | ndarray, vol: float | ndarray, years_to_maturity: float | tuple | list
-# ) -> float | ndarray:
-#     """
-#     Returns `d2` used in Black-Scholes formula.
-
-#     Parameters
-#     ----------
-#     d1 : float | numpy.ndarray
-#         `d1` in Black-Scholes formula.
-#     vol : float | numpy.ndarray
-#         Annualized volatility(ies).
-#     years_to_maturity : float | tuple | list
-#         Time remaining to maturity, in years.
-
-#     Returns
-#     -------
-#     float | numpy.ndarray
-#         `d2` in Black-Scholes formula.
-#     """
-
-#     if isinstance(years_to_maturity, float):
-#         t = years_to_maturity
-#     elif isinstance(years_to_maturity, (tuple, list)):
-#         t = years_to_maturity[1]
-
-#     return d1 - vol * sqrt(t)
 
 
 def get_implied_vol(
@@ -484,7 +454,7 @@ def get_implied_vol(
 
     vol = 0.001 * arange(1, 1001)
     d1 = get_d1(s0, x, r, vol, years_to_maturity, y)
-    d2 = get_d2(d1, vol, years_to_maturity)
+    d2 = get_d2(s0, x, r, vol, years_to_maturity, y)
     dopt = abs(
         get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y) - oprice
     )
