@@ -18,7 +18,7 @@ COVERED_CALL_RESULT = {
     "gamma": [0.0, 0.013948977387090415],
     "theta": [0.0, 0.19283555235589467],
     "vega": [0.0, 0.1832408146218486],
-    "rho": [0.0, -0.04506390742751745]
+    "rho": [0.0, -0.04506390742751745],
 }
 
 PROB_100_ITM_RESULT = {
@@ -104,7 +104,7 @@ def test_covered_call_w_days_to_target(nvidia):
         | {
             "start_date": None,
             "target_date": None,
-            "days_to_target_date": 23,  # 32 days minus 9 non-business days
+            "days_to_target_date": 24,  # 32 days minus 9 non-business days plus 1 to consider the expiration date
             "strategy": [
                 {"type": "stock", "n": 100, "action": "buy"},
                 {
@@ -198,7 +198,6 @@ def test_100_perc_itm(nvidia):
 
     outputs = run_strategy(inputs)
 
-    # Print useful information on screen
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
     ) == pytest.approx(PROB_100_ITM_RESULT)
@@ -239,13 +238,13 @@ def test_3_legs(nvidia):
 
 
 def test_run_with_mc_array(nvidia):
-    array_prices = create_price_samples(168.99, 0.483, 0.045, 23 / 365, "black-scholes", 0)
+    arr = create_price_samples(168.99, 0.483, 0.045, 24 / 365, "black-scholes", seed=0)
 
     inputs = Inputs.model_validate(
         nvidia
         | {
             "distribution": "array",
-            "array_prices": array_prices,
+            "array": arr,
             "strategy": [
                 {"type": "stock", "n": 100, "action": "buy"},
                 {
@@ -266,7 +265,7 @@ def test_run_with_mc_array(nvidia):
         exclude={"data", "inputs"}, exclude_none=True
     ) == pytest.approx(
         {
-            "probability_of_profit": 0.56744,
+            "probability_of_profit": 0.56541,
             "profit_ranges": [(164.9, float("inf"))],
             "per_leg_cost": [-16899.0, 409.99999999999994],
             "strategy_cost": -16489.0,
@@ -279,14 +278,15 @@ def test_run_with_mc_array(nvidia):
             "theta": [0.0, 0.19283555235589467],
             "vega": [0.0, 0.1832408146218486],
             "rho": [0.0, -0.04506390742751745],
-            "average_profit_from_mc": 1345.7047963179928,
-            "average_loss_from_mc": -1377.2360633080834,
-            "probability_of_profit_from_mc": 0.56758,
+            "average_profit_from_mc": 1356.3702804556585,
+            "average_loss_from_mc": -1407.9604829624866,
+            "probability_of_profit_from_mc": 0.56564,
         },
         rel=0.05,
     )
 
-#TODO: Reimplement compute expectation
+
+# TODO: Reimplement compute expectation
 # def test_100_itm_with_compute_expectation(nvidia):
 #     inputs = Inputs.model_validate(
 #         nvidia
@@ -329,7 +329,7 @@ def test_run_with_mc_array(nvidia):
 #         rel=0.01,
 #     )
 
-#TODO: distribution='black-scholes' now is the same as distribution='normal'
+# TODO: distribution='black-scholes' now is the same as distribution='normal'
 # def test_covered_call_w_normal_distribution(nvidia):
 #     inputs = Inputs.model_validate(
 #         nvidia
@@ -360,7 +360,7 @@ def test_run_with_mc_array(nvidia):
 #         COVERED_CALL_RESULT | {"probability_of_profit": 0.565279550918542}
 #     )
 
-#TODO: Laplace distribution is not correctly implemented and will probably be removed
+# TODO: Laplace distribution is not correctly implemented and will probably be removed
 # def test_covered_call_w_laplace_distribution(nvidia):
 #     inputs = Inputs.model_validate(
 #         nvidia

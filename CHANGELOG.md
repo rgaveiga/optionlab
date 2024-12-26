@@ -16,6 +16,8 @@
 - Added `rho` field to `Outputs` in models.py
 - Added `rho` data field in engine.py
 - Added a `seed` argument to `create_price_samples` in support.py to make the generation of price samples deterministic
+- Changed `array_prices` field to simply `array` in `Inputs` in models.py
+- Changed and commented some tests in test_core.py
 
 ## 1.3.3 (2024-12-18)
 

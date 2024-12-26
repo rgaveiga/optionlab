@@ -3,6 +3,7 @@ import datetime as dt
 import pytest
 
 from optionlab.models import Inputs
+from numpy import array
 
 
 def test_only_one_closed_position(nvidia):
@@ -93,7 +94,7 @@ def test_array_distribution_with_no_array(nvidia):
         err.value
     )
 
-    inputs |= {"array": []}
+    inputs |= {"array": array([])}
 
     with pytest.raises(ValueError) as err:
         Inputs.model_validate(inputs)

@@ -35,7 +35,7 @@ if typing.TYPE_CHECKING:
         get_delta,
         get_gamma,
         get_theta,
-        get_rho
+        get_rho,
     )
     from .engine import run_strategy
     from .plot import plot_pl

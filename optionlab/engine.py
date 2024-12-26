@@ -68,7 +68,7 @@ def run_strategy(inputs_data: Inputs | dict) -> Outputs:
 def _init_inputs(inputs: Inputs) -> EngineData:
     data = EngineData(
         stock_price_array=create_price_seq(inputs.min_stock, inputs.max_stock),
-        terminal_stock_prices=array(inputs.array_prices or []),
+        terminal_stock_prices=inputs.array if inputs.array is not None else array([]),
         inputs=inputs,
     )
 
@@ -85,8 +85,8 @@ def _init_inputs(inputs: Inputs) -> EngineData:
             n_discarded_days = 0
 
         data.days_to_target = (
-            inputs.target_date - inputs.start_date
-        ).days - n_discarded_days
+            (inputs.target_date - inputs.start_date).days + 1 - n_discarded_days
+        )
     else:
         data.days_to_target = inputs.days_to_target_date
 
@@ -112,7 +112,9 @@ def _init_inputs(inputs: Inputs) -> EngineData:
                     n_discarded_days = 0
 
                 data._days_to_maturity.append(
-                    (strategy.expiration - inputs.start_date).days - n_discarded_days
+                    (strategy.expiration - inputs.start_date).days
+                    + 1
+                    - n_discarded_days
                 )
 
                 data._use_bs.append(strategy.expiration != inputs.target_date)
@@ -154,9 +156,7 @@ def _init_inputs(inputs: Inputs) -> EngineData:
 def _run(data: EngineData) -> EngineData:
     inputs = data.inputs
 
-    time_to_target = (
-        data.days_to_target + 1
-    ) / data._days_in_year  # To consider the target date as a trading day
+    time_to_target = data.days_to_target / data._days_in_year
     data.cost = [0.0] * len(data.type)
 
     data.profit = zeros((len(data.type), data.stock_price_array.shape[0]))
@@ -166,11 +166,11 @@ def _run(data: EngineData) -> EngineData:
         data.terminal_stock_prices = create_price_samples(
             inputs.stock_price,
             inputs.volatility,
-            time_to_target,
             inputs.interest_rate,
+            time_to_target,
             inputs.distribution,
-            inputs.dividend_yield,
             inputs.mc_prices_number,
+            inputs.dividend_yield,
         )
 
     if data.terminal_stock_prices.shape[0] > 0:
@@ -253,9 +253,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
 
         return data
 
-    time_to_maturity = (
-        data._days_to_maturity[i] + 1
-    ) / data._days_in_year  # To consider the expiration date as a trading day
+    time_to_maturity = data._days_to_maturity[i] / data._days_in_year
     bs = get_bs_info(
         inputs.stock_price,
         data.strike[i],
@@ -300,7 +298,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
 
     if data._use_bs[i]:
         target_to_maturity = (
-            data._days_to_maturity[i] - data.days_to_target + 1
+            data._days_to_maturity[i] - data.days_to_target
         ) / data._days_in_year  # To consider the expiration date as a trading day
 
         data.profit[i], data.cost[i] = get_pl_profile_bs(

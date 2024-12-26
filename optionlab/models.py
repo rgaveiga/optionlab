@@ -153,6 +153,7 @@ class ProbabilityOfProfitArrayInputs(BaseModel):
     """
 
     array: np.ndarray
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("array", mode="before")
@@ -184,10 +185,10 @@ class Inputs(BaseModel):
         A list of strategy legs.
     dividend_yield : float, optional
         Annualized dividend yield. The default is 0.0.
-    profit_target : float, optional
+    profit_target : float | None, optional
         Target profit level. The default is None, which means it is not
         calculated.
-    loss_limit : float, optional
+    loss_limit : float | None, optional
         Limit loss level. The default is None, which means it is not calculated.
     opt_commission : float
         Brokerage commission for options transactions. The default is 0.0.
@@ -220,6 +221,8 @@ class Inputs(BaseModel):
     mc_prices_number : int, optional
         Number of random terminal prices to be generated when calculationg
         the average profit and loss of a strategy. Default is 100,000.
+    array : numpy.ndarray | None, optional
+        Array of terminal stock prices. The default is None.
     """
 
     stock_price: float = Field(gt=0)
@@ -242,7 +245,9 @@ class Inputs(BaseModel):
     days_to_target_date: int = Field(0, ge=0)
     distribution: Distribution = "black-scholes"
     mc_prices_number: int = 100_000
-    array_prices: list[float] | None = None
+    array: np.ndarray | None = None
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("strategy")
     @classmethod
@@ -282,11 +287,11 @@ class Inputs(BaseModel):
     def validate_compute_expectation(self) -> "Inputs":
         if self.distribution != "array":
             return self
-        if not self.array_prices:
+        elif self.array is None:
             raise ValueError(
                 "Array of prices must be provided if distribution is 'array'."
             )
-        if len(self.array_prices) == 0:
+        elif self.array.shape[0] == 0:
             raise ValueError(
                 "Array of prices must be provided if distribution is 'array'."
             )
@@ -333,6 +338,7 @@ class BlackScholesInfo(BaseModel):
     put_rho: float | np.ndarray
     call_itm_prob: float | np.ndarray
     put_itm_prob: float | np.ndarray
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 

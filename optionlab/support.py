@@ -5,7 +5,7 @@ from functools import lru_cache
 import numpy as np
 from numpy import exp, abs, round, diff, flatnonzero, arange, inf
 from numpy.lib.scimath import log, sqrt
-from numpy.random import seed as seed_number, normal, laplace
+from numpy.random import seed as np_seed_number, normal, laplace
 from scipy import stats
 
 from optionlab.black_scholes import get_d1, get_d2, get_option_price
@@ -162,7 +162,7 @@ def get_pl_profile_bs(
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
-    d1 = get_d1(s, x, r, volatility, target_to_maturity_years, y) 
+    d1 = get_d1(s, x, r, volatility, target_to_maturity_years, y)
     d2 = get_d2(s, x, r, volatility, target_to_maturity_years, y)
     calcprice = get_option_price(
         option_type, s, x, r, target_to_maturity_years, d1, d2, y
@@ -198,8 +198,8 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
 
-#TODO: Add a distribution, 'external', to allow customization.
-#TODO: Remove or change Laplace
+# TODO: Add a distribution, 'external', to allow customization.
+# TODO: Remove or change Laplace
 @lru_cache
 def create_price_samples(
     s0: float,
@@ -207,9 +207,9 @@ def create_price_samples(
     r: float,
     years_to_maturity: float,
     distribution: Distribution = "black-scholes",
-    seed: int | None = None,
     n: int = 100_000,
-    y: float = 0.0
+    y: float = 0.0,
+    seed: int | None = None,
 ) -> np.ndarray:
     """
     Generates terminal stock prices assuming a statistical distribution.
@@ -227,12 +227,12 @@ def create_price_samples(
     distribution : str, optional
         `Distribution` literal value, which can be 'black-scholes' (the same as
         'normal') or 'laplace'. The default is 'black-scholes'.
-    seed : int | None, optional
-        Seed for random number generation. The default is None.
     n : int, optional
         Number of terminal prices. The default is 100,000.
     y : float, optional
         Annualized dividend yield. The default is 0.0.
+    seed : int | None, optional
+        Seed for random number generation. The default is None.
 
     Returns
     -------
@@ -240,29 +240,31 @@ def create_price_samples(
         Array of terminal prices.
     """
 
-    seed_number(seed)
+    np_seed_number(seed)
 
     drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
 
     if distribution in ("black-scholes", "normal"):
-        price_array = exp(normal((log(s0) + drift), volatility * sqrt(years_to_maturity), n))
+        array = exp(normal((log(s0) + drift), volatility * sqrt(years_to_maturity), n))
     elif distribution == "laplace":
-        price_array = exp(
+        array = exp(
             laplace(
                 (log(s0) + drift), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n
             )
         )
     else:
-        seed_number(None)
-        
+        np_seed_number(None)
+
         raise ValueError("Distribution not implemented yet!")
-        
-    seed_number(None)
-    
-    return price_array
+
+    np_seed_number(None)
+
+    return array
 
 
-def get_profit_range(s: np.ndarray, profit: np.ndarray, target: float = 0.01) -> list[Range]:
+def get_profit_range(
+    s: np.ndarray, profit: np.ndarray, target: float = 0.01
+) -> list[Range]:
     """
     Returns a list of stock price pairs, where each pair represents the lower and
     upper bounds within which an options trade is expected to make the desired profit.
