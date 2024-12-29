@@ -102,46 +102,61 @@ class ClosedPosition(BaseModel):
 StrategyLeg = Stock | Option | ClosedPosition
 
 
-# TODO: Check the conditions imposed to interest-rate and its optionality; the validator can be removed
-class ProbabilityOfProfitInputs(BaseModel):
+class DistributionInputs(BaseModel):
+    stock_price: float = Field(gt=0.0)
+    volatility: float = Field(gt=0.0)
+    years_to_target_date: float = Field(ge=0.0)
+
+
+class DistributionBlackScholesInputs(DistributionInputs):
     """
-    Defines the input for the probability of profit calculation from a statistical
-    distribution.
+    Defines the inputs for the probability of profit calculation assuming a lognormal
+    distribution of stock prices with constant volatility and risk-free interest
+    rate, as in the Black-Scholes model.
 
     Attributes
     ----------
-    source : str
-        Statistical distribution. It can be 'black-scholes' (the same as 'normal')
-        or 'laplace'.
     stock_price : float
         Stock price.
     volatility : float
         Annualized volatility of the underlying asset.
-    years_to_maturity : float
-        Time remaining to maturity, in years.
+    years_to_target_date : float
+        Time remaining until target date, in years.
     interest_rate : float
-        Annualized risk-free interest rate.
-    dividend_yield : float
-        Annualized dividend yield.
+        Annualized risk-free interest rate. The default is zero.
+    dividend_yield : float, optional
+        Annualized dividend yield. The default is zero.
     """
 
-    source: Literal["black-scholes", "normal", "laplace"]
-    stock_price: float = Field(gt=0)
-    volatility: float = Field(gt=0, le=1)
-    years_to_maturity: float = Field(gt=0)
-    interest_rate: float | None = Field(None, gt=0, le=0.2)
-    dividend_yield: float = Field(0, ge=0, le=1)
-
-    # @model_validator(mode="after")
-    # def validate_black_scholes_model(self) -> "ProbabilityOfProfitInputs":
-    #     if self.source == "black-scholes" and not self.interest_rate:
-    #         raise ValueError(
-    #             "Risk-free interest rate must be provided for 'black-scholes' PoP calculations!"
-    #         )
-    #     return self
+    interest_rate: float = Field(0.0, ge=0.0)
+    dividend_yield: float = Field(0.0, ge=0.0, le=1.0)
+    
+    __hash__ = object.__hash__
 
 
-class ProbabilityOfProfitArrayInputs(BaseModel):
+class DistributionLaplaceInputs(DistributionInputs):
+    """
+    Defines the inputs for the probability of profit calculation assuming a log-Laplace
+    distribution of stock prices.
+
+    Attributes
+    ----------
+    stock_price : float
+        Stock price.
+    mu : float
+        Annualized return of the underlying asset.
+    volatility : float
+        Annualized volatility of the underlying asset.
+    years_to_target_date : float
+        Time remaining until target date, in years.
+    """
+
+    mu: float
+    
+    __hash__ = object.__hash__
+
+
+class DistributionArrayInputs(BaseModel):
     """
     Defines the input for the probability of profit calculation when using an
     array of terminal stock prices provided by the user.
@@ -183,6 +198,8 @@ class Inputs(BaseModel):
         Maximum value of the stock in the stock price domain.
     strategy : list
         A list of strategy legs.
+    mu : float, optional
+        Annualized return of the underlying asset. The default is 0.0.
     dividend_yield : float, optional
         Annualized dividend yield. The default is 0.0.
     profit_target : float | None, optional
@@ -231,6 +248,7 @@ class Inputs(BaseModel):
     min_stock: float
     max_stock: float
     strategy: list[StrategyLeg] = Field(..., min_length=1)
+    mu: float = 0.0
     dividend_yield: float = 0.0
     profit_target: float | None = None
     loss_limit: float | None = None

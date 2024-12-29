@@ -16,8 +16,9 @@ from optionlab.models import (
     Stock,
     ClosedPosition,
     Outputs,
-    ProbabilityOfProfitInputs,
-    ProbabilityOfProfitArrayInputs,
+    DistributionBlackScholesInputs,
+    DistributionLaplaceInputs,
+    DistributionArrayInputs,
     OptionType,
     EngineData,
 )
@@ -161,18 +162,26 @@ def _run(data: EngineData) -> EngineData:
 
     data.profit = zeros((len(data.type), data.stock_price_array.shape[0]))
     data.strategy_profit = zeros(data.stock_price_array.shape[0])
-
+#TODO: Workaround; computing expectation will be improved in the next version
     if inputs.compute_expectation and data.terminal_stock_prices.shape[0] == 0:
-        data.terminal_stock_prices = create_price_samples(
-            inputs.stock_price,
-            inputs.volatility,
-            inputs.interest_rate,
-            time_to_target,
-            inputs.distribution,
-            inputs.mc_prices_number,
-            inputs.dividend_yield,
-        )
-
+        if inputs.distribution in ("normal", "black-scholes"):
+            terminal_prices_inputs = DistributionBlackScholesInputs(
+                stock_price=inputs.stock_price,
+                volatility=inputs.volatility,
+                years_to_target_date=time_to_target,
+                interest_rate=inputs.interest_rate,
+                dividend_yield=inputs.dividend_yield,
+            )
+        elif inputs.distribution == "laplace":
+            terminal_prices_inputs = DistributionLaplaceInputs(
+                stock_price=inputs.stock_price,
+                volatility=inputs.volatility,
+                years_to_target_date=time_to_target,
+                mu=inputs.mu,
+            )
+        
+        data.terminal_stock_prices = create_price_samples(terminal_prices_inputs)
+#
     if data.terminal_stock_prices.shape[0] > 0:
         data.profit_mc = zeros((len(data.type), data.terminal_stock_prices.shape[0]))
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
@@ -192,21 +201,31 @@ def _run(data: EngineData) -> EngineData:
 
     data._profit_ranges = get_profit_range(data.stock_price_array, data.strategy_profit)
 
-    pop_inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
+    pop_inputs: (
+        DistributionBlackScholesInputs
+        | DistributionLaplaceInputs
+        | DistributionArrayInputs
+    )
 
-    if inputs.distribution in ("normal", "laplace", "black-scholes"):
-        pop_inputs = ProbabilityOfProfitInputs(
-            source=inputs.distribution,  # type: ignore
+    if inputs.distribution in ("normal", "black-scholes"):
+        pop_inputs = DistributionBlackScholesInputs(
             stock_price=inputs.stock_price,
             volatility=inputs.volatility,
-            years_to_maturity=time_to_target,
+            years_to_target_date=time_to_target,
             interest_rate=inputs.interest_rate,
             dividend_yield=inputs.dividend_yield,
         )
+    elif inputs.distribution == "laplace":
+        pop_inputs = DistributionLaplaceInputs(
+            stock_price=inputs.stock_price,
+            volatility=inputs.volatility,
+            years_to_target_date=time_to_target,
+            mu=inputs.mu,
+        )
     elif inputs.distribution == "array":
-        pop_inputs = ProbabilityOfProfitArrayInputs(array=data.terminal_stock_prices)
+        pop_inputs = DistributionArrayInputs(array=data.terminal_stock_prices)
     else:
-        raise ValueError("Source not supported yet!")
+        raise ValueError("Distribution not implemented yet!")
 
     data.profit_probability = get_pop(data._profit_ranges, pop_inputs)
 
@@ -441,7 +460,7 @@ def _generate_outputs(data: EngineData) -> Outputs:
 
     if inputs.loss_limit is not None:
         optional_outputs["probability_of_loss_limit"] = data.loss_limit_probability
-
+#TODO: Workaround; computing expectation will be improved in the next version
     if (
         inputs.compute_expectation or inputs.distribution == "array"
     ) and data.terminal_stock_prices.shape[0] > 0:
@@ -483,73 +502,3 @@ def _generate_outputs(data: EngineData) -> Outputs:
         }
     )
 
-
-# TODO: Delete this class in the next version; for now, leave it as a comment
-# class StrategyEngine:
-#     def __init__(self, inputs_data: Inputs | dict):
-#         """
-#         __init__ -> initializes class variables.
-
-#         Returns
-#         -------
-#         None.
-#         """
-#         inputs = (
-#             inputs_data
-#             if isinstance(inputs_data, Inputs)
-#             else Inputs.model_validate(inputs_data)
-#         )
-
-#         self.data = _init_inputs(inputs)
-
-#     def run(self) -> Outputs:
-#         """
-#         run -> runs calculations for an options strategy.
-
-#         Returns
-#         -------
-#         output : Outputs
-#             An Outputs object containing the output of a calculation.
-#         """
-
-#         self.data = _run(self.data)
-
-#         return _generate_outputs(self.data)
-
-#     def get_pl(self, leg: int | None = None) -> tuple[ndarray, ndarray]:
-#         """
-#         get_pl -> returns the profit/loss profile of either a leg or the whole
-#         strategy.
-
-#         Parameters
-#         ----------
-#         leg : int, optional
-#             Index of the leg. Default is None (whole strategy).
-
-#         Returns
-#         -------
-#         stock prices : numpy array
-#             Sequence of stock prices within the bounds of the stock price domain.
-#         P/L profile : numpy array
-#             Profit/loss profile of either a leg or the whole strategy.
-#         """
-
-#         return get_pl(self.data, leg)
-
-#     def pl_to_csv(self, filename: str = "pl.csv", leg: int | None = None) -> None:
-#         """
-#         pl_to_csv -> saves the profit/loss data to a .csv file.
-
-#         Parameters
-#         ----------
-#         filename : string, optional
-#             Name of the .csv file. Default is 'pl.csv'.
-#         leg : int, optional
-#             Index of the leg. Default is None (whole strategy).
-
-#         Returns
-#         -------
-#         None.
-#         """
-
-#         pl_to_csv(self.data, filename, leg)

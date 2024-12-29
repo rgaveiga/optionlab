@@ -1,9 +1,10 @@
 import pytest
 
-from optionlab.models import Inputs, Outputs
+from optionlab.models import Inputs, Outputs, DistributionBlackScholesInputs
 from optionlab.engine import run_strategy
 from optionlab.support import create_price_samples
 from optionlab.black_scholes import get_bs_info
+
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945269,
@@ -232,13 +233,33 @@ def test_3_legs(nvidia):
 
     outputs = run_strategy(inputs)
 
-    assert isinstance(outputs, Outputs)
-    assert len(outputs.per_leg_cost) == 3
-    assert len(outputs.delta) == 3
+    assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
+        "probability_of_profit": 0.679058174271921,
+        "profit_ranges": [(156.6, float("inf"))],
+        "per_leg_cost": [-15899.0, -750.0, 990.0],
+        "strategy_cost": -15659.0,
+        "minimum_return_in_the_domain": -8760.000000000002,
+        "maximum_return_in_the_domain": 11740.0,
+        "implied_volatility": [0.0, 0.494, 0.482],
+        "in_the_money_probability": [1.0, 0.54558925139931, 0.465831136209786],
+        "delta": [1.0, 0.6039490632362865, -0.525237550169406],
+        "gamma": [0.0, 0.015297136732317718, 0.015806160944019643],
+        "theta": [0.0, -0.21821351060901806, 0.22301627833773927],
+        "vega": [0.0, 0.20095091693287098, 0.20763771616023433],
+        "rho": [0.0, 0.08536880237502181, -0.07509774107468528],
+    }
 
 
 def test_run_with_mc_array(nvidia):
-    arr = create_price_samples(168.99, 0.483, 0.045, 24 / 365, "black-scholes", seed=0)
+    arr = create_price_samples(
+        inputs=DistributionBlackScholesInputs(
+            stock_price=168.99,
+            volatility=0.483,
+            interest_rate=0.045,
+            years_to_target_date=24 / 365,
+        ),
+        seed=0,
+    )
 
     inputs = Inputs.model_validate(
         nvidia
@@ -360,33 +381,86 @@ def test_run_with_mc_array(nvidia):
 #         COVERED_CALL_RESULT | {"probability_of_profit": 0.565279550918542}
 #     )
 
-# TODO: Laplace distribution is not correctly implemented and will probably be removed
-# def test_covered_call_w_laplace_distribution(nvidia):
-#     inputs = Inputs.model_validate(
-#         nvidia
-#         | {
-#             "distribution": "laplace",
-#             # The covered call strategy is defined
-#             "strategy": [
-#                 {"type": "stock", "n": 100, "action": "buy"},
-#                 {
-#                     "type": "call",
-#                     "strike": 185.0,
-#                     "premium": 4.1,
-#                     "n": 100,
-#                     "action": "sell",
-#                     "expiration": nvidia["target_date"],
-#                 },
-#             ],
-#         }
-#     )
 
-#     outputs = run_strategy(inputs)
+def test_covered_call_w_laplace_distribution(nvidia):
+    inputs = Inputs.model_validate(
+        nvidia
+        | {
+            "distribution": "laplace",
+            "mu": -0.07,
+            "strategy": [
+                {"type": "stock", "n": 100, "action": "buy"},
+                {
+                    "type": "call",
+                    "strike": 185.0,
+                    "premium": 4.1,
+                    "n": 100,
+                    "action": "sell",
+                    "expiration": nvidia["target_date"],
+                },
+            ],
+        }
+    )
 
-#     # Print useful information on screen
-#     assert isinstance(outputs, Outputs)
-#     assert outputs.model_dump(
-#         exclude={"data", "inputs"}, exclude_none=True
-#     ) == pytest.approx(
-#         COVERED_CALL_RESULT | {"probability_of_profit": 0.5772025728573296}
-#     )
+    outputs = run_strategy(inputs)
+
+    # Print useful information on screen
+    assert isinstance(outputs, Outputs)
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(
+        COVERED_CALL_RESULT | {"probability_of_profit": 0.577830366334525}
+    )
+        
+def test_calendar_spread():
+    stock_price = 127.14 # Apple stock
+    volatility = 0.427
+    start_date = "2021-01-18"
+    target_date = "2021-01-29"
+    interest_rate = 0.0009
+    min_stock = stock_price - round(stock_price * 0.5, 2)
+    max_stock = stock_price + round(stock_price * 0.5, 2)
+    strategy = [
+        {"type": "call", "strike": 127.00, "premium": 4.60, "n": 1000, "action": "sell"},
+        {
+            "type": "call",
+            "strike": 127.00,
+            "premium": 5.90,
+            "n": 1000,
+            "action": "buy",
+            "expiration": "2021-02-12",
+        },
+    ]
+    
+    inputs = {
+        "stock_price": stock_price,
+        "start_date": start_date,
+        "target_date": target_date,
+        "volatility": volatility,
+        "interest_rate": interest_rate,
+        "min_stock": min_stock,
+        "max_stock": max_stock,
+        "strategy": strategy,
+    }
+    
+    outputs = run_strategy(inputs)
+    
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == {
+            "probability_of_profit": 0.5991118190201975,
+            "profit_ranges": [(118.87, 136.15)],
+            "per_leg_cost": [4600.0, -5900.0],
+            "strategy_cost": -1300.0,
+            "minimum_return_in_the_domain": -1300.0000000000146,
+            "maximum_return_in_the_domain": 3009.999999999999,
+            "implied_volatility": [0.47300000000000003, 0.419],
+            "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
+            "delta": [-0.5216914758915705, 0.5273457614638198],
+            "gamma": [0.03882722919950356, 0.02669940508461828],
+            "theta": [0.22727438444823292, -0.15634971608107964],
+            "vega": [0.09571294014902997, 0.1389462831961853],
+            "rho": [-0.022202087247849632, 0.046016214466188525],
+        }    
+    
+    

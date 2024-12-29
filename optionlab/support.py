@@ -12,9 +12,9 @@ from optionlab.black_scholes import get_d1, get_d2, get_option_price
 from optionlab.models import (
     OptionType,
     Action,
-    Distribution,
-    ProbabilityOfProfitInputs,
-    ProbabilityOfProfitArrayInputs,
+    DistributionBlackScholesInputs,
+    DistributionLaplaceInputs,
+    DistributionArrayInputs,
     Range,
 )
 
@@ -199,38 +199,23 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 
 
 # TODO: Add a distribution, 'external', to allow customization.
-# TODO: Remove or change Laplace
 @lru_cache
 def create_price_samples(
-    s0: float,
-    volatility: float,
-    r: float,
-    years_to_maturity: float,
-    distribution: Distribution = "black-scholes",
+    inputs: DistributionBlackScholesInputs | DistributionLaplaceInputs,
     n: int = 100_000,
-    y: float = 0.0,
     seed: int | None = None,
 ) -> np.ndarray:
     """
-    Generates terminal stock prices assuming a statistical distribution.
+    Generates terminal stock prices from a statistical distribution.
 
     Parameters
     ----------
-    s0 : float
-        Spot price of the stock.
-    volatility : float
-        Annualized volatility of the underlying asset.
-    r : float
-        Annualized risk-free interest rate.
-    years_to_maturity : float
-        Time remaining to maturity, in years.
-    distribution : str, optional
-        `Distribution` literal value, which can be 'black-scholes' (the same as
-        'normal') or 'laplace'. The default is 'black-scholes'.
+    inputs : DistributionBlackScholesInputs | DistributionLaplaceInputs
+        Input data used to generate the terminal stock prices. See the documentation
+        for `DistributionBlackScholesInputs` and `DistributionLaplaceInputs` for
+        more details.
     n : int, optional
-        Number of terminal prices. The default is 100,000.
-    y : float, optional
-        Annualized dividend yield. The default is 0.0.
+        Number of terminal stock prices. The default is 100,000.
     seed : int | None, optional
         Seed for random number generation. The default is None.
 
@@ -242,14 +227,28 @@ def create_price_samples(
 
     np_seed_number(seed)
 
-    drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
-
-    if distribution in ("black-scholes", "normal"):
-        array = exp(normal((log(s0) + drift), volatility * sqrt(years_to_maturity), n))
-    elif distribution == "laplace":
-        array = exp(
+    if isinstance(inputs, DistributionBlackScholesInputs):
+        arr = exp(
+            normal(
+                (
+                    log(inputs.stock_price)
+                    + (
+                        inputs.interest_rate
+                        - inputs.dividend_yield
+                        - 0.5 * inputs.volatility * inputs.volatility
+                    )
+                    * inputs.years_to_target_date
+                ),
+                inputs.volatility * sqrt(inputs.years_to_target_date),
+                n,
+            )
+        )
+    elif isinstance(inputs, DistributionLaplaceInputs):
+        arr = exp(
             laplace(
-                (log(s0) + drift), (volatility * sqrt(years_to_maturity)) / sqrt(2.0), n
+                (log(inputs.stock_price) + inputs.mu * inputs.years_to_target_date),
+                (inputs.volatility * sqrt(inputs.years_to_target_date)) / sqrt(2.0),
+                n,
             )
         )
     else:
@@ -259,7 +258,7 @@ def create_price_samples(
 
     np_seed_number(None)
 
-    return array
+    return arr
 
 
 def get_profit_range(
@@ -280,7 +279,7 @@ def get_profit_range(
 
     Returns
     -------
-    list[Range]
+    list
         List of stock price pairs.
     """
 
@@ -317,23 +316,26 @@ def get_profit_range(
     return [(r[0], r[1]) for r in profit_range]
 
 
-# TODO: Improve the description of the inputs.
 def get_pop(
     profit_ranges: list[Range],
-    inputs: ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs,
+    inputs: (
+        DistributionBlackScholesInputs
+        | DistributionLaplaceInputs
+        | DistributionArrayInputs
+    ),
 ) -> float:
     """
-    Estimates the probability of profit (PoP) of an options trade.
+    Estimates the probability of profit (PoP) of an options trading strategy.
 
     Parameters
     ----------
-    profit_ranges : list[Range]
+    profit_ranges : list
         List of stock price pairs, where each pair represents the lower and upper
         bounds within which the options trade makes a profit.
-    inputs : ProbabilityOfProfitInputs | ProbabilityOfProfitArrayInputs
+    inputs : DistributionBlackScholesInputs | DistributionLaplaceInputs | DistributionArrayInputs
         Inputs for the probability of profit calculation. See the documentation
-        for `ProbabilityOfProfitInputs` and `ProbabilityOfProfitArrayInputs` for
-        more details.
+        for `DistributionBlackScholesInputs`, `DistributionLaplaceInputs` and
+        `DistributionArrayInputs` for more details.
 
     Returns
     -------
@@ -346,16 +348,11 @@ def get_pop(
     if len(profit_ranges) == 0:
         return pop
 
-    if isinstance(inputs, ProbabilityOfProfitInputs):
+    if isinstance(inputs, (DistributionBlackScholesInputs, DistributionLaplaceInputs)):
         stock_price = inputs.stock_price
         volatility = inputs.volatility
-        years_to_maturity = inputs.years_to_maturity
-        r = (
-            inputs.interest_rate or 0.0
-        )  # 'or' just for typing purposes, as `interest_rate` must be non-zero
-        y = inputs.dividend_yield
-        drift = (r - y - 0.5 * volatility * volatility) * years_to_maturity
-        sigma = volatility * sqrt(years_to_maturity)
+        years_to_target_date = inputs.years_to_target_date
+        sigma = volatility * sqrt(years_to_target_date)
 
         if sigma == 0.0:
             sigma = 1e-10
@@ -363,28 +360,34 @@ def get_pop(
         beta = sigma / sqrt(2.0)
 
         for p_range in profit_ranges:
-            lval = p_range[0]
-            hval = p_range[1]
+            lval, hval = p_range
 
             if lval <= 0.0:
                 lval = 1e-10
 
-            if inputs.source in ("normal", "black-scholes"):
+            if isinstance(inputs, DistributionBlackScholesInputs):
+                drift = (
+                    inputs.interest_rate
+                    - inputs.dividend_yield
+                    - 0.5 * volatility * volatility
+                ) * years_to_target_date
                 pop += stats.norm.cdf(
                     (log(hval / stock_price) - drift) / sigma
                 ) - stats.norm.cdf((log(lval / stock_price) - drift) / sigma)
             else:
                 pop += stats.laplace.cdf(
-                    (log(hval / stock_price) - drift) / beta
-                ) - stats.laplace.cdf((log(lval / stock_price) - drift) / beta)
+                    (log(hval / stock_price) - inputs.mu * years_to_target_date) / beta
+                ) - stats.laplace.cdf(
+                    (log(lval / stock_price) - inputs.mu * years_to_target_date) / beta
+                )
 
-    elif isinstance(inputs, ProbabilityOfProfitArrayInputs):
+    elif isinstance(inputs, DistributionArrayInputs):
         stocks = inputs.array
 
         if stocks.shape[0] == 0:
             raise ValueError("The array of terminal stock prices is empty!")
 
-        for i, p_range in enumerate(profit_ranges):
+        for p_range in profit_ranges:
             lval, hval = p_range
             tmp1 = stocks[stocks >= lval]
             tmp2 = tmp1[tmp1 <= hval]
@@ -393,7 +396,7 @@ def get_pop(
         pop = pop / stocks.shape[0]
 
     else:
-        raise ValueError("Source not supported yet!")
+        raise ValueError("Distribution not implemented yet!")
 
     return pop
 

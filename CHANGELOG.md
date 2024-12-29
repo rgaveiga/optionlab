@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 1.3.5 (2024-12-28)
+
+- Created a base class `DistributionInputs`
+- Changed the name of `ProbabilityOfProfitInputs` in models.py (and everywhere in the code) to `DistributionBlackScholesInputs`, which inherits from `DistributionInputs`
+- Removed the `source` field from `DistributionBlackScholesInputs`
+- Modified interest_rate: float = Field(0.0, ge=0.0) in `DistributionBlackScholesInputs` in models.py
+- Modified volatility: float = Field(gt=0.0) in `DistributionInputs` in models.py
+- Modified years_to_maturity: float = Field(ge=0.0) in `DistributionInputs` in models.py
+- Created a class `DistributionLaplaceInputs` in models.py, which inherits from `DistributionInputs`
+- Changed `years_to_maturity` field in `DistributionInputs` to `years_to_target_date`
+- Refactored `create_price_samples` in support.py
+- Added __hash__ = object.__hash__ in `DistributionBlackScholesInputs` and `DistributionLaplaceInputs` in models.py to allow their use in `create_price_samples` in support.py with caching
+- Updated tests to reflect those changes
+- Removed a deprecated class, `StrategyEngine`, commented in a previous version
+- Added a test for Laplace distribution
+- Added a test for Calendar Spread
+
 ## 1.3.4 (2024-12-20)
 
 - Deleted `OptionInfo` class in models.py, because it is not necessary
