@@ -130,7 +130,7 @@ class DistributionBlackScholesInputs(DistributionInputs):
 
     interest_rate: float = Field(0.0, ge=0.0)
     dividend_yield: float = Field(0.0, ge=0.0, le=1.0)
-    
+
     __hash__ = object.__hash__
 
 
@@ -152,7 +152,7 @@ class DistributionLaplaceInputs(DistributionInputs):
     """
 
     mu: float
-    
+
     __hash__ = object.__hash__
 
 

@@ -162,7 +162,7 @@ def _run(data: EngineData) -> EngineData:
 
     data.profit = zeros((len(data.type), data.stock_price_array.shape[0]))
     data.strategy_profit = zeros(data.stock_price_array.shape[0])
-#TODO: Workaround; computing expectation will be improved in the next version
+    # TODO: Workaround; computing expectation will be improved in the next version
     if inputs.compute_expectation and data.terminal_stock_prices.shape[0] == 0:
         if inputs.distribution in ("normal", "black-scholes"):
             terminal_prices_inputs = DistributionBlackScholesInputs(
@@ -179,9 +179,9 @@ def _run(data: EngineData) -> EngineData:
                 years_to_target_date=time_to_target,
                 mu=inputs.mu,
             )
-        
+
         data.terminal_stock_prices = create_price_samples(terminal_prices_inputs)
-#
+    #
     if data.terminal_stock_prices.shape[0] > 0:
         data.profit_mc = zeros((len(data.type), data.terminal_stock_prices.shape[0]))
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
@@ -460,7 +460,7 @@ def _generate_outputs(data: EngineData) -> Outputs:
 
     if inputs.loss_limit is not None:
         optional_outputs["probability_of_loss_limit"] = data.loss_limit_probability
-#TODO: Workaround; computing expectation will be improved in the next version
+    # TODO: Workaround; computing expectation will be improved in the next version
     if (
         inputs.compute_expectation or inputs.distribution == "array"
     ) and data.terminal_stock_prices.shape[0] > 0:
@@ -501,4 +501,3 @@ def _generate_outputs(data: EngineData) -> Outputs:
             "rho": data.rho,
         }
     )
-
