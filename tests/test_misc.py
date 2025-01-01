@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from optionlab.models import DistributionBlackScholesInputs, DistributionLaplaceInputs
+from optionlab.models import BlackScholesModelInputs, LaplaceInputs
 from optionlab import create_price_samples
 from optionlab.utils import get_nonbusiness_days
 
@@ -63,7 +63,7 @@ def test_cache_price_samples():
     years_to_target = 24 / 365
 
     sample1 = create_price_samples(
-        inputs=DistributionBlackScholesInputs(
+        inputs=BlackScholesModelInputs(
             stock_price=stock_price,
             volatility=volatility,
             interest_rate=interest_rate,
@@ -79,7 +79,7 @@ def test_cache_price_samples():
     assert sample1.sum() == pytest.approx(16951655.848562226, rel=0.01)
 
     sample2 = create_price_samples(
-        inputs=DistributionBlackScholesInputs(
+        inputs=BlackScholesModelInputs(
             stock_price=stock_price,
             volatility=volatility,
             interest_rate=interest_rate,
@@ -97,7 +97,7 @@ def test_cache_price_samples():
     stock_price = 167.0
 
     sample3 = create_price_samples(
-        inputs=DistributionBlackScholesInputs(
+        inputs=BlackScholesModelInputs(
             stock_price=stock_price,
             volatility=volatility,
             interest_rate=interest_rate,
@@ -113,7 +113,7 @@ def test_cache_price_samples():
     assert sample3.sum() == pytest.approx(16752035.781465728, rel=0.01)
 
     sample4 = create_price_samples(
-        inputs=DistributionLaplaceInputs(
+        inputs=LaplaceInputs(
             stock_price=168.99, volatility=0.483, mu=0.05, years_to_target_date=24 / 365
         ),
         seed=0,

@@ -102,17 +102,15 @@ class ClosedPosition(BaseModel):
 StrategyLeg = Stock | Option | ClosedPosition
 
 
-class DistributionInputs(BaseModel):
+class TheoreticalModelInputs(BaseModel):
     stock_price: float = Field(gt=0.0)
     volatility: float = Field(gt=0.0)
     years_to_target_date: float = Field(ge=0.0)
 
 
-class DistributionBlackScholesInputs(DistributionInputs):
+class BlackScholesModelInputs(TheoreticalModelInputs):
     """
-    Defines the inputs for the probability of profit calculation assuming a lognormal
-    distribution of stock prices with constant volatility and risk-free interest
-    rate, as in the Black-Scholes model.
+    Defines the inputs for the calculations using the Black-Scholes model.
 
     Attributes
     ----------
@@ -134,10 +132,10 @@ class DistributionBlackScholesInputs(DistributionInputs):
     __hash__ = object.__hash__
 
 
-class DistributionLaplaceInputs(DistributionInputs):
+class LaplaceInputs(TheoreticalModelInputs):
     """
-    Defines the inputs for the probability of profit calculation assuming a log-Laplace
-    distribution of stock prices.
+    Defines the inputs for the calculations using a log-Laplace distribution of
+    stock prices.
 
     Attributes
     ----------
@@ -156,10 +154,10 @@ class DistributionLaplaceInputs(DistributionInputs):
     __hash__ = object.__hash__
 
 
-class DistributionArrayInputs(BaseModel):
+class ArrayInputs(BaseModel):
     """
-    Defines the input for the probability of profit calculation when using an
-    array of terminal stock prices provided by the user.
+    Defines the input for the calculations when using an array of terminal stock
+    prices provided by the user.
 
     Attributes
     ----------

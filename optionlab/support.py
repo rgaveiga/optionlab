@@ -12,9 +12,9 @@ from optionlab.black_scholes import get_d1, get_d2, get_option_price
 from optionlab.models import (
     OptionType,
     Action,
-    DistributionBlackScholesInputs,
-    DistributionLaplaceInputs,
-    DistributionArrayInputs,
+    BlackScholesModelInputs,
+    LaplaceInputs,
+    ArrayInputs,
     Range,
 )
 
@@ -201,7 +201,7 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 # TODO: Add a distribution, 'external', to allow customization.
 @lru_cache
 def create_price_samples(
-    inputs: DistributionBlackScholesInputs | DistributionLaplaceInputs,
+    inputs: BlackScholesModelInputs | LaplaceInputs,
     n: int = 100_000,
     seed: int | None = None,
 ) -> np.ndarray:
@@ -210,9 +210,9 @@ def create_price_samples(
 
     Parameters
     ----------
-    inputs : DistributionBlackScholesInputs | DistributionLaplaceInputs
+    inputs : BlackScholesModelInputs | LaplaceInputs
         Input data used to generate the terminal stock prices. See the documentation
-        for `DistributionBlackScholesInputs` and `DistributionLaplaceInputs` for
+        for `BlackScholesModelInputs` and `LaplaceInputs` for
         more details.
     n : int, optional
         Number of terminal stock prices. The default is 100,000.
@@ -227,7 +227,7 @@ def create_price_samples(
 
     np_seed_number(seed)
 
-    if isinstance(inputs, DistributionBlackScholesInputs):
+    if isinstance(inputs, BlackScholesModelInputs):
         arr = exp(
             normal(
                 (
@@ -243,7 +243,7 @@ def create_price_samples(
                 n,
             )
         )
-    elif isinstance(inputs, DistributionLaplaceInputs):
+    elif isinstance(inputs, LaplaceInputs):
         arr = exp(
             laplace(
                 (log(inputs.stock_price) + inputs.mu * inputs.years_to_target_date),
@@ -318,11 +318,7 @@ def get_profit_range(
 
 def get_pop(
     profit_ranges: list[Range],
-    inputs: (
-        DistributionBlackScholesInputs
-        | DistributionLaplaceInputs
-        | DistributionArrayInputs
-    ),
+    inputs: BlackScholesModelInputs | LaplaceInputs | ArrayInputs,
 ) -> float:
     """
     Estimates the probability of profit (PoP) of an options trading strategy.
@@ -332,10 +328,10 @@ def get_pop(
     profit_ranges : list
         List of stock price pairs, where each pair represents the lower and upper
         bounds within which the options trade makes a profit.
-    inputs : DistributionBlackScholesInputs | DistributionLaplaceInputs | DistributionArrayInputs
+    inputs : BlackScholesModelInputs | LaplaceInputs | ArrayInputs
         Inputs for the probability of profit calculation. See the documentation
-        for `DistributionBlackScholesInputs`, `DistributionLaplaceInputs` and
-        `DistributionArrayInputs` for more details.
+        for `BlackScholesModelInputs`, `LaplaceInputs` and `ArrayInputs` for more
+        details.
 
     Returns
     -------
@@ -348,7 +344,7 @@ def get_pop(
     if len(profit_ranges) == 0:
         return pop
 
-    if isinstance(inputs, (DistributionBlackScholesInputs, DistributionLaplaceInputs)):
+    if isinstance(inputs, (BlackScholesModelInputs, LaplaceInputs)):
         stock_price = inputs.stock_price
         volatility = inputs.volatility
         years_to_target_date = inputs.years_to_target_date
@@ -365,7 +361,7 @@ def get_pop(
             if lval <= 0.0:
                 lval = 1e-10
 
-            if isinstance(inputs, DistributionBlackScholesInputs):
+            if isinstance(inputs, BlackScholesModelInputs):
                 drift = (
                     inputs.interest_rate
                     - inputs.dividend_yield
@@ -381,7 +377,7 @@ def get_pop(
                     (log(lval / stock_price) - inputs.mu * years_to_target_date) / beta
                 )
 
-    elif isinstance(inputs, DistributionArrayInputs):
+    elif isinstance(inputs, ArrayInputs):
         stocks = inputs.array
 
         if stocks.shape[0] == 0:

@@ -16,9 +16,9 @@ from optionlab.models import (
     Stock,
     ClosedPosition,
     Outputs,
-    DistributionBlackScholesInputs,
-    DistributionLaplaceInputs,
-    DistributionArrayInputs,
+    BlackScholesModelInputs,
+    LaplaceInputs,
+    ArrayInputs,
     OptionType,
     EngineData,
 )
@@ -165,7 +165,7 @@ def _run(data: EngineData) -> EngineData:
     # TODO: Workaround; computing expectation will be improved in the next version
     if inputs.compute_expectation and data.terminal_stock_prices.shape[0] == 0:
         if inputs.distribution in ("normal", "black-scholes"):
-            terminal_prices_inputs = DistributionBlackScholesInputs(
+            terminal_prices_inputs = BlackScholesModelInputs(
                 stock_price=inputs.stock_price,
                 volatility=inputs.volatility,
                 years_to_target_date=time_to_target,
@@ -173,7 +173,7 @@ def _run(data: EngineData) -> EngineData:
                 dividend_yield=inputs.dividend_yield,
             )
         elif inputs.distribution == "laplace":
-            terminal_prices_inputs = DistributionLaplaceInputs(
+            terminal_prices_inputs = LaplaceInputs(
                 stock_price=inputs.stock_price,
                 volatility=inputs.volatility,
                 years_to_target_date=time_to_target,
@@ -201,14 +201,10 @@ def _run(data: EngineData) -> EngineData:
 
     data._profit_ranges = get_profit_range(data.stock_price_array, data.strategy_profit)
 
-    pop_inputs: (
-        DistributionBlackScholesInputs
-        | DistributionLaplaceInputs
-        | DistributionArrayInputs
-    )
+    pop_inputs: BlackScholesModelInputs | LaplaceInputs | ArrayInputs
 
     if inputs.distribution in ("normal", "black-scholes"):
-        pop_inputs = DistributionBlackScholesInputs(
+        pop_inputs = BlackScholesModelInputs(
             stock_price=inputs.stock_price,
             volatility=inputs.volatility,
             years_to_target_date=time_to_target,
@@ -216,14 +212,14 @@ def _run(data: EngineData) -> EngineData:
             dividend_yield=inputs.dividend_yield,
         )
     elif inputs.distribution == "laplace":
-        pop_inputs = DistributionLaplaceInputs(
+        pop_inputs = LaplaceInputs(
             stock_price=inputs.stock_price,
             volatility=inputs.volatility,
             years_to_target_date=time_to_target,
             mu=inputs.mu,
         )
     elif inputs.distribution == "array":
-        pop_inputs = DistributionArrayInputs(array=data.terminal_stock_prices)
+        pop_inputs = ArrayInputs(array=data.terminal_stock_prices)
     else:
         raise ValueError("Distribution not implemented yet!")
 

@@ -1,7 +1,7 @@
 import typing
 
 
-VERSION = "1.3.5"
+VERSION = "1.4.0"
 
 
 if typing.TYPE_CHECKING:
@@ -14,9 +14,10 @@ if typing.TYPE_CHECKING:
         Option,
         Outputs,
         ClosedPosition,
-        DistributionArrayInputs,
-        DistributionBlackScholesInputs,
-        DistributionLaplaceInputs,
+        ArrayInputs,
+        TheoreticalModelInputs,
+        BlackScholesModelInputs,
+        LaplaceInputs,
         BlackScholesInfo,
         Distribution,
         StrategyLeg,
@@ -59,9 +60,10 @@ __all__ = (
     "Option",
     "Outputs",
     "ClosedPosition",
-    "DistributionArrayInputs",
-    "DistributionBlackScholesInputs",
-    "DistributionLaplaceInputs",
+    "ArrayInputs",
+    "TheoreticalModelInputs",
+    "BlackScholesModelInputs",
+    "LaplaceInputs",
     "BlackScholesInfo",
     "Distribution",
     "StrategyLeg",
@@ -104,9 +106,10 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "OptionInfo": (__package__, ".models"),
     "Option": (__package__, ".models"),
     "ClosedPosition": (__package__, ".models"),
-    "DistributionArrayInputs": (__package__, ".models"),
-    "DistributionBlackScholesInputs": (__package__, ".models"),
-    "DistributionLaplaceInputs": (__package__, ".models"),
+    "ArrayInputs": (__package__, ".models"),
+    "TheoreticalModelInputs": (__package__, ".models"),
+    "BlackScholesModelInputs": (__package__, ".models"),
+    "LaplaceInputs": (__package__, ".models"),
     "BlackScholesInfo": (__package__, ".models"),
     "Distribution": (__package__, ".models"),
     "StrategyLeg": (__package__, ".models"),

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.4.0 (01-01-2025)
+
+- Changed the class name `DistributionInputs` to `TheoreticalModelInputs` in models.py, to be more descriptive
+- Changed the class name `DistributionBlackScholesInputs` to `BlackScholesModelInputs` in models.py
+- Changed the class name `DistributionLaplaceInputs` to `LaplaceInputs` in models.py
+- Changed the class name `DistributionArrayInputs` to `ArrayInputs` in models.py
+
 ## 1.3.5 (2024-12-28)
 
 - Created a base class `DistributionInputs`

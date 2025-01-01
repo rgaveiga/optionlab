@@ -1,6 +1,6 @@
 import pytest
 
-from optionlab.models import Inputs, Outputs, DistributionBlackScholesInputs
+from optionlab.models import Inputs, Outputs, BlackScholesModelInputs
 from optionlab.engine import run_strategy
 from optionlab.support import create_price_samples
 from optionlab.black_scholes import get_bs_info
@@ -252,7 +252,7 @@ def test_3_legs(nvidia):
 
 def test_run_with_mc_array(nvidia):
     arr = create_price_samples(
-        inputs=DistributionBlackScholesInputs(
+        inputs=BlackScholesModelInputs(
             stock_price=168.99,
             volatility=0.483,
             interest_rate=0.045,
@@ -411,9 +411,10 @@ def test_covered_call_w_laplace_distribution(nvidia):
     ) == pytest.approx(
         COVERED_CALL_RESULT | {"probability_of_profit": 0.577830366334525}
     )
-        
+
+
 def test_calendar_spread():
-    stock_price = 127.14 # Apple stock
+    stock_price = 127.14  # Apple stock
     volatility = 0.427
     start_date = "2021-01-18"
     target_date = "2021-01-29"
@@ -421,7 +422,13 @@ def test_calendar_spread():
     min_stock = stock_price - round(stock_price * 0.5, 2)
     max_stock = stock_price + round(stock_price * 0.5, 2)
     strategy = [
-        {"type": "call", "strike": 127.00, "premium": 4.60, "n": 1000, "action": "sell"},
+        {
+            "type": "call",
+            "strike": 127.00,
+            "premium": 4.60,
+            "n": 1000,
+            "action": "sell",
+        },
         {
             "type": "call",
             "strike": 127.00,
@@ -431,7 +438,7 @@ def test_calendar_spread():
             "expiration": "2021-02-12",
         },
     ]
-    
+
     inputs = {
         "stock_price": stock_price,
         "start_date": start_date,
@@ -442,25 +449,21 @@ def test_calendar_spread():
         "max_stock": max_stock,
         "strategy": strategy,
     }
-    
+
     outputs = run_strategy(inputs)
-    
-    assert outputs.model_dump(
-        exclude={"data", "inputs"}, exclude_none=True
-    ) == {
-            "probability_of_profit": 0.5991118190201975,
-            "profit_ranges": [(118.87, 136.15)],
-            "per_leg_cost": [4600.0, -5900.0],
-            "strategy_cost": -1300.0,
-            "minimum_return_in_the_domain": -1300.0000000000146,
-            "maximum_return_in_the_domain": 3009.999999999999,
-            "implied_volatility": [0.47300000000000003, 0.419],
-            "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
-            "delta": [-0.5216914758915705, 0.5273457614638198],
-            "gamma": [0.03882722919950356, 0.02669940508461828],
-            "theta": [0.22727438444823292, -0.15634971608107964],
-            "vega": [0.09571294014902997, 0.1389462831961853],
-            "rho": [-0.022202087247849632, 0.046016214466188525],
-        }    
-    
-    
+
+    assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
+        "probability_of_profit": 0.5991118190201975,
+        "profit_ranges": [(118.87, 136.15)],
+        "per_leg_cost": [4600.0, -5900.0],
+        "strategy_cost": -1300.0,
+        "minimum_return_in_the_domain": -1300.0000000000146,
+        "maximum_return_in_the_domain": 3009.999999999999,
+        "implied_volatility": [0.47300000000000003, 0.419],
+        "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
+        "delta": [-0.5216914758915705, 0.5273457614638198],
+        "gamma": [0.03882722919950356, 0.02669940508461828],
+        "theta": [0.22727438444823292, -0.15634971608107964],
+        "vega": [0.09571294014902997, 0.1389462831961853],
+        "rho": [-0.022202087247849632, 0.046016214466188525],
+    }
