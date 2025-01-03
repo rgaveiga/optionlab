@@ -81,7 +81,7 @@ def test_validate_dates(nvidia):
 
 def test_array_distribution_with_no_array(nvidia):
     inputs = nvidia | {
-        "distribution": "array",
+        "model": "array",
         "strategy": [
             {"type": "closed", "prev_pos": 100},
         ],
@@ -90,15 +90,11 @@ def test_array_distribution_with_no_array(nvidia):
     with pytest.raises(ValueError) as err:
         Inputs.model_validate(inputs)
 
-    assert "Array of prices must be provided if distribution is 'array'." in str(
-        err.value
-    )
+    assert "Array of prices must be provided if model is 'array'." in str(err.value)
 
     inputs |= {"array": array([])}
 
     with pytest.raises(ValueError) as err:
         Inputs.model_validate(inputs)
 
-    assert "Array of prices must be provided if distribution is 'array'." in str(
-        err.value
-    )
+    assert "Array of prices must be provided if model is 'array'." in str(err.value)

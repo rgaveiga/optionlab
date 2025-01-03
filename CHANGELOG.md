@@ -6,6 +6,10 @@
 - Changed the class name `DistributionBlackScholesInputs` to `BlackScholesModelInputs` in models.py
 - Changed the class name `DistributionLaplaceInputs` to `LaplaceInputs` in models.py
 - Changed the class name `DistributionArrayInputs` to `ArrayInputs` in models.py
+- Changed literal `Distribution` to `TheoreticalModel`
+- Moved `create_price_samples` from support.py to a new module price_array.py and renamed it to `create_price_array`
+- Commented a code snippet in engine.py where terminal stock prices are created using `create_price_samples`, to be removed in a next version
+- Allowed a dictionary as input for `create_price_array` in price_array.py
 
 ## 1.3.5 (2024-12-28)
 

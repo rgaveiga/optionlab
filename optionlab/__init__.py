@@ -19,7 +19,7 @@ if typing.TYPE_CHECKING:
         BlackScholesModelInputs,
         LaplaceInputs,
         BlackScholesInfo,
-        Distribution,
+        TheoreticalModel,
         StrategyLeg,
         StrategyType,
         Stock,
@@ -41,12 +41,12 @@ if typing.TYPE_CHECKING:
     )
     from .engine import run_strategy
     from .plot import plot_pl
+    from .price_array import create_price_array
     from .support import (
         get_pl_profile,
         get_pl_profile_stock,
         get_pl_profile_bs,
         create_price_seq,
-        create_price_samples,
         get_profit_range,
         get_pop,
     )
@@ -65,7 +65,7 @@ __all__ = (
     "BlackScholesModelInputs",
     "LaplaceInputs",
     "BlackScholesInfo",
-    "Distribution",
+    "TheoreticalModel",
     "StrategyLeg",
     "StrategyType",
     "Stock",
@@ -78,7 +78,6 @@ __all__ = (
     "get_pl_profile_stock",
     "get_pl_profile_bs",
     "create_price_seq",
-    "create_price_samples",
     "get_profit_range",
     "get_pop",
     # black_scholes
@@ -95,6 +94,8 @@ __all__ = (
     "get_rho",
     # plot
     "plot_pl",
+    # price_array
+    "create_price_array",
 )
 
 # A mapping of {<member name>: (package, <module name>)} defining dynamic imports
@@ -111,7 +112,7 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "BlackScholesModelInputs": (__package__, ".models"),
     "LaplaceInputs": (__package__, ".models"),
     "BlackScholesInfo": (__package__, ".models"),
-    "Distribution": (__package__, ".models"),
+    "TheoreticalModel": (__package__, ".models"),
     "StrategyLeg": (__package__, ".models"),
     "StrategyType": (__package__, ".models"),
     "Stock": (__package__, ".models"),
@@ -124,7 +125,6 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_pl_profile_stock": (__package__, ".support"),
     "get_pl_profile_bs": (__package__, ".support"),
     "create_price_seq": (__package__, ".support"),
-    "create_price_samples": (__package__, ".support"),
     "get_profit_range": (__package__, ".support"),
     "get_pop": (__package__, ".support"),
     # black_scholes
@@ -141,6 +141,8 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_rho": (__package__, ".black_scholes"),
     # plot
     "plot_pl": (__package__, ".plot"),
+    # price_array
+    "create_price_array": (__package__, ".price_array"),
 }
 
 

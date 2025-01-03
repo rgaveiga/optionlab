@@ -4,7 +4,7 @@ import time
 import pytest
 
 from optionlab.models import BlackScholesModelInputs, LaplaceInputs
-from optionlab import create_price_samples
+from optionlab.price_array import create_price_array
 from optionlab.utils import get_nonbusiness_days
 
 
@@ -55,15 +55,15 @@ def test_benchmark_holidays(benchmark):
 
 
 def test_cache_price_samples():
-    create_price_samples.cache_clear()
+    create_price_array.cache_clear()
 
     stock_price = 168.99
     volatility = 0.483
     interest_rate = 0.045
     years_to_target = 24 / 365
 
-    sample1 = create_price_samples(
-        inputs=BlackScholesModelInputs(
+    sample1 = create_price_array(
+        inputs_data=BlackScholesModelInputs(
             stock_price=stock_price,
             volatility=volatility,
             interest_rate=interest_rate,
@@ -78,8 +78,8 @@ def test_cache_price_samples():
     # assert cache_info1.currsize == 1
     assert sample1.sum() == pytest.approx(16951655.848562226, rel=0.01)
 
-    sample2 = create_price_samples(
-        inputs=BlackScholesModelInputs(
+    sample2 = create_price_array(
+        inputs_data=BlackScholesModelInputs(
             stock_price=stock_price,
             volatility=volatility,
             interest_rate=interest_rate,
@@ -96,8 +96,8 @@ def test_cache_price_samples():
 
     stock_price = 167.0
 
-    sample3 = create_price_samples(
-        inputs=BlackScholesModelInputs(
+    sample3 = create_price_array(
+        inputs_data=BlackScholesModelInputs(
             stock_price=stock_price,
             volatility=volatility,
             interest_rate=interest_rate,
@@ -112,8 +112,8 @@ def test_cache_price_samples():
     # assert cache_info3.currsize == 2
     assert sample3.sum() == pytest.approx(16752035.781465728, rel=0.01)
 
-    sample4 = create_price_samples(
-        inputs=LaplaceInputs(
+    sample4 = create_price_array(
+        inputs_data=LaplaceInputs(
             stock_price=168.99, volatility=0.483, mu=0.05, years_to_target_date=24 / 365
         ),
         seed=0,

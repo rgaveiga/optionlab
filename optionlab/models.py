@@ -8,7 +8,7 @@ OptionType = Literal["call", "put"]
 Action = Literal["buy", "sell"]
 StrategyType = Literal["stock"] | OptionType | Literal["closed"]
 Range = tuple[float, float]
-Distribution = Literal["black-scholes", "normal", "laplace", "array"]
+TheoreticalModel = Literal["black-scholes", "normal", "laplace", "array"]
 
 
 class BaseLeg(BaseModel):
@@ -110,10 +110,12 @@ class TheoreticalModelInputs(BaseModel):
 
 class BlackScholesModelInputs(TheoreticalModelInputs):
     """
-    Defines the inputs for the calculations using the Black-Scholes model.
+    Defines the input data for the calculations using the Black-Scholes model.
 
     Attributes
     ----------
+    model : str
+        It must be either 'black-scholes' or 'normal'.
     stock_price : float
         Stock price.
     volatility : float
@@ -126,6 +128,7 @@ class BlackScholesModelInputs(TheoreticalModelInputs):
         Annualized dividend yield. The default is zero.
     """
 
+    model: Literal["black-scholes", "normal"] = "black-scholes"
     interest_rate: float = Field(0.0, ge=0.0)
     dividend_yield: float = Field(0.0, ge=0.0, le=1.0)
 
@@ -134,11 +137,13 @@ class BlackScholesModelInputs(TheoreticalModelInputs):
 
 class LaplaceInputs(TheoreticalModelInputs):
     """
-    Defines the inputs for the calculations using a log-Laplace distribution of
+    Defines the input data for the calculations using a log-Laplace distribution of
     stock prices.
 
     Attributes
     ----------
+    model : str
+        It must be 'laplace'.
     stock_price : float
         Stock price.
     mu : float
@@ -149,6 +154,7 @@ class LaplaceInputs(TheoreticalModelInputs):
         Time remaining until target date, in years.
     """
 
+    model: Literal["laplace"] = "laplace"
     mu: float
 
     __hash__ = object.__hash__
@@ -156,15 +162,18 @@ class LaplaceInputs(TheoreticalModelInputs):
 
 class ArrayInputs(BaseModel):
     """
-    Defines the input for the calculations when using an array of terminal stock
+    Defines the input data for the calculations when using an array of terminal stock
     prices provided by the user.
 
     Attributes
     ----------
+    model : str
+        It must be 'array'.
     array : numpy.ndarray
         Array of terminal stock prices.
     """
 
+    model: Literal["array"] = "array"
     array: np.ndarray
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -209,9 +218,6 @@ class Inputs(BaseModel):
         Brokerage commission for options transactions. The default is 0.0.
     stock_commission : float
         Brokerage commission for stocks transactions. The default is 0.0.
-    compute_expectation : bool, optional
-        Computes the strategy's average profit and loss from a numpy array of random
-        terminal prices generated from a distribution. The default is False.
     discard_nonbusiness_days : bool, optional
         Discards weekends and holidays when counting the number of days between
         two dates. The default is True.
@@ -229,10 +235,9 @@ class Inputs(BaseModel):
     days_to_target_date : int, optional
         Days remaining to the target date. If not provided, `start_date` and
         `target_date` must be provided.
-    distribution : str, optional
-        Statistical distribution used to compute probabilities. It can be
-        'black-scholes' (the same as 'normal'), 'laplace' or 'array'. The default
-        is 'black-scholes'.
+    model : str, optional
+        Theoretical model used in the calculations. It can be 'black-scholes'
+        (the same as 'normal'), 'laplace' or 'array'. The default is 'black-scholes'.
     mc_prices_number : int, optional
         Number of random terminal prices to be generated when calculationg
         the average profit and loss of a strategy. Default is 100,000.
@@ -252,14 +257,13 @@ class Inputs(BaseModel):
     loss_limit: float | None = None
     opt_commission: float = 0.0
     stock_commission: float = 0.0
-    compute_expectation: bool = False
     discard_nonbusiness_days: bool = True
     business_days_in_year: int = 252
     country: str = "US"
     start_date: dt.date | None = None
     target_date: dt.date | None = None
     days_to_target_date: int = Field(0, ge=0)
-    distribution: Distribution = "black-scholes"
+    model: TheoreticalModel = "black-scholes"
     mc_prices_number: int = 100_000
     array: np.ndarray | None = None
 
@@ -301,16 +305,12 @@ class Inputs(BaseModel):
 
     @model_validator(mode="after")
     def validate_compute_expectation(self) -> "Inputs":
-        if self.distribution != "array":
+        if self.model != "array":
             return self
         elif self.array is None:
-            raise ValueError(
-                "Array of prices must be provided if distribution is 'array'."
-            )
+            raise ValueError("Array of prices must be provided if model is 'array'.")
         elif self.array.shape[0] == 0:
-            raise ValueError(
-                "Array of prices must be provided if distribution is 'array'."
-            )
+            raise ValueError("Array of prices must be provided if model is 'array'.")
         return self
 
 

@@ -28,7 +28,6 @@ from optionlab.support import (
     get_pl_profile_bs,
     get_profit_range,
     create_price_seq,
-    create_price_samples,
     get_pop,
 )
 from optionlab.utils import get_nonbusiness_days
@@ -162,25 +161,25 @@ def _run(data: EngineData) -> EngineData:
 
     data.profit = zeros((len(data.type), data.stock_price_array.shape[0]))
     data.strategy_profit = zeros(data.stock_price_array.shape[0])
-    # TODO: Workaround; computing expectation will be improved in the next version
-    if inputs.compute_expectation and data.terminal_stock_prices.shape[0] == 0:
-        if inputs.distribution in ("normal", "black-scholes"):
-            terminal_prices_inputs = BlackScholesModelInputs(
-                stock_price=inputs.stock_price,
-                volatility=inputs.volatility,
-                years_to_target_date=time_to_target,
-                interest_rate=inputs.interest_rate,
-                dividend_yield=inputs.dividend_yield,
-            )
-        elif inputs.distribution == "laplace":
-            terminal_prices_inputs = LaplaceInputs(
-                stock_price=inputs.stock_price,
-                volatility=inputs.volatility,
-                years_to_target_date=time_to_target,
-                mu=inputs.mu,
-            )
+    # TODO: To be removed in a next version
+    # if inputs.compute_expectation and data.terminal_stock_prices.shape[0] == 0:
+    #     if inputs.model in ("normal", "black-scholes"):
+    #         terminal_prices_inputs = BlackScholesModelInputs(
+    #             stock_price=inputs.stock_price,
+    #             volatility=inputs.volatility,
+    #             years_to_target_date=time_to_target,
+    #             interest_rate=inputs.interest_rate,
+    #             dividend_yield=inputs.dividend_yield,
+    #         )
+    #     elif inputs.model == "laplace":
+    #         terminal_prices_inputs = LaplaceInputs(
+    #             stock_price=inputs.stock_price,
+    #             volatility=inputs.volatility,
+    #             years_to_target_date=time_to_target,
+    #             mu=inputs.mu,
+    #         )
 
-        data.terminal_stock_prices = create_price_samples(terminal_prices_inputs)
+    #     data.terminal_stock_prices = create_price_samples(terminal_prices_inputs)
     #
     if data.terminal_stock_prices.shape[0] > 0:
         data.profit_mc = zeros((len(data.type), data.terminal_stock_prices.shape[0]))
@@ -196,14 +195,14 @@ def _run(data: EngineData) -> EngineData:
 
         data.strategy_profit += data.profit[i]
 
-        if inputs.compute_expectation or inputs.distribution == "array":
+        if inputs.model == "array":
             data.strategy_profit_mc += data.profit_mc[i]
 
     data._profit_ranges = get_profit_range(data.stock_price_array, data.strategy_profit)
 
     pop_inputs: BlackScholesModelInputs | LaplaceInputs | ArrayInputs
 
-    if inputs.distribution in ("normal", "black-scholes"):
+    if inputs.model in ("normal", "black-scholes"):
         pop_inputs = BlackScholesModelInputs(
             stock_price=inputs.stock_price,
             volatility=inputs.volatility,
@@ -211,17 +210,17 @@ def _run(data: EngineData) -> EngineData:
             interest_rate=inputs.interest_rate,
             dividend_yield=inputs.dividend_yield,
         )
-    elif inputs.distribution == "laplace":
+    elif inputs.model == "laplace":
         pop_inputs = LaplaceInputs(
             stock_price=inputs.stock_price,
             volatility=inputs.volatility,
             years_to_target_date=time_to_target,
             mu=inputs.mu,
         )
-    elif inputs.distribution == "array":
+    elif inputs.model == "array":
         pop_inputs = ArrayInputs(array=data.terminal_stock_prices)
     else:
-        raise ValueError("Distribution not implemented yet!")
+        raise ValueError("Model is not valid!")
 
     data.profit_probability = get_pop(data._profit_ranges, pop_inputs)
 
@@ -263,7 +262,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         data.cost[i] = cost
         data.profit[i] += cost
 
-        if inputs.compute_expectation or inputs.distribution == "array":
+        if inputs.model == "array":
             data.profit_mc[i] += cost
 
         return data
@@ -330,7 +329,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
             inputs.opt_commission,
         )
 
-        if inputs.compute_expectation or inputs.distribution == "array":
+        if inputs.model == "array":
             data.profit_mc[i] = get_pl_profile_bs(
                 type,
                 action,
@@ -355,7 +354,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
             inputs.opt_commission,
         )
 
-        if inputs.compute_expectation or inputs.distribution == "array":
+        if inputs.model == "array":
             data.profit_mc[i] = get_pl_profile(
                 type,
                 action,
@@ -394,7 +393,7 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
         data.cost[i] = costtmp
         data.profit[i] += costtmp
 
-        if inputs.compute_expectation or inputs.distribution == "array":
+        if inputs.model == "array":
             data.profit_mc[i] += costtmp
 
         return data
@@ -412,7 +411,7 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
         inputs.stock_commission,
     )
 
-    if inputs.compute_expectation or inputs.distribution == "array":
+    if inputs.model == "array":
         data.profit_mc[i] = get_pl_profile_stock(
             stockpos,
             action,
@@ -438,7 +437,7 @@ def _run_closed_position_calcs(data: EngineData, i: int) -> EngineData:
     data.cost[i] = data._previous_position[i]
     data.profit[i] += data._previous_position[i]
 
-    if inputs.compute_expectation or inputs.distribution == "array":
+    if inputs.model == "array":
         data.profit_mc[i] += data._previous_position[i]
 
     return data
@@ -456,10 +455,8 @@ def _generate_outputs(data: EngineData) -> Outputs:
 
     if inputs.loss_limit is not None:
         optional_outputs["probability_of_loss_limit"] = data.loss_limit_probability
-    # TODO: Workaround; computing expectation will be improved in the next version
-    if (
-        inputs.compute_expectation or inputs.distribution == "array"
-    ) and data.terminal_stock_prices.shape[0] > 0:
+
+    if inputs.model == "array" and data.terminal_stock_prices.shape[0] > 0:
         profit = data.strategy_profit_mc[data.strategy_profit_mc >= 0.01]
         loss = data.strategy_profit_mc[data.strategy_profit_mc < 0.0]
         optional_outputs["average_profit_from_mc"] = 0.0

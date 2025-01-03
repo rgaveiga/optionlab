@@ -2,7 +2,7 @@ import pytest
 
 from optionlab.models import Inputs, Outputs, BlackScholesModelInputs
 from optionlab.engine import run_strategy
-from optionlab.support import create_price_samples
+from optionlab.price_array import create_price_array
 from optionlab.black_scholes import get_bs_info
 
 
@@ -251,8 +251,8 @@ def test_3_legs(nvidia):
 
 
 def test_run_with_mc_array(nvidia):
-    arr = create_price_samples(
-        inputs=BlackScholesModelInputs(
+    arr = create_price_array(
+        inputs_data=BlackScholesModelInputs(
             stock_price=168.99,
             volatility=0.483,
             interest_rate=0.045,
@@ -264,7 +264,7 @@ def test_run_with_mc_array(nvidia):
     inputs = Inputs.model_validate(
         nvidia
         | {
-            "distribution": "array",
+            "model": "array",
             "array": arr,
             "strategy": [
                 {"type": "stock", "n": 100, "action": "buy"},
@@ -386,7 +386,7 @@ def test_covered_call_w_laplace_distribution(nvidia):
     inputs = Inputs.model_validate(
         nvidia
         | {
-            "distribution": "laplace",
+            "model": "laplace",
             "mu": -0.07,
             "strategy": [
                 {"type": "stock", "n": 100, "action": "buy"},
