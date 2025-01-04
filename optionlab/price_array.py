@@ -8,7 +8,6 @@ from numpy.lib.scimath import log, sqrt
 from optionlab.models import BlackScholesModelInputs, LaplaceInputs
 
 
-@lru_cache
 def create_price_array(
     inputs_data: BlackScholesModelInputs | LaplaceInputs | dict,
     n: int = 100_000,
@@ -19,7 +18,7 @@ def create_price_array(
 
     Parameters
     ----------
-    inputs_data : BlackScholesModelInputs | LaplaceInputs
+    inputs_data : BlackScholesModelInputs | LaplaceInputs | dict
         Input data used to generate the terminal stock prices. See the documentation
         for `BlackScholesModelInputs` and `LaplaceInputs` for more details.
     n : int, optional
@@ -32,37 +31,40 @@ def create_price_array(
     numpy.ndarray
         Array of terminal prices.
     """
-       
+
     if isinstance(inputs_data, dict):
         input_type = inputs_data["model"]
-    elif isinstance(inputs_data, BlackScholesModelInputs):
-        input_type = "black-scholes"
-    elif isinstance(inputs_data, LaplaceInputs):
-        input_type = "laplace"
+
+        if input_type in ("black-scholes", "normal"):
+            inputs = BlackScholesModelInputs.model_validate(inputs_data)
+        elif input_type == "laplace":
+            inputs = LaplaceInputs.model_validate(inputs_data)
+        else:
+            raise ValueError("Inputs are not valid!")
     else:
-        raise ValueError("Inputs are not valid!")
-        
+        inputs = inputs_data
+
+        if isinstance(inputs, BlackScholesModelInputs):
+            input_type = "black-scholes"
+        elif isinstance(inputs, LaplaceInputs):
+            input_type = "laplace"
+        else:
+            raise ValueError("Inputs are not valid!")
+
     np_seed_number(seed)
 
     if input_type in ("black-scholes", "normal"):
-        arr = _get_array_price_from_BS(inputs_data, n)
+        arr = _get_array_price_from_BS(inputs, n)
     elif input_type == "laplace":
-        arr = _get_array_price_from_laplace(inputs_data, n)
+        arr = _get_array_price_from_laplace(inputs, n)
 
     np_seed_number(None)
 
     return arr
 
 
-def _get_array_price_from_BS(
-    inputs_data: BlackScholesModelInputs | dict, n: int
-) -> np.ndarray:
-    inputs = (
-        BlackScholesModelInputs.model_validate(inputs_data)
-        if isinstance(inputs_data, dict)
-        else inputs_data
-    )
-
+@lru_cache
+def _get_array_price_from_BS(inputs: BlackScholesModelInputs, n: int) -> np.ndarray:
     return exp(
         normal(
             (
@@ -80,15 +82,8 @@ def _get_array_price_from_BS(
     )
 
 
-def _get_array_price_from_laplace(
-    inputs_data: LaplaceInputs | dict, n: int
-) -> np.ndarray:
-    inputs = (
-        LaplaceInputs.model_validate(inputs_data)
-        if isinstance(inputs_data, dict)
-        else inputs_data
-    )
-
+@lru_cache
+def _get_array_price_from_laplace(inputs: LaplaceInputs, n: int) -> np.ndarray:
     return exp(
         laplace(
             (log(inputs.stock_price) + inputs.mu * inputs.years_to_target_date),

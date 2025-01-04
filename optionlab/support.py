@@ -215,7 +215,7 @@ def get_profit_range(
 
     Returns
     -------
-    list
+    list[Range]
         List of stock price pairs.
     """
 
@@ -279,10 +279,10 @@ def get_pop(
 
     if len(profit_ranges) == 0:
         return pop
-    
+
     if isinstance(inputs_data, dict):
         input_type = inputs_data["model"]
-        
+
         if input_type in ("black-scholes", "normal"):
             inputs = BlackScholesModelInputs.model_validate(inputs_data)
         elif input_type == "laplace":
@@ -293,7 +293,7 @@ def get_pop(
             raise ValueError("Inputs are not valid!")
     else:
         inputs = inputs_data
-        
+
         if isinstance(inputs, BlackScholesModelInputs):
             input_type = "black-scholes"
         elif isinstance(inputs, LaplaceInputs):

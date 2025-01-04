@@ -10,6 +10,7 @@
 - Moved `create_price_samples` from support.py to a new module price_array.py and renamed it to `create_price_array`
 - Commented a code snippet in engine.py where terminal stock prices are created using `create_price_samples`, to be removed in a next version
 - Allowed a dictionary as input for `create_price_array` in price_array.py
+- Allowed a dictionary as input for `get_pop` in support.py
 
 ## 1.3.5 (2024-12-28)
 
