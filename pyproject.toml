@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "optionlab"
-version = "1.4.0"
+version = "1.4.1"
 description = "Python library for evaluating options trading strategies"
 authors = ["Roberto Gomes, PhD <roberto.veiga@ufabc.edu.br>"]
 readme = "README.md"

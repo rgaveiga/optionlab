@@ -8,7 +8,7 @@ OptionType = Literal["call", "put"]
 Action = Literal["buy", "sell"]
 StrategyType = Literal["stock"] | OptionType | Literal["closed"]
 Range = tuple[float, float]
-TheoreticalModel = Literal["black-scholes", "normal", "laplace", "array"]
+TheoreticalModel = Literal["black-scholes", "normal", "array"]
 
 
 class BaseLeg(BaseModel):
@@ -162,15 +162,15 @@ class LaplaceInputs(TheoreticalModelInputs):
 
 class ArrayInputs(BaseModel):
     """
-    Defines the input data for the calculations when using an array of terminal stock
-    prices provided by the user.
+    Defines the input data for the calculations when using an array of strategy
+    returns.
 
     Attributes
     ----------
     model : str
         It must be 'array'.
     array : numpy.ndarray
-        Array of terminal stock prices.
+        Array of strategy returns.
     """
 
     model: Literal["array"] = "array"
@@ -183,7 +183,7 @@ class ArrayInputs(BaseModel):
     def validate_arrays(cls, v: np.ndarray | list[float]) -> np.ndarray:
         arr = np.asarray(v)
         if arr.shape[0] == 0:
-            raise ValueError("The array of stock prices is empty!")
+            raise ValueError("The array is empty!")
         return arr
 
 
@@ -205,8 +205,6 @@ class Inputs(BaseModel):
         Maximum value of the stock in the stock price domain.
     strategy : list
         A list of strategy legs.
-    mu : float, optional
-        Annualized return of the underlying asset. The default is 0.0.
     dividend_yield : float, optional
         Annualized dividend yield. The default is 0.0.
     profit_target : float | None, optional
@@ -237,10 +235,7 @@ class Inputs(BaseModel):
         `target_date` must be provided.
     model : str, optional
         Theoretical model used in the calculations. It can be 'black-scholes'
-        (the same as 'normal'), 'laplace' or 'array'. The default is 'black-scholes'.
-    mc_prices_number : int, optional
-        Number of random terminal prices to be generated when calculationg
-        the average profit and loss of a strategy. Default is 100,000.
+        (the same as 'normal') or 'array'. The default is 'black-scholes'.
     array : numpy.ndarray | None, optional
         Array of terminal stock prices. The default is None.
     """
@@ -251,7 +246,6 @@ class Inputs(BaseModel):
     min_stock: float
     max_stock: float
     strategy: list[StrategyLeg] = Field(..., min_length=1)
-    mu: float = 0.0
     dividend_yield: float = 0.0
     profit_target: float | None = None
     loss_limit: float | None = None
@@ -264,7 +258,6 @@ class Inputs(BaseModel):
     target_date: dt.date | None = None
     days_to_target_date: int = Field(0, ge=0)
     model: TheoreticalModel = "black-scholes"
-    mc_prices_number: int = 100_000
     array: np.ndarray | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -304,13 +297,17 @@ class Inputs(BaseModel):
         )
 
     @model_validator(mode="after")
-    def validate_compute_expectation(self) -> "Inputs":
+    def validate_model_array(self) -> "Inputs":
         if self.model != "array":
             return self
         elif self.array is None:
-            raise ValueError("Array of prices must be provided if model is 'array'.")
+            raise ValueError(
+                "Array of terminal stock prices must be provided if model is 'array'."
+            )
         elif self.array.shape[0] == 0:
-            raise ValueError("Array of prices must be provided if model is 'array'.")
+            raise ValueError(
+                "Array of terminal stock prices must be provided if model is 'array'."
+            )
         return self
 
 
@@ -380,13 +377,13 @@ class EngineDataResults(BaseModel):
 
 class EngineData(EngineDataResults):
     inputs: Inputs
-    _previous_position: list[float] = []
-    _use_bs: list[bool] = []
-    _profit_ranges: list[Range] = []
-    _profit_target_range: list[Range] = []
-    _loss_limit_ranges: list[Range] = []
-    _days_to_maturity: list[int] = []
-    _days_in_year: int = 365
+    previous_position: list[float] = []
+    use_bs: list[bool] = []
+    profit_ranges: list[Range] = []
+    profit_target_ranges: list[Range] = []
+    loss_limit_ranges: list[Range] = []
+    days_to_maturity: list[int] = []
+    days_in_year: int = 365
     days_to_target: int = 30
     implied_volatility: list[float | np.ndarray] = []
     itm_probability: list[float] = []
@@ -399,6 +396,8 @@ class EngineData(EngineDataResults):
     profit_probability: float = 0.0
     profit_target_probability: float = 0.0
     loss_limit_probability: float = 0.0
+    expected_profit: float = 0.0
+    expected_loss: float = 0.0
 
 
 class Outputs(BaseModel):
@@ -409,26 +408,26 @@ class Outputs(BaseModel):
     ----------
     probability_of_profit : float
         Probability of the strategy yielding at least $0.01.
-    profit_ranges : list
+    profit_ranges : list[Range]
         A list of minimum and maximum stock prices defining ranges in which the
         strategy makes at least $0.01.
     strategy_cost : float
         Total strategy cost.
-    per_leg_cost : list
+    per_leg_cost : list[float]
         A list of costs, one per strategy leg.
-    implied_volatility : list
+    implied_volatility : list[float]
         List of implied volatilities, one per strategy leg.
-    in_the_money_probability : list
+    in_the_money_probability : list[float]
         List of ITM probabilities, one per strategy leg.
-    delta : list
+    delta : list[float]
         List of Delta values, one per strategy leg.
-    gamma : list
+    gamma : list[float]
         List of Gamma values, one per strategy leg.
-    theta : list
+    theta : list[float]
         List of Theta values, one per strategy leg.
-    vega : list
+    vega : list[float]
         List of Vega values, one per strategy leg.
-    rho : list
+    rho : list[float]
         List of Rho values, one per strategy leg.
     minimum_return_in_the_domain : float
         Minimum return of the strategy within the stock price domain.
@@ -437,21 +436,19 @@ class Outputs(BaseModel):
     probability_of_profit_target : float | None, optional
         Probability of the strategy yielding at least the profit target. The
         default is None.
-    profit_target_ranges : list | None, optional
+    profit_target_ranges : list[Range] | None, optional
         List of minimum and maximum stock prices defining ranges in which the
         strategy makes at least the profit target. The default is None.
     probability_of_loss_limit : float | None, optional
         Probability of the strategy losing at least the loss limit. The default
         is None.
-    average_profit_from_mc : float | None, optional
-        Average profit calculated from terminal stock prices created by Monte
-        Carlo simulations. The default is None.
-    average_loss_from_mc : float | None, optional
-        Average loss calculated from terminal stock prices created by Monte Carlo
-        simulations. The default is None.
-    probability_of_profit_from_mc : float | None, optional
-        Probability of the strategy yielding at least $0.01 calculated from
-        terminal prices created by Monte Carlo simulations. The default is None.
+    loss_limit_ranges : list[Range] | None, optional
+        List of minimum and maximum stock prices defining ranges where the
+        strategy loses at least the loss limit. The default is None.
+    expected_profit : float | None, optional
+        Expected profit when the strategy is profitable. The default is None.
+    expected_loss : float | None, optional
+        Expected loss when the strategy is not profitable. The default is None.
     data : EngineDataResults
         Further data from the strategy calculation that can be used in the
         post-processing of the outputs.
@@ -477,6 +474,40 @@ class Outputs(BaseModel):
     probability_of_profit_target: float | None = None
     profit_target_ranges: list[Range] | None = None
     probability_of_loss_limit: float | None = None
-    average_profit_from_mc: float | None = None
-    average_loss_from_mc: float | None = None
-    probability_of_profit_from_mc: float | None = None
+    loss_limit_ranges: list[Range] | None = None
+    expected_profit: float | None = None
+    expected_loss: float | None = None
+
+
+class PoPOutputs(BaseModel):
+    """
+    Defineas the output data from a probability of profit (PoP) calculation.
+
+    Attributes
+    ----------
+    probability_of_reaching_target : float | None, optional
+        Probability that the strategy return will be equal or greater than the
+        target. The default is None.
+    probability_of_missing_target : float | None, optional
+        Probability that the strategy return will be less than the target. The
+        default is None.
+    reaching_target_range : list[Range] | None, optional
+        Range of stock prices where the strategy return is equal or greater than
+        the target. The default is None.
+    missing_target_range : list[Range] | None, optional
+        Range of stock prices where the strategy return is less than the target.
+        The default is None.
+    expected_return_above_target : float | None, optional
+        Expected value of the strategy return when the return is equal or greater
+        than the target. The default is None.
+    expected_return_below_target : float | None, optional
+        Expected value of the strategy return when the return is less than the
+        target. The default is None.
+    """
+
+    probability_of_reaching_target: float | None = None
+    probability_of_missing_target: float | None = None
+    reaching_target_range: list[Range] | None = None
+    missing_target_range: list[Range] | None = None
+    expected_return_above_target: float | None = None
+    expected_return_below_target: float | None = None

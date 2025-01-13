@@ -3,7 +3,7 @@ from __future__ import division
 from functools import lru_cache
 
 import numpy as np
-from numpy import abs, round, diff, flatnonzero, arange, inf
+from numpy import abs, round, arange, inf, sum, exp
 from numpy.lib.scimath import log, sqrt
 from scipy import stats
 
@@ -12,9 +12,9 @@ from optionlab.models import (
     OptionType,
     Action,
     BlackScholesModelInputs,
-    LaplaceInputs,
     ArrayInputs,
     Range,
+    PoPOutputs,
 )
 
 
@@ -190,19 +190,18 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     """
 
     if max_price > min_price:
-        return round(
-            (arange(int(max_price - min_price) * 100 + 1) * 0.01 + min_price), 2
-        )
+        return round((arange((max_price - min_price) * 100 + 1) * 0.01 + min_price), 2)
     else:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
 
 def get_profit_range(
     s: np.ndarray, profit: np.ndarray, target: float = 0.01
-) -> list[Range]:
+) -> (list[Range], list[Range]):
     """
-    Returns a list of stock price pairs, where each pair represents the lower and
-    upper bounds within which an options trade is expected to make the desired profit.
+    Returns a tuple of lists of stock price ranges: one representing the ranges
+    where the options trade returns are equal to or greater than the target, and
+    the other representing the ranges where they fall short.
 
     Parameters
     ----------
@@ -215,78 +214,102 @@ def get_profit_range(
 
     Returns
     -------
-    list[Range]
-        List of stock price pairs.
+    tuple(list[Range], list[Range])
+        Tuple of lists of stock price pairs.
     """
 
-    t = s[profit >= target]
+    profit_range = []
+    loss_range = []
 
-    if t.shape[0] == 0:
-        return []
+    crossings = _get_sign_changes(profit, target)
+    n_crossings = len(crossings)
 
-    profit_range: list[list[float]] = []
+    if n_crossings == 0:
+        if profit[0] >= target:
+            return [(0, inf)], [(None, None)]
+        else:
+            return [(None, None)], [(0, inf)]
 
-    mask1 = diff(t) <= target + 0.001
-    mask2 = diff(t) > target + 0.001
-    maxi = flatnonzero(mask1[:-1] & mask2[1:]) + 1
+    lb_profit = hb_profit = None
+    lb_loss = hb_loss = None
 
-    for i in range(maxi.shape[0] + 1):
-        profit_range.append([])
-
+    for i, index in enumerate(crossings):
         if i == 0:
-            if t[0] == s[0]:
-                profit_range[0].append(0.0)
+            if profit[index] < profit[index - 1]:
+                lb_profit = 0.0
+                hb_profit = s[index - 1]
+                lb_loss = s[index]
             else:
-                profit_range[0].append(t[0])
-        else:
-            profit_range[i].append(t[maxi[i - 1] + 1])
-
-        if i == maxi.shape[0]:
-            if t[t.shape[0] - 1] == s[s.shape[0] - 1]:
-                profit_range[maxi.shape[0]].append(inf)
+                lb_profit = s[index]
+                lb_loss = 0.0
+                hb_loss = s[index - 1]
+        elif i == n_crossings - 1:
+            if profit[index] > profit[index - 1]:
+                lb_profit = s[index]
+                hb_profit = inf
+                hb_loss = s[index - 1]
             else:
-                profit_range[maxi.shape[0]].append(t[t.shape[0] - 1])
+                hb_profit = s[index - 1]
+                lb_loss = s[index]
+                hb_loss = inf
         else:
-            profit_range[i].append(t[maxi[i]])
+            if profit[index] > profit[index - 1]:
+                lb_profit = s[index]
+                hb_loss = s[index - 1]
+            else:
+                hb_profit = s[index - 1]
+                lb_loss = s[index]
 
-    return [(r[0], r[1]) for r in profit_range]
+        if lb_profit is not None and hb_profit is not None:
+            profit_range.append((lb_profit, hb_profit))
+
+            lb_profit = hb_profit = None
+
+        if lb_loss is not None and hb_loss is not None:
+            loss_range.append((lb_loss, hb_loss))
+
+            lb_loss = hb_loss = None
+
+    return profit_range, loss_range
 
 
 def get_pop(
-    profit_ranges: list[Range],
-    inputs_data: BlackScholesModelInputs | LaplaceInputs | ArrayInputs | dict,
-) -> float:
+    s: np.ndarray,
+    profit: np.ndarray,
+    inputs_data: BlackScholesModelInputs | ArrayInputs | dict,
+    target: float = 0.01,
+) -> PoPOutputs:
     """
     Estimates the probability of profit (PoP) of an options trading strategy.
 
     Parameters
     ----------
-    profit_ranges : list[Range]
-        List of stock price pairs, where each pair represents the lower and upper
-        bounds within which the options trade makes a profit.
-    inputs_data : BlackScholesModelInputs | LaplaceInputs | ArrayInputs | dict
-        Input data for the probability of profit calculation. See the documentation
-        for `BlackScholesModelInputs`, `LaplaceInputs` and `ArrayInputs` for more
-        details.
+    s : np.ndarray
+        Array of stock prices.
+    profit : np.ndarray
+        Array of profits and losses.
+    inputs_data : BlackScholesModelInputs | ArrayInputs | dict
+        Input data used to estimate the probability of profit. See the documentation
+        for `BlackScholesModelInputs` and `ArrayInputs` for more details.
+    target : float, optional
+        Target profit. The default is 0.01.
 
     Returns
     -------
-    float
-        Probability of profit.
+    PoPOutputs
+        Outputs. See the documentation for `PoPOutputs` for more details.
     """
 
-    pop = 0.0
+    probability_of_reaching_target = 0.0
+    probability_of_missing_target = 0.0
 
-    if len(profit_ranges) == 0:
-        return pop
+    t_ranges = get_profit_range(s, profit, target)
 
     if isinstance(inputs_data, dict):
         input_type = inputs_data["model"]
 
         if input_type in ("black-scholes", "normal"):
             inputs = BlackScholesModelInputs.model_validate(inputs_data)
-        elif input_type == "laplace":
-            inputs = LaplaceInputs.model_validate(inputs_data)
         elif input_type == "array":
             inputs = ArrayInputs.model_validate(inputs_data)
         else:
@@ -296,61 +319,84 @@ def get_pop(
 
         if isinstance(inputs, BlackScholesModelInputs):
             input_type = "black-scholes"
-        elif isinstance(inputs, LaplaceInputs):
-            input_type = "laplace"
         elif isinstance(inputs, ArrayInputs):
             input_type = "array"
         else:
             raise ValueError("Inputs are not valid!")
 
-    if input_type in ("black-scholes", "normal", "laplace"):
-        stock_price = inputs.stock_price
-        volatility = inputs.volatility
-        years_to_target_date = inputs.years_to_target_date
-        sigma = volatility * sqrt(years_to_target_date)
+    if input_type in ("black-scholes", "normal"):
+        sigma = (
+            inputs.volatility * sqrt(inputs.years_to_target_date)
+            if inputs.volatility > 0.0
+            else 1e-10
+        )
 
-        if sigma == 0.0:
-            sigma = 1e-10
+        for i, t in enumerate(t_ranges):
+            prob = []
+            exp_profit = []
 
-        beta = sigma / sqrt(2.0)
-
-        for p_range in profit_ranges:
-            lval, hval = p_range
-
-            if lval <= 0.0:
-                lval = 1e-10
-
-            if input_type in ("black-scholes", "normal"):
+            for p_range in t:
+                lval = log(p_range[0]) if p_range[0] > 0.0 else -inf
+                hval = log(p_range[1])
                 drift = (
                     inputs.interest_rate
                     - inputs.dividend_yield
-                    - 0.5 * volatility * volatility
-                ) * years_to_target_date
-                pop += stats.norm.cdf(
-                    (log(hval / stock_price) - drift) / sigma
-                ) - stats.norm.cdf((log(lval / stock_price) - drift) / sigma)
-            else:
-                pop += stats.laplace.cdf(
-                    (log(hval / stock_price) - inputs.mu * years_to_target_date) / beta
-                ) - stats.laplace.cdf(
-                    (log(lval / stock_price) - inputs.mu * years_to_target_date) / beta
+                    - 0.5 * inputs.volatility * inputs.volatility
+                ) * inputs.years_to_target_date
+                m = log(inputs.stock_price) + drift
+                w = stats.norm.cdf((hval - m) / sigma) - stats.norm.cdf(
+                    (lval - m) / sigma
                 )
 
+                if w > 0.0:
+                    v = stats.norm.pdf((hval - m) / sigma) - stats.norm.pdf(
+                        (lval - m) / sigma
+                    )
+                    exp_stock = round(
+                        exp(m - sigma * v / w), 2
+                    )  # Using inverse Mills ratio
+
+                    if exp_stock > 0.0 and exp_stock <= s.max():
+                        exp_stock_index = np.where(s == exp_stock)[0][0]
+                        exp_profit.append(profit[exp_stock_index])
+                        prob.append(w)
+
+            if len(t) > 0:
+                prob = np.array(prob)
+                exp_profit = np.array(exp_profit)
+
+                if i == 0:
+                    probability_of_reaching_target = sum(prob)
+                    expected_return_above_target = round(
+                        sum(exp_profit * prob) / probability_of_reaching_target, 2
+                    )
+                else:
+                    probability_of_missing_target = sum(prob)
+                    expected_return_below_target = round(
+                        sum(exp_profit * prob) / probability_of_missing_target, 2
+                    )
+
     elif input_type == "array":
-        stocks = inputs.array
+        if inputs.array.shape[0] == 0:
+            raise ValueError("The array is empty!")
 
-        if stocks.shape[0] == 0:
-            raise ValueError("The array of terminal stock prices is empty!")
+        tmp1 = inputs.array[inputs.array >= target]
+        tmp2 = inputs.array[inputs.array < target]
 
-        for p_range in profit_ranges:
-            lval, hval = p_range
-            tmp1 = stocks[stocks >= lval]
-            tmp2 = tmp1[tmp1 <= hval]
-            pop += tmp2.shape[0]
+        probability_of_reaching_target = tmp1.shape[0] / inputs.array.shape[0]
+        probability_of_missing_target = 1.0 - probability_of_reaching_target
 
-        pop = pop / stocks.shape[0]
+        expected_return_above_target = tmp1.mean() if tmp1.shape[0] > 0 else None
+        expected_return_below_target = tmp2.mean() if tmp2.shape[0] > 0 else None
 
-    return pop
+    return PoPOutputs(
+        probability_of_reaching_target=probability_of_reaching_target,
+        probability_of_missing_target=probability_of_missing_target,
+        reaching_target_range=t_ranges[0],
+        missing_target_range=t_ranges[1],
+        expected_return_above_target=expected_return_above_target,
+        expected_return_below_target=expected_return_below_target,
+    )
 
 
 def _get_pl_option(
@@ -438,3 +484,27 @@ def _get_pl_stock(s0: float, action: Action, s: np.ndarray) -> np.ndarray:
         return s - s0
     else:
         raise ValueError("Action must be either 'sell' or 'buy'!")
+
+
+def _get_sign_changes(profit: np.ndarray, target: float) -> list:
+    """
+    Returns a list of the indices in the array of profits where the sign changes.
+
+    Parameters
+    ----------
+    profit : np.ndarray
+        Array of profits and losses.
+    target : float
+        Profit target.
+
+    Returns
+    -------
+    list
+        List of indices.
+    """
+
+    p_temp = profit - target + 1e-10
+
+    sign_changes = (np.sign(p_temp[:-1]) * np.sign(p_temp[1:])) < 0
+
+    return (np.where(sign_changes)[0] + 1).tolist()

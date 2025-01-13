@@ -1,6 +1,17 @@
 # CHANGELOG
 
-## 1.4.0 (01-01-2025)
+## 1.4.1 (2025-01-04)
+
+- Removed a small bug in `create_price_seq` in support.py
+- Improved the algorithm in `get_profit_range` in support.py
+- Created a helper function `_get_sign_changes` in support.py, called by `get_profit_range`
+- Removed the fields `probability_of_profit_from_mc`, `average_profit_from_mc` and `average_loss_from_mc` from `Outputs` in models.py
+- Created the fields `expected_profit` and `expected_loss` in `Outputs` in models.py
+- Created a class `PoPOutputs` in models.py containing fields returned by `get_pop` in support.py
+- Removed Laplace form `get_pop` in support.py
+- Improved `get_pop` in support.py to return a `PoPOutputs` object with more information
+
+## 1.4.0 (2025-01-01)
 
 - Changed the class name `DistributionInputs` to `TheoreticalModelInputs` in models.py, to be more descriptive
 - Changed the class name `DistributionBlackScholesInputs` to `BlackScholesModelInputs` in models.py
