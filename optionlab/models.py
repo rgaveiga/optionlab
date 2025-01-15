@@ -240,13 +240,13 @@ class Inputs(BaseModel):
         Array of terminal stock prices. The default is None.
     """
 
-    stock_price: float = Field(gt=0)
-    volatility: float
-    interest_rate: float = Field(gt=0, le=0.2)
-    min_stock: float
-    max_stock: float
+    stock_price: float = Field(gt=0.0)
+    volatility: float = Field(ge=0.0)
+    interest_rate: float = Field(0.0, ge=0.0)
+    min_stock: float = Field(ge=0.0)
+    max_stock: float = Field(ge=0.0)
     strategy: list[StrategyLeg] = Field(..., min_length=1)
-    dividend_yield: float = 0.0
+    dividend_yield: float = Field(0.0, ge=0.0)
     profit_target: float | None = None
     loss_limit: float | None = None
     opt_commission: float = 0.0
@@ -361,7 +361,7 @@ def init_empty_array() -> np.ndarray:
 
 class EngineDataResults(BaseModel):
     stock_price_array: np.ndarray
-    terminal_stock_prices: np.ndarray
+    terminal_stock_prices: np.ndarray | None
     profit: np.ndarray = Field(default_factory=init_empty_array)
     profit_mc: np.ndarray = Field(default_factory=init_empty_array)
     strategy_profit: np.ndarray = Field(default_factory=init_empty_array)
@@ -377,11 +377,11 @@ class EngineDataResults(BaseModel):
 
 class EngineData(EngineDataResults):
     inputs: Inputs
-    previous_position: list[float] = []
-    use_bs: list[bool] = []
-    profit_ranges: list[Range] = []
-    profit_target_ranges: list[Range] = []
-    loss_limit_ranges: list[Range] = []
+    previous_position: list[float] | None = []
+    use_bs: list[bool] | None = []
+    profit_ranges: list[Range] | None = []
+    profit_target_ranges: list[Range] | None = None
+    loss_limit_ranges: list[Range] | None = None
     days_to_maturity: list[int] = []
     days_in_year: int = 365
     days_to_target: int = 30
@@ -394,8 +394,8 @@ class EngineData(EngineDataResults):
     theta: list[float] = []
     cost: list[float] = []
     profit_probability: float = 0.0
-    profit_target_probability: float = 0.0
-    loss_limit_probability: float = 0.0
+    profit_target_probability: float | None = None
+    loss_limit_probability: float | None = None
     expected_profit: float = 0.0
     expected_loss: float = 0.0
 
@@ -459,7 +459,9 @@ class Outputs(BaseModel):
     inputs: Inputs
     data: EngineDataResults
     probability_of_profit: float
-    profit_ranges: list[Range]
+    profit_ranges: list[Range] | None
+    expected_profit: float | None = None
+    expected_loss: float | None = None
     per_leg_cost: list[float]
     strategy_cost: float
     minimum_return_in_the_domain: float
@@ -475,8 +477,16 @@ class Outputs(BaseModel):
     profit_target_ranges: list[Range] | None = None
     probability_of_loss_limit: float | None = None
     loss_limit_ranges: list[Range] | None = None
-    expected_profit: float | None = None
-    expected_loss: float | None = None
+
+    def __str__(self):
+        s = ""
+
+        for key, value in self.dict(
+            exclude={"data", "inputs"}, exclude_none=True
+        ).items():
+            s += f"{key.capitalize().replace('_',' ')}: {value}\n"
+
+        return s
 
 
 class PoPOutputs(BaseModel):

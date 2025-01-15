@@ -90,11 +90,17 @@ def test_array_distribution_with_no_array(nvidia):
     with pytest.raises(ValueError) as err:
         Inputs.model_validate(inputs)
 
-    assert "Array of terminal stock prices must be provided if model is 'array'." in str(err.value)
+    assert (
+        "Array of terminal stock prices must be provided if model is 'array'."
+        in str(err.value)
+    )
 
     inputs |= {"array": array([])}
 
     with pytest.raises(ValueError) as err:
         Inputs.model_validate(inputs)
 
-    assert "Array of terminal stock prices must be provided if model is 'array'." in str(err.value)
+    assert (
+        "Array of terminal stock prices must be provided if model is 'array'."
+        in str(err.value)
+    )

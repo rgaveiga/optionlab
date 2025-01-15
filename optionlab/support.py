@@ -195,6 +195,7 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
         raise ValueError("Maximum price cannot be less than minimum price!")
 
 
+# TODO: Correct for naked calls (not finding the profit range)
 def get_profit_range(
     s: np.ndarray, profit: np.ndarray, target: float = 0.01
 ) -> (list[Range], list[Range]):
@@ -239,10 +240,16 @@ def get_profit_range(
                 lb_profit = 0.0
                 hb_profit = s[index - 1]
                 lb_loss = s[index]
+
+                if n_crossings == 1:
+                    hb_loss = inf
             else:
                 lb_profit = s[index]
                 lb_loss = 0.0
                 hb_loss = s[index - 1]
+
+                if n_crossings == 1:
+                    hb_profit = inf
         elif i == n_crossings - 1:
             if profit[index] > profit[index - 1]:
                 lb_profit = s[index]
@@ -303,7 +310,13 @@ def get_pop(
     probability_of_reaching_target = 0.0
     probability_of_missing_target = 0.0
 
+    expected_return_above_target = None
+    expected_return_below_target = None
+
     t_ranges = get_profit_range(s, profit, target)
+
+    reaching_target_range = t_ranges[0] if t_ranges[0] != [(None, None)] else None
+    missing_target_range = t_ranges[1] if t_ranges[1] != [(None, None)] else None
 
     if isinstance(inputs_data, dict):
         input_type = inputs_data["model"]
@@ -335,8 +348,11 @@ def get_pop(
             prob = []
             exp_profit = []
 
+            if t == [(None, None)]:
+                continue
+
             for p_range in t:
-                lval = log(p_range[0]) if p_range[0] > 0.0 else -inf
+                lval = log(p_range[0]) if p_range[0] > 0 else -inf
                 hval = log(p_range[1])
                 drift = (
                     inputs.interest_rate
@@ -386,14 +402,18 @@ def get_pop(
         probability_of_reaching_target = tmp1.shape[0] / inputs.array.shape[0]
         probability_of_missing_target = 1.0 - probability_of_reaching_target
 
-        expected_return_above_target = tmp1.mean() if tmp1.shape[0] > 0 else None
-        expected_return_below_target = tmp2.mean() if tmp2.shape[0] > 0 else None
+        expected_return_above_target = (
+            round(tmp1.mean(), 2) if tmp1.shape[0] > 0 else None
+        )
+        expected_return_below_target = (
+            round(tmp2.mean(), 2) if tmp2.shape[0] > 0 else None
+        )
 
     return PoPOutputs(
         probability_of_reaching_target=probability_of_reaching_target,
         probability_of_missing_target=probability_of_missing_target,
-        reaching_target_range=t_ranges[0],
-        missing_target_range=t_ranges[1],
+        reaching_target_range=reaching_target_range,
+        missing_target_range=missing_target_range,
         expected_return_above_target=expected_return_above_target,
         expected_return_below_target=expected_return_below_target,
     )

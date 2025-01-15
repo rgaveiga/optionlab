@@ -1,13 +1,13 @@
 import pytest
 
-from optionlab.models import Inputs, Outputs, BlackScholesModelInputs
+from optionlab.models import Inputs, Outputs, BlackScholesModelInputs, LaplaceInputs
 from optionlab.engine import run_strategy
 from optionlab.price_array import create_price_array
 from optionlab.black_scholes import get_bs_info
 
 
 COVERED_CALL_RESULT = {
-    "probability_of_profit": 0.5472008423945269,
+    "probability_of_profit": 0.5472008423945267,
     "profit_ranges": [(164.9, float("inf"))],
     "per_leg_cost": [-16899.0, 409.99999999999994],
     "strategy_cost": -16489.0,
@@ -20,11 +20,14 @@ COVERED_CALL_RESULT = {
     "theta": [0.0, 0.19283555235589467],
     "vega": [0.0, 0.1832408146218486],
     "rho": [0.0, -0.04506390742751745],
+    "expected_profit": 2011.0,
+    "expected_loss": -1758.0,
 }
 
 PROB_100_ITM_RESULT = {
     "probability_of_profit": 1.0,
     "profit_ranges": [(0.0, float("inf"))],
+    "expected_profit": 524.0,
     "per_leg_cost": [-750.0, 990.0],
     "strategy_cost": 240.0,
     "minimum_return_in_the_domain": 240.0,
@@ -152,8 +155,10 @@ def test_covered_call_w_prev_position(nvidia):
     outputs = run_strategy(inputs)
 
     assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
-        "probability_of_profit": 0.7048129541301167,
+        "probability_of_profit": 0.7048129541301169,
         "profit_ranges": [(154.9, float("inf"))],
+        "expected_profit": 2566.0,
+        "expected_loss": -1390.0,
         "per_leg_cost": [-15899.0, 409.99999999999994],
         "strategy_cost": -15489.0,
         "minimum_return_in_the_domain": -8590.000000000002,
@@ -234,8 +239,10 @@ def test_3_legs(nvidia):
     outputs = run_strategy(inputs)
 
     assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
-        "probability_of_profit": 0.679058174271921,
+        "probability_of_profit": 0.6790581742719213,
         "profit_ranges": [(156.6, float("inf"))],
+        "expected_profit": 2997.0,
+        "expected_loss": -1447.0,
         "per_leg_cost": [-15899.0, -750.0, 990.0],
         "strategy_cost": -15659.0,
         "minimum_return_in_the_domain": -8760.000000000002,
@@ -286,8 +293,10 @@ def test_run_with_mc_array(nvidia):
         exclude={"data", "inputs"}, exclude_none=True
     ) == pytest.approx(
         {
-            "probability_of_profit": 0.56541,
+            "probability_of_profit": 0.56564,
             "profit_ranges": [(164.9, float("inf"))],
+            "expected_profit": 1356.3702804556585,
+            "expected_loss": -1407.9604829624866,
             "per_leg_cost": [-16899.0, 409.99999999999994],
             "strategy_cost": -16489.0,
             "minimum_return_in_the_domain": -9590.000000000002,
@@ -299,95 +308,27 @@ def test_run_with_mc_array(nvidia):
             "theta": [0.0, 0.19283555235589467],
             "vega": [0.0, 0.1832408146218486],
             "rho": [0.0, -0.04506390742751745],
-            "average_profit_from_mc": 1356.3702804556585,
-            "average_loss_from_mc": -1407.9604829624866,
-            "probability_of_profit_from_mc": 0.56564,
         },
         rel=0.05,
     )
 
 
-# TODO: Reimplement compute expectation
-# def test_100_itm_with_compute_expectation(nvidia):
-#     inputs = Inputs.model_validate(
-#         nvidia
-#         | {
-#             "compute_expectation": True,
-#             # The covered call strategy is defined
-#             "strategy": [
-#                 {
-#                     "type": "call",
-#                     "strike": 165.0,
-#                     "premium": 12.65,
-#                     "n": 100,
-#                     "action": "buy",
-#                     "prev_pos": 7.5,
-#                     "expiration": nvidia["target_date"],
-#                 },
-#                 {
-#                     "type": "call",
-#                     "strike": 170.0,
-#                     "premium": 9.9,
-#                     "n": 100,
-#                     "action": "sell",
-#                     "expiration": nvidia["target_date"],
-#                 },
-#             ],
-#         }
-#     )
-
-#     outputs = run_strategy(inputs)
-
-#     assert outputs.model_dump(
-#         exclude={"data", "inputs"}, exclude_none=True
-#     ) == pytest.approx(
-#         PROB_100_ITM_RESULT
-#         | {
-#             "average_profit_from_mc": 492.7834646111533,
-#             "average_loss_from_mc": 0.0,
-#             "probability_of_profit_from_mc": 1.0,
-#         },
-#         rel=0.01,
-#     )
-
-# TODO: distribution='black-scholes' now is the same as distribution='normal'
-# def test_covered_call_w_normal_distribution(nvidia):
-#     inputs = Inputs.model_validate(
-#         nvidia
-#         | {
-#             "distribution": "normal",
-#             # The covered call strategy is defined
-#             "strategy": [
-#                 {"type": "stock", "n": 100, "action": "buy"},
-#                 {
-#                     "type": "call",
-#                     "strike": 185.0,
-#                     "premium": 4.1,
-#                     "n": 100,
-#                     "action": "sell",
-#                     "expiration": nvidia["target_date"],
-#                 },
-#             ],
-#         }
-#     )
-
-#     outputs = run_strategy(inputs)
-
-#     # Print useful information on screen
-#     assert isinstance(outputs, Outputs)
-#     assert outputs.model_dump(
-#         exclude={"data", "inputs"}, exclude_none=True
-#     ) == pytest.approx(
-#         COVERED_CALL_RESULT | {"probability_of_profit": 0.565279550918542}
-#     )
-
-
 def test_covered_call_w_laplace_distribution(nvidia):
+    arr = create_price_array(
+        inputs_data=LaplaceInputs(
+            stock_price=168.99,
+            volatility=0.483,
+            years_to_target_date=24 / 365,
+            mu=-0.07,
+        ),
+        seed=0,
+    )
+
     inputs = Inputs.model_validate(
         nvidia
         | {
-            "model": "laplace",
-            "mu": -0.07,
+            "model": "array",
+            "array": arr,
             "strategy": [
                 {"type": "stock", "n": 100, "action": "buy"},
                 {
@@ -409,7 +350,23 @@ def test_covered_call_w_laplace_distribution(nvidia):
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
     ) == pytest.approx(
-        COVERED_CALL_RESULT | {"probability_of_profit": 0.577830366334525}
+        {
+            "probability_of_profit": 0.60194,
+            "profit_ranges": [(164.9, float("inf"))],
+            "per_leg_cost": [-16899.0, 409.99999999999994],
+            "strategy_cost": -16489.0,
+            "minimum_return_in_the_domain": -9590.000000000002,
+            "maximum_return_in_the_domain": 2011.0,
+            "implied_volatility": [0.0, 0.456],
+            "in_the_money_probability": [1.0, 0.256866624586934],
+            "delta": [1.0, -0.30713817729665704],
+            "gamma": [0.0, 0.013948977387090415],
+            "theta": [0.0, 0.19283555235589467],
+            "vega": [0.0, 0.1832408146218486],
+            "rho": [0.0, -0.04506390742751745],
+            "expected_profit": 1148.25,
+            "expected_loss": -1333.85,
+        }
     )
 
 
@@ -453,8 +410,10 @@ def test_calendar_spread():
     outputs = run_strategy(inputs)
 
     assert outputs.model_dump(exclude={"data", "inputs"}, exclude_none=True) == {
-        "probability_of_profit": 0.5991118190201975,
+        "probability_of_profit": 0.599111819020198,
         "profit_ranges": [(118.87, 136.15)],
+        "expected_profit": 2960.0,
+        "expected_loss": -835.99,
         "per_leg_cost": [4600.0, -5900.0],
         "strategy_cost": -1300.0,
         "minimum_return_in_the_domain": -1300.0000000000146,
