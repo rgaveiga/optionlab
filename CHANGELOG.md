@@ -10,6 +10,7 @@
 - Created a class `PoPOutputs` in models.py containing fields returned by `get_pop` in support.py
 - Removed Laplace form `get_pop` in support.py
 - Improved `get_pop` in support.py to return a `PoPOutputs` object with more information
+- Added naked calls as an example of strategy
 
 ## 1.4.0 (2025-01-01)
 

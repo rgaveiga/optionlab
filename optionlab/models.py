@@ -202,7 +202,7 @@ class Inputs(BaseModel):
         Minimum value of the stock in the stock price domain.
     max_stock : float
         Maximum value of the stock in the stock price domain.
-    strategy : list
+    strategy : list[StrategyLeg]
         A list of strategy legs.
     dividend_yield : float, optional
         Annualized dividend yield. The default is 0.0.
