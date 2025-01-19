@@ -41,6 +41,28 @@ PROB_100_ITM_RESULT = {
     "rho": [0.08536880237502181, -0.07509774107468528],
 }
 
+PROB_NAKED_CALL = {
+    "probability_of_profit": 0.8389215512144531,
+    "profit_ranges": [(0.0, 176.14)],
+    "expected_profit": 115.0,
+    "expected_loss": -707.0,
+    "per_leg_cost": [114.99999999999999],
+    "strategy_cost": 114.99999999999999,
+    "minimum_return_in_the_domain": -6991.999999999999,
+    "maximum_return_in_the_domain": 114.99999999999999,
+    "implied_volatility": [0.256],
+    "in_the_money_probability": [0.1832371984432129],
+    "delta": [-0.20371918274704337],
+    "gamma": [0.023104402361599465],
+    "theta": [0.091289876347897],
+    "vega": [0.12750177318341913],
+    "rho": [-0.02417676577711979],
+    "probability_of_profit_target": 0.8197909190785164,
+    "profit_target_ranges": [(0.0, 175.15)],
+    "probability_of_loss_limit": 0.14307836806156238,
+    "loss_limit_ranges": [(177.15, float("inf"))],
+}
+
 
 def test_black_scholes():
     stock_price = 100.0
@@ -207,6 +229,40 @@ def test_100_perc_itm(nvidia):
     assert outputs.model_dump(
         exclude={"data", "inputs"}, exclude_none=True
     ) == pytest.approx(PROB_100_ITM_RESULT)
+
+
+def test_naked_call():
+    inputs = Inputs.model_validate(
+        {
+            "stock_price": 164.04,
+            "volatility": 0.272,
+            "start_date": "2021-11-22",
+            "target_date": "2021-12-17",
+            "interest_rate": 0.0002,
+            "min_stock": 82.02,
+            "max_stock": 246.06,
+            "profit_target": 100.0,
+            "loss_limit": -100.0,
+            "model": "black-scholes",
+            # The naked call strategy is defined
+            "strategy": [
+                {
+                    "type": "call",
+                    "strike": 175.00,
+                    "premium": 1.15,
+                    "n": 100,
+                    "action": "sell",
+                }
+            ],
+        }
+    )
+
+    outputs = run_strategy(inputs)
+
+    assert isinstance(outputs, Outputs)
+    assert outputs.model_dump(
+        exclude={"data", "inputs"}, exclude_none=True
+    ) == pytest.approx(PROB_NAKED_CALL)
 
 
 def test_3_legs(nvidia):

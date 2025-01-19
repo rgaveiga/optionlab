@@ -24,11 +24,11 @@ class Stock(BaseLeg):
     Attributes
     ----------
     type : str
-        It must be 'stock'. It is mandatory.
+        It must be **stock**.
     n : int
-        Number of shares. It is mandatory.
+        Number of shares.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'. It is mandatory.
+        `Action` literal value, which must be either **buy** or **sell**.
     prev_pos : float | None, optional
         Stock price effectively paid or received in a previously opened position.
         If positive, the position remains open and the payoff calculation considers
@@ -48,16 +48,15 @@ class Option(BaseLeg):
     Attributes
     ----------
     type : str
-        `OptionType` literal value, which must be either 'call' or 'put'. It is
-        mandatory.
+        `OptionType` literal value, which must be either **call** or **put**.
     strike : float
-        Option strike price. It is mandatory.
+        Strike price.
     premium : float
-        Option premium. It is mandatory.
+        Option premium.
     n : int
-        Number of options. It is mandatory
+        Number of options.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'.
+        `Action` literal value, which must be either **buy** or **sell**.
     prev_pos : float | None, optional
         Premium effectively paid or received in a previously opened position. If
         positive, the position remains open and the payoff calculation considers
@@ -65,7 +64,7 @@ class Option(BaseLeg):
         position is closed and the difference between this price and the current
         price is included in the payoff calculation. The default is None, which
         means this option position is not a previously opened position.
-    expiration : str | int | None, optional.
+    expiration : str | int | None, optional
         Expiration date or number of days remaining to maturity. The default is
         None.
     """
@@ -89,10 +88,10 @@ class ClosedPosition(BaseModel):
     Attributes
     ----------
     type : str
-        It must be 'closed'. It is mandatory.
+        It must be **closed**.
     prev_pos : float
         The total amount of the closed position. If positive, it resulted in a
-        profit; if negative, it incurred a loss. It is mandatory.
+        profit; if negative, it incurred a loss.
     """
 
     type: Literal["closed"] = "closed"
@@ -115,7 +114,7 @@ class BlackScholesModelInputs(TheoreticalModelInputs):
     Attributes
     ----------
     model : str
-        It must be either 'black-scholes' or 'normal'.
+        It must be either **black-scholes** or **normal**.
     stock_price : float
         Stock price.
     volatility : float
@@ -143,7 +142,7 @@ class LaplaceInputs(TheoreticalModelInputs):
     Attributes
     ----------
     model : str
-        It must be 'laplace'.
+        It must be **laplace**.
     stock_price : float
         Stock price.
     mu : float
@@ -168,7 +167,7 @@ class ArrayInputs(BaseModel):
     Attributes
     ----------
     model : str
-        It must be 'array'.
+        It must be **array**.
     array : numpy.ndarray
         Array of strategy returns.
     """
@@ -223,7 +222,7 @@ class Inputs(BaseModel):
         Number of business days in a year. The default is 252.
     country : str, optional
         Country whose holidays will be counted if `discard_nonbusinessdays` is
-        set to True. The default is 'US'.
+        set to True. The default is **US**.
     start_date : datetime.date, optional
         Start date in the calculations. If not provided, `days_to_target_date`
         must be provided.
@@ -234,8 +233,9 @@ class Inputs(BaseModel):
         Days remaining to the target date. If not provided, `start_date` and
         `target_date` must be provided.
     model : str, optional
-        Theoretical model used in the calculations. It can be 'black-scholes'
-        (the same as 'normal') or 'array'. The default is 'black-scholes'.
+        Theoretical model used in the calculations of probability of profit. It
+        can be **black-scholes** (the same as **normal**) or **array**. The default
+        is **black-scholes**.
     array : numpy.ndarray | None, optional
         Array of terminal stock prices. The default is None.
     """
@@ -491,7 +491,7 @@ class Outputs(BaseModel):
 
 class PoPOutputs(BaseModel):
     """
-    Defineas the output data from a probability of profit (PoP) calculation.
+    Defines the output data from a probability of profit (PoP) calculation.
 
     Attributes
     ----------

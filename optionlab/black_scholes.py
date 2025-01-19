@@ -88,7 +88,7 @@ def get_option_price(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     s0 : float | numpy.ndarray
         Spot price(s) of the underlying asset.
     x : float | numpy.ndarray
@@ -140,7 +140,7 @@ def get_delta(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     d1 : float | numpy.ndarray
         `d1` in Black-Scholes formula.
     years_to_maturity : float
@@ -217,7 +217,7 @@ def get_theta(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     s0 : float
         Spot price of the underlying asset.
     x : float | numpy.ndarray
@@ -307,7 +307,7 @@ def get_rho(
     Parameters
     ----------
     option_type : OptionType
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     x : float | numpy.ndarray
         Strike price(s).
     r : float
@@ -432,7 +432,7 @@ def get_implied_vol(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     oprice : float
         Market price of an option.
     s0 : float
@@ -474,7 +474,7 @@ def get_itm_probability(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     d2 : float | numpy.ndarray
         `d2` in Black-Scholes formula.
     years_to_maturity : float

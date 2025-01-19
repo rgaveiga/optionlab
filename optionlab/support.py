@@ -33,9 +33,9 @@ def get_pl_profile(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'.
+        `Action` literal value, which must be either **buy** or **sell**.
     x : float
         Strike price.
     val : float
@@ -80,7 +80,7 @@ def get_pl_profile_stock(
     s0 : float
         Initial stock price.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'.
+        `Action` literal value, which must be either **buy** or **sell**.
     n : int
         Number of shares.
     s : numpy.ndarray
@@ -124,9 +124,9 @@ def get_pl_profile_bs(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'.
+        `Action` literal value, which must be either **buy** or **sell**.
     x : float
         Strike price.
     val : float
@@ -428,11 +428,11 @@ def _get_pl_option(
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     opvalue : float
         Option price.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'.
+        `Action` literal value, which must be either **buy** or **sell**.
     s : numpy.ndarray
         Array of stock prices.
     x : float
@@ -459,7 +459,7 @@ def _get_payoff(option_type: OptionType, s: np.ndarray, x: float) -> np.ndarray:
     Parameters
     ----------
     option_type : str
-        `OptionType` literal value, which must be either 'call' or 'put'.
+        `OptionType` literal value, which must be either **call** or **put**.
     s : numpy.ndarray
         Array of stock prices.
     x : float
@@ -488,7 +488,7 @@ def _get_pl_stock(s0: float, action: Action, s: np.ndarray) -> np.ndarray:
     s0 : float
         Spot price of the underlying asset.
     action : str
-        `Action` literal value, which must be either 'buy' or 'sell'.
+        `Action` literal value, which must be either **buy** or **sell**.
     s : numpy.ndarray
         Array of stock prices.
 
