@@ -117,7 +117,7 @@ def get_pl_profile_bs(
     target_to_maturity_years: float,
     volatility: float,
     n: int,
-    s: ndarray,
+    s: np.ndarray,
     y: float = 0.0,
     commission: float = 0.0,
 ) -> tuple[FloatOrNdarray, float]:
@@ -173,7 +173,7 @@ def get_pl_profile_bs(
     profile: FloatOrNdarray = fac * n * (calcprice - val) - commission
 
     return profile, n * cost - commission
-
+    
 
 @lru_cache
 def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
