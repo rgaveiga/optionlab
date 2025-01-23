@@ -12,7 +12,6 @@
 - Improved `get_pop` in support.py to return a `PoPOutputs` object with more information
 - Added naked calls as an example of strategy
 - Created a custom type `FloatOrNdarray` that can contain a float or a numpy.ndarray in models.py
-- Created a customtype `FloatOrNone` that can contain a float or None in models.py
 - Created the helper functions `_get_pop_bs` and `get_pop_array` in support.py
 
 ## 1.4.0 (2025-01-01)
