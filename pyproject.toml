@@ -15,7 +15,7 @@ holidays = "^0.44"
 jupyter = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.8.0"
+mypy = "^1.14.0"
 black = {extras = ["jupyter"], version = "^24.2.0"}
 pytest = "^8.0.2"
 pytest-benchmark = "^4.0.0"

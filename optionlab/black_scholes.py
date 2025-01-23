@@ -1,15 +1,15 @@
 from __future__ import division
 
 from scipy import stats
-from numpy import exp, round, arange, abs, argmin, pi, ndarray
+from numpy import exp, round, arange, abs, argmin, pi
 from numpy.lib.scimath import log, sqrt
 
-from optionlab.models import BlackScholesInfo, OptionType
+from optionlab.models import BlackScholesInfo, OptionType, FloatOrNdarray
 
 
 def get_bs_info(
     s: float,
-    x: float | ndarray,
+    x: FloatOrNdarray,
     r: float,
     vol: float,
     years_to_maturity: float,
@@ -74,14 +74,14 @@ def get_bs_info(
 
 def get_option_price(
     option_type: OptionType,
-    s0: float | ndarray,
-    x: float | ndarray,
+    s0: FloatOrNdarray,
+    x: FloatOrNdarray,
     r: float,
     years_to_maturity: float,
-    d1: float | ndarray,
-    d2: float | ndarray,
+    d1: FloatOrNdarray,
+    d2: FloatOrNdarray,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns the price of an option.
 
@@ -130,10 +130,10 @@ def get_option_price(
 
 def get_delta(
     option_type: OptionType,
-    d1: float | ndarray,
+    d1: FloatOrNdarray,
     years_to_maturity: float,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns the option's Greek Delta.
 
@@ -168,9 +168,9 @@ def get_gamma(
     s0: float,
     vol: float,
     years_to_maturity: float,
-    d1: float | ndarray,
+    d1: FloatOrNdarray,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns the option's Greek Gamma.
 
@@ -203,14 +203,14 @@ def get_gamma(
 def get_theta(
     option_type: OptionType,
     s0: float,
-    x: float | ndarray,
+    x: FloatOrNdarray,
     r: float,
     vol: float,
     years_to_maturity: float,
-    d1: float | ndarray,
-    d2: float | ndarray,
+    d1: FloatOrNdarray,
+    d2: FloatOrNdarray,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns the option's Greek Theta.
 
@@ -264,9 +264,9 @@ def get_theta(
 def get_vega(
     s0: float,
     years_to_maturity: float,
-    d1: float | ndarray,
+    d1: FloatOrNdarray,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns the option's Greek Vega.
 
@@ -296,11 +296,11 @@ def get_vega(
 
 def get_rho(
     option_type: OptionType,
-    x: float | ndarray,
+    x: FloatOrNdarray,
     r: float,
     years_to_maturity: float,
-    d2: float | ndarray,
-) -> float | ndarray:
+    d2: FloatOrNdarray,
+) -> FloatOrNdarray:
     """
     Returns the option's Greek Rho.
 
@@ -344,13 +344,13 @@ def get_rho(
 
 
 def get_d1(
-    s0: float | ndarray,
-    x: float | ndarray,
+    s0: FloatOrNdarray,
+    x: FloatOrNdarray,
     r: float,
-    vol: float | ndarray,
+    vol: FloatOrNdarray,
     years_to_maturity: float,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns `d1` used in Black-Scholes formula.
 
@@ -381,13 +381,13 @@ def get_d1(
 
 
 def get_d2(
-    s0: float | ndarray,
-    x: float | ndarray,
+    s0: FloatOrNdarray,
+    x: FloatOrNdarray,
     r: float,
-    vol: float | ndarray,
+    vol: FloatOrNdarray,
     years_to_maturity: float,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns `d2` used in Black-Scholes formula.
 
@@ -464,10 +464,10 @@ def get_implied_vol(
 
 def get_itm_probability(
     option_type: OptionType,
-    d2: float | ndarray,
+    d2: FloatOrNdarray,
     years_to_maturity: float,
     y: float = 0.0,
-) -> float | ndarray:
+) -> FloatOrNdarray:
     """
     Returns the In-The-Money probability of an option.
 

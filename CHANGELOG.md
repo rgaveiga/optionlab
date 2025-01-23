@@ -3,7 +3,7 @@
 ## 1.4.1 (2025-01-04)
 
 - Removed a small bug in `create_price_seq` in support.py
-- Improved the algorithm in `get_profit_range` in support.py
+- Improved the algorithm in `get_profit_range` in support.py, then renamed to `_get_profit_range`
 - Created a helper function `_get_sign_changes` in support.py, called by `get_profit_range`
 - Removed the fields `probability_of_profit_from_mc`, `average_profit_from_mc` and `average_loss_from_mc` from `Outputs` in models.py
 - Created the fields `expected_profit` and `expected_loss` in `Outputs` in models.py
@@ -11,6 +11,9 @@
 - Removed Laplace form `get_pop` in support.py
 - Improved `get_pop` in support.py to return a `PoPOutputs` object with more information
 - Added naked calls as an example of strategy
+- Created a custom type `FloatOrNdarray` that can contain a float or a numpy.ndarray in models.py
+- Created a customtype `FloatOrNone` that can contain a float or None in models.py
+- Created the helper functions `_get_pop_bs` and `get_pop_array` in support.py
 
 ## 1.4.0 (2025-01-01)
 

@@ -32,6 +32,8 @@ def create_price_array(
         Array of terminal prices.
     """
 
+    inputs: BlackScholesModelInputs | LaplaceInputs
+
     if isinstance(inputs_data, dict):
         input_type = inputs_data["model"]
 

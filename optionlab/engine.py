@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import datetime as dt
 
-from numpy import zeros
+from numpy import zeros, array
 
 
 from optionlab.black_scholes import get_bs_info, get_implied_vol
@@ -18,6 +18,7 @@ from optionlab.models import (
     ArrayInputs,
     OptionType,
     EngineData,
+    PoPOutputs,
 )
 from optionlab.support import (
     get_pl_profile,
@@ -62,7 +63,7 @@ def run_strategy(inputs_data: Inputs | dict) -> Outputs:
 def _init_inputs(inputs: Inputs) -> EngineData:
     data = EngineData(
         stock_price_array=create_price_seq(inputs.min_stock, inputs.max_stock),
-        terminal_stock_prices=inputs.array if inputs.model == "array" else None,
+        terminal_stock_prices=inputs.array if inputs.model == "array" else array([]),
         inputs=inputs,
     )
 
@@ -160,6 +161,9 @@ def _run(data: EngineData) -> EngineData:
         data.profit_mc = zeros((len(data.type), data.terminal_stock_prices.shape[0]))
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
 
+    pop_inputs: BlackScholesModelInputs | ArrayInputs
+    pop_out: PoPOutputs
+
     for i, type in enumerate(data.type):
         if type in ("call", "put"):
             _run_option_calcs(data, i)
@@ -256,33 +260,39 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         inputs.dividend_yield,
     )
 
-    data.gamma.append(bs.gamma)
-    data.vega.append(bs.vega)
+    data.gamma.append(
+        float(bs.gamma)
+    )  # TODO: This is required because of mypy. Check later for workarounds, maybe using zero-dimensional numpy arrays
+    data.vega.append(float(bs.vega))
 
     data.implied_volatility.append(
-        get_implied_vol(
-            type,
-            data.premium[i],
-            inputs.stock_price,
-            data.strike[i],
-            inputs.interest_rate,
-            time_to_maturity,
-            inputs.dividend_yield,
+        float(
+            get_implied_vol(
+                type,
+                data.premium[i],
+                inputs.stock_price,
+                data.strike[i],
+                inputs.interest_rate,
+                time_to_maturity,
+                inputs.dividend_yield,
+            )
         )
     )
 
     negative_multiplier = 1 if data.action[i] == "buy" else -1
 
     if type == "call":
-        data.itm_probability.append(bs.call_itm_prob)
-        data.delta.append(bs.call_delta * negative_multiplier)
-        data.theta.append(bs.call_theta / data.days_in_year * negative_multiplier)
-        data.rho.append(bs.call_rho * negative_multiplier)
+        data.itm_probability.append(float(bs.call_itm_prob))
+        data.delta.append(float(bs.call_delta * negative_multiplier))
+        data.theta.append(
+            float(bs.call_theta / data.days_in_year * negative_multiplier)
+        )
+        data.rho.append(float(bs.call_rho * negative_multiplier))
     else:
-        data.itm_probability.append(bs.put_itm_prob)
-        data.delta.append(bs.put_delta * negative_multiplier)
-        data.theta.append(bs.put_theta / data.days_in_year * negative_multiplier)
-        data.rho.append(bs.put_rho * negative_multiplier)
+        data.itm_probability.append(float(bs.put_itm_prob))
+        data.delta.append(float(bs.put_delta * negative_multiplier))
+        data.theta.append(float(bs.put_theta / data.days_in_year * negative_multiplier))
+        data.rho.append(float(bs.put_rho * negative_multiplier))
 
     if data.previous_position[i] > 0.0:  # Premium of the open position
         opt_value = data.previous_position[i]

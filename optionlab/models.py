@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Literal
+from typing import Literal, Optional
 
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
@@ -9,12 +9,17 @@ Action = Literal["buy", "sell"]
 StrategyType = Literal["stock"] | OptionType | Literal["closed"]
 Range = tuple[float, float]
 TheoreticalModel = Literal["black-scholes", "normal", "array"]
+FloatOrNdarray = float | np.ndarray
+
+
+def init_empty_array() -> np.ndarray:
+    return np.array([])
 
 
 class BaseLeg(BaseModel):
     n: int = Field(gt=0)
     action: Action
-    prev_pos: float | None = None
+    prev_pos: Optional[float] = None
 
 
 class Stock(BaseLeg):
@@ -29,7 +34,7 @@ class Stock(BaseLeg):
         Number of shares.
     action : str
         `Action` literal value, which must be either **buy** or **sell**.
-    prev_pos : float | None, optional
+    prev_pos : float, optional
         Stock price effectively paid or received in a previously opened position.
         If positive, the position remains open and the payoff calculation considers
         this price instead of the current stock price. If negative, the position
@@ -121,10 +126,10 @@ class BlackScholesModelInputs(TheoreticalModelInputs):
         Annualized volatility of the underlying asset.
     years_to_target_date : float
         Time remaining until target date, in years.
-    interest_rate : float
-        Annualized risk-free interest rate. The default is zero.
+    interest_rate : float, optional
+        Annualized risk-free interest rate. The default is 0.0.
     dividend_yield : float, optional
-        Annualized dividend yield. The default is zero.
+        Annualized dividend yield. The default is 0.0.
     """
 
     model: Literal["black-scholes", "normal"] = "black-scholes"
@@ -206,10 +211,10 @@ class Inputs(BaseModel):
         A list of strategy legs.
     dividend_yield : float, optional
         Annualized dividend yield. The default is 0.0.
-    profit_target : float | None, optional
+    profit_target : float, optional
         Target profit level. The default is None, which means it is not
         calculated.
-    loss_limit : float | None, optional
+    loss_limit : float, optional
         Limit loss level. The default is None, which means it is not calculated.
     opt_commission : float
         Brokerage commission for options transactions. The default is 0.0.
@@ -236,19 +241,19 @@ class Inputs(BaseModel):
         Theoretical model used in the calculations of probability of profit. It
         can be **black-scholes** (the same as **normal**) or **array**. The default
         is **black-scholes**.
-    array : numpy.ndarray | None, optional
-        Array of terminal stock prices. The default is None.
+    array : numpy.ndarray, optional
+        Array of terminal stock prices. The default is an empty array.
     """
 
     stock_price: float = Field(gt=0.0)
     volatility: float = Field(ge=0.0)
-    interest_rate: float = Field(0.0, ge=0.0)
+    interest_rate: float = Field(ge=0.0)
     min_stock: float = Field(ge=0.0)
     max_stock: float = Field(ge=0.0)
     strategy: list[StrategyLeg] = Field(..., min_length=1)
     dividend_yield: float = Field(0.0, ge=0.0)
-    profit_target: float | None = None
-    loss_limit: float | None = None
+    profit_target: Optional[float] = None
+    loss_limit: Optional[float] = None
     opt_commission: float = 0.0
     stock_commission: float = 0.0
     discard_nonbusiness_days: bool = True
@@ -258,7 +263,7 @@ class Inputs(BaseModel):
     target_date: dt.date | None = None
     days_to_target_date: int = Field(0, ge=0)
     model: TheoreticalModel = "black-scholes"
-    array: np.ndarray | None = None
+    array: np.ndarray = Field(default_factory=init_empty_array)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -339,29 +344,25 @@ class BlackScholesInfo(BaseModel):
         In-the-money probability of a put option.
     """
 
-    call_price: float | np.ndarray
-    put_price: float | np.ndarray
-    call_delta: float | np.ndarray
-    put_delta: float | np.ndarray
-    call_theta: float | np.ndarray
-    put_theta: float | np.ndarray
-    gamma: float | np.ndarray
-    vega: float | np.ndarray
-    call_rho: float | np.ndarray
-    put_rho: float | np.ndarray
-    call_itm_prob: float | np.ndarray
-    put_itm_prob: float | np.ndarray
+    call_price: FloatOrNdarray
+    put_price: FloatOrNdarray
+    call_delta: FloatOrNdarray
+    put_delta: FloatOrNdarray
+    call_theta: FloatOrNdarray
+    put_theta: FloatOrNdarray
+    gamma: FloatOrNdarray
+    vega: FloatOrNdarray
+    call_rho: FloatOrNdarray
+    put_rho: FloatOrNdarray
+    call_itm_prob: FloatOrNdarray
+    put_itm_prob: FloatOrNdarray
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-def init_empty_array() -> np.ndarray:
-    return np.array([])
-
-
 class EngineDataResults(BaseModel):
     stock_price_array: np.ndarray
-    terminal_stock_prices: np.ndarray | None
+    terminal_stock_prices: np.ndarray = Field(default_factory=init_empty_array)
     profit: np.ndarray = Field(default_factory=init_empty_array)
     profit_mc: np.ndarray = Field(default_factory=init_empty_array)
     strategy_profit: np.ndarray = Field(default_factory=init_empty_array)
@@ -377,15 +378,15 @@ class EngineDataResults(BaseModel):
 
 class EngineData(EngineDataResults):
     inputs: Inputs
-    previous_position: list[float] | None = []
-    use_bs: list[bool] | None = []
-    profit_ranges: list[Range] | None = []
-    profit_target_ranges: list[Range] | None = None
-    loss_limit_ranges: list[Range] | None = None
+    previous_position: list[float] = []
+    use_bs: list[bool] = []
+    profit_ranges: list[Range] = []
+    profit_target_ranges: list[Range] = []
+    loss_limit_ranges: list[Range] = []
     days_to_maturity: list[int] = []
     days_in_year: int = 365
     days_to_target: int = 30
-    implied_volatility: list[float | np.ndarray] = []
+    implied_volatility: list[float] = []
     itm_probability: list[float] = []
     delta: list[float] = []
     gamma: list[float] = []
@@ -394,10 +395,10 @@ class EngineData(EngineDataResults):
     theta: list[float] = []
     cost: list[float] = []
     profit_probability: float = 0.0
-    profit_target_probability: float | None = None
-    loss_limit_probability: float | None = None
-    expected_profit: float = 0.0
-    expected_loss: float = 0.0
+    profit_target_probability: float = 0.0
+    loss_limit_probability: float = 0.0
+    expected_profit: Optional[float] = None
+    expected_loss: Optional[float] = None
 
 
 class Outputs(BaseModel):
@@ -411,6 +412,10 @@ class Outputs(BaseModel):
     profit_ranges : list[Range]
         A list of minimum and maximum stock prices defining ranges in which the
         strategy makes at least $0.01.
+    expected_profit : float, optional
+        Expected profit when the strategy is profitable. The default is None.
+    expected_loss : float, optional
+        Expected loss when the strategy is not profitable. The default is None.
     strategy_cost : float
         Total strategy cost.
     per_leg_cost : list[float]
@@ -433,22 +438,18 @@ class Outputs(BaseModel):
         Minimum return of the strategy within the stock price domain.
     maximum_return_in_the_domain : float
         Maximum return of the strategy within the stock price domain.
-    probability_of_profit_target : float | None, optional
+    probability_of_profit_target : float, optional
         Probability of the strategy yielding at least the profit target. The
-        default is None.
-    profit_target_ranges : list[Range] | None, optional
+        default is 0.0.
+    profit_target_ranges : list[Range], optional
         List of minimum and maximum stock prices defining ranges in which the
-        strategy makes at least the profit target. The default is None.
-    probability_of_loss_limit : float | None, optional
+        strategy makes at least the profit target. The default is [].
+    probability_of_loss_limit : float, optional
         Probability of the strategy losing at least the loss limit. The default
-        is None.
-    loss_limit_ranges : list[Range] | None, optional
+        is 0.0.
+    loss_limit_ranges : list[Range], optional
         List of minimum and maximum stock prices defining ranges where the
-        strategy loses at least the loss limit. The default is None.
-    expected_profit : float | None, optional
-        Expected profit when the strategy is profitable. The default is None.
-    expected_loss : float | None, optional
-        Expected loss when the strategy is not profitable. The default is None.
+        strategy loses at least the loss limit. The default is [].
     data : EngineDataResults
         Further data from the strategy calculation that can be used in the
         post-processing of the outputs.
@@ -459,9 +460,9 @@ class Outputs(BaseModel):
     inputs: Inputs
     data: EngineDataResults
     probability_of_profit: float
-    profit_ranges: list[Range] | None
-    expected_profit: float | None = None
-    expected_loss: float | None = None
+    profit_ranges: list[Range]
+    expected_profit: Optional[float] = None
+    expected_loss: Optional[float] = None
     per_leg_cost: list[float]
     strategy_cost: float
     minimum_return_in_the_domain: float
@@ -473,16 +474,18 @@ class Outputs(BaseModel):
     theta: list[float]
     vega: list[float]
     rho: list[float]
-    probability_of_profit_target: float | None = None
-    profit_target_ranges: list[Range] | None = None
-    probability_of_loss_limit: float | None = None
-    loss_limit_ranges: list[Range] | None = None
+    probability_of_profit_target: float = 0.0
+    profit_target_ranges: list[Range] = []
+    probability_of_loss_limit: float = 0.0
+    loss_limit_ranges: list[Range] = []
 
     def __str__(self):
         s = ""
 
         for key, value in self.dict(
-            exclude={"data", "inputs"}, exclude_none=True
+            exclude={"data", "inputs"},
+            exclude_none=True,
+            exclude_defaults=True,
         ).items():
             s += f"{key.capitalize().replace('_',' ')}: {value}\n"
 
@@ -495,29 +498,29 @@ class PoPOutputs(BaseModel):
 
     Attributes
     ----------
-    probability_of_reaching_target : float | None, optional
+    probability_of_reaching_target : float, optional
         Probability that the strategy return will be equal or greater than the
-        target. The default is None.
-    probability_of_missing_target : float | None, optional
+        target. The default is 0.0.
+    probability_of_missing_target : float, optional
         Probability that the strategy return will be less than the target. The
-        default is None.
-    reaching_target_range : list[Range] | None, optional
+        default is 0.0.
+    reaching_target_range : list[Range], optional
         Range of stock prices where the strategy return is equal or greater than
-        the target. The default is None.
-    missing_target_range : list[Range] | None, optional
+        the target. The default is [].
+    missing_target_range : list[Range], optional
         Range of stock prices where the strategy return is less than the target.
-        The default is None.
-    expected_return_above_target : float | None, optional
+        The default is [].
+    expected_return_above_target : float, optional
         Expected value of the strategy return when the return is equal or greater
         than the target. The default is None.
-    expected_return_below_target : float | None, optional
+    expected_return_below_target : float, optional
         Expected value of the strategy return when the return is less than the
         target. The default is None.
     """
 
-    probability_of_reaching_target: float | None = None
-    probability_of_missing_target: float | None = None
-    reaching_target_range: list[Range] | None = None
-    missing_target_range: list[Range] | None = None
-    expected_return_above_target: float | None = None
-    expected_return_below_target: float | None = None
+    probability_of_reaching_target: float = 0.0
+    probability_of_missing_target: float = 0.0
+    reaching_target_range: list[Range] = []
+    missing_target_range: list[Range] = []
+    expected_return_above_target: Optional[float] = None
+    expected_return_below_target: Optional[float] = None

@@ -52,14 +52,14 @@ def get_nonbusiness_days(
     return nonbusiness_days
 
 
-def get_pl(data: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
+def get_pl(outputs: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
     """
     Returns the stock prices and the corresponding profit/loss profile of either
     a leg or the whole strategy.
 
     Parameters
     ----------
-    data : Outputs
+    outputs : Outputs
         Output data from a strategy calculation.
     leg : int | None, optional
         Index of a strategy leg. The default is None, which means the whole strategy.
@@ -70,20 +70,22 @@ def get_pl(data: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarra
         Array of stock prices and array or profits/losses.
     """
 
-    if data.profit.size > 0 and leg and leg < data.profit.shape[0]:
-        return data.stock_price_array, data.profit[leg]
+    if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
+        return outputs.data.stock_price_array, outputs.data.profit[leg]
 
-    return data.stock_price_array, data.strategy_profit
+    return outputs.data.stock_price_array, outputs.data.strategy_profit
 
 
-def pl_to_csv(data: Outputs, filename: str = "pl.csv", leg: int | None = None) -> None:
+def pl_to_csv(
+    outputs: Outputs, filename: str = "pl.csv", leg: int | None = None
+) -> None:
     """
     Saves the stock prices and corresponding profit/loss profile of either a leg
     or the whole strategy to a CSV file.
 
     Parameters
     ----------
-    data : Outputs
+    outputs : Outputs
         Output data from a strategy calculation.
     filename : str, optional
         Name of the CSV file. The default is 'pl.csv'.
@@ -95,10 +97,10 @@ def pl_to_csv(data: Outputs, filename: str = "pl.csv", leg: int | None = None) -
     None.
     """
 
-    if data.profit.size > 0 and leg and leg < data.profit.shape[0]:
-        arr = np.stack((data.stock_price_array, data.profit[leg]))
+    if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
+        arr = np.stack((outputs.data.stock_price_array, outputs.data.profit[leg]))
     else:
-        arr = np.stack((data.stock_price_array, data.strategy_profit))
+        arr = np.stack((outputs.data.stock_price_array, outputs.data.strategy_profit))
 
     np.savetxt(
         filename, arr.transpose(), delimiter=",", header="StockPrice,Profit/Loss"

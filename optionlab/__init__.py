@@ -10,7 +10,6 @@ if typing.TYPE_CHECKING:
     from .models import (
         Inputs,
         OptionType,
-        OptionInfo,
         Option,
         Outputs,
         ClosedPosition,
@@ -20,10 +19,10 @@ if typing.TYPE_CHECKING:
         LaplaceInputs,
         BlackScholesInfo,
         TheoreticalModel,
+        FloatOrNdarray,
         StrategyLeg,
         StrategyType,
         Stock,
-        Country,
         Action,
     )
     from .black_scholes import (
@@ -47,8 +46,12 @@ if typing.TYPE_CHECKING:
         get_pl_profile_stock,
         get_pl_profile_bs,
         create_price_seq,
-        get_profit_range,
         get_pop,
+    )
+    from .utils import (
+        get_nonbusiness_days,
+        get_pl,
+        pl_to_csv,
     )
 
 __version__ = VERSION
@@ -56,7 +59,6 @@ __all__ = (
     # models
     "Inputs",
     "OptionType",
-    "OptionInfo",
     "Option",
     "Outputs",
     "ClosedPosition",
@@ -66,10 +68,10 @@ __all__ = (
     "LaplaceInputs",
     "BlackScholesInfo",
     "TheoreticalModel",
+    "FloatOrNdarray",
     "StrategyLeg",
     "StrategyType",
     "Stock",
-    "Country",
     "Action",
     # engine
     "run_strategy",
@@ -78,7 +80,6 @@ __all__ = (
     "get_pl_profile_stock",
     "get_pl_profile_bs",
     "create_price_seq",
-    "get_profit_range",
     "get_pop",
     # black_scholes
     "get_d1",
@@ -96,6 +97,10 @@ __all__ = (
     "plot_pl",
     # price_array
     "create_price_array",
+    # utils
+    "get_nonbusiness_days",
+    "get_pl",
+    "pl_to_csv",
 )
 
 # A mapping of {<member name>: (package, <module name>)} defining dynamic imports
@@ -104,7 +109,6 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "Inputs": (__package__, ".models"),
     "Outputs": (__package__, ".models"),
     "OptionType": (__package__, ".models"),
-    "OptionInfo": (__package__, ".models"),
     "Option": (__package__, ".models"),
     "ClosedPosition": (__package__, ".models"),
     "ArrayInputs": (__package__, ".models"),
@@ -113,10 +117,10 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "LaplaceInputs": (__package__, ".models"),
     "BlackScholesInfo": (__package__, ".models"),
     "TheoreticalModel": (__package__, ".models"),
+    "FloatOrNdarray": (__package__, ".models"),
     "StrategyLeg": (__package__, ".models"),
     "StrategyType": (__package__, ".models"),
     "Stock": (__package__, ".models"),
-    "Country": (__package__, ".models"),
     "Action": (__package__, ".models"),
     # engine
     "run_strategy": (__package__, ".engine"),
@@ -125,7 +129,6 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "get_pl_profile_stock": (__package__, ".support"),
     "get_pl_profile_bs": (__package__, ".support"),
     "create_price_seq": (__package__, ".support"),
-    "get_profit_range": (__package__, ".support"),
     "get_pop": (__package__, ".support"),
     # black_scholes
     "get_d1": (__package__, ".black_scholes"),
@@ -143,6 +146,10 @@ _dynamic_imports: "dict[str, tuple[str, str]]" = {
     "plot_pl": (__package__, ".plot"),
     # price_array
     "create_price_array": (__package__, ".price_array"),
+    # utils
+    "get_nonbusiness_days": (__package__, ".utils"),
+    "get_pl": (__package__, ".utils"),
+    "pl_to_csv": (__package__, ".utils"),
 }
 
 
