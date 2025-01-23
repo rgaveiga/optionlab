@@ -10,12 +10,18 @@ from optionlab.models import Outputs
 
 def plot_pl(outputs: Outputs) -> None:
     """
-    plot_pl -> displays the strategy's profit/loss profile diagram.
+    Displays the strategy's profit/loss diagram.
+
+    Parameters
+    ----------
+    outputs : Outputs
+        Output data from a strategy calculation.
 
     Returns
     -------
     None.
     """
+
     st = outputs.data
     inputs = outputs.inputs
 
@@ -35,7 +41,7 @@ def plot_pl(outputs: Outputs) -> None:
     strike_put_sell = []
     zero_call_sell = []
     zero_put_sell = []
-    comment = "P/L profile diagram:\n--------------------\n"
+    comment = "Profit/Loss diagram:\n--------------------\n"
     comment += "The vertical green dashed line corresponds to the position "
     comment += "of the stock's spot price. The right and left arrow "
     comment += "markers indicate the strike prices of calls and puts, "

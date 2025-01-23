@@ -1,24 +1,48 @@
 from __future__ import division
 
-import numpy as np
 from scipy import stats
 from numpy import exp, round, arange, abs, argmin, pi
 from numpy.lib.scimath import log, sqrt
 
-from optionlab.models import BlackScholesInfo, OptionType
+from optionlab.models import BlackScholesInfo, OptionType, FloatOrNdarray
 
 
 def get_bs_info(
-    s: float, x: float, r: float, vol: float, years_to_maturity: float, y: float = 0.0
+    s: float,
+    x: FloatOrNdarray,
+    r: float,
+    vol: float,
+    years_to_maturity: float,
+    y: float = 0.0,
 ) -> BlackScholesInfo:
     """
-    get_bs_info(s, x, r, vol, years_to_maturity, y) -> provides informaton about call and
-    put options using the Black-Scholes formula, taking the current stock price
-    's', the option strike 'x', the annualized risk-free rate 'r', the annualized
-    volatility 'vol', the time remaining to maturity in units of year, and
-    the annualized stock's dividend yield 'y' as arguments.
+    Provides information about call and put options calculated using the Black-Scholes
+    formula.
+
+    Parameters
+    ----------
+    s : float
+        Stock price.
+    x : float | numpy.ndarray
+        Strike price(s).
+    r : float
+        Annualized risk-free interest rate.
+    vol : float
+        Annualized volatility.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    BlackScholesInfo
+        Information calculated using the Black-Scholes formula. See the documentation
+        for `BlackScholesInfo`.
     """
-    d1, d2 = get_d1_d2(s, x, r, vol, years_to_maturity, y)
+
+    d1 = get_d1(s, x, r, vol, years_to_maturity, y)
+    d2 = get_d2(s, x, r, vol, years_to_maturity, y)
     call_price = get_option_price("call", s, x, r, years_to_maturity, d1, d2, y)
     put_price = get_option_price("put", s, x, r, years_to_maturity, d1, d2, y)
     call_delta = get_delta("call", d1, years_to_maturity, y)
@@ -27,6 +51,8 @@ def get_bs_info(
     put_theta = get_theta("put", s, x, r, vol, years_to_maturity, d1, d2, y)
     gamma = get_gamma(s, vol, years_to_maturity, d1, y)
     vega = get_vega(s, years_to_maturity, d1, y)
+    call_rho = get_rho("call", x, r, years_to_maturity, d2)
+    put_rho = get_rho("put", x, r, years_to_maturity, d2)
     call_itm_prob = get_itm_probability("call", d2, years_to_maturity, y)
     put_itm_prob = get_itm_probability("put", d2, years_to_maturity, y)
 
@@ -39,6 +65,8 @@ def get_bs_info(
         put_theta=put_theta,
         gamma=gamma,
         vega=vega,
+        call_rho=call_rho,
+        put_rho=put_rho,
         call_itm_prob=call_itm_prob,
         put_itm_prob=put_itm_prob,
     )
@@ -46,26 +74,43 @@ def get_bs_info(
 
 def get_option_price(
     option_type: OptionType,
-    s0: np.ndarray | float,
-    x: np.ndarray | float,
+    s0: FloatOrNdarray,
+    x: FloatOrNdarray,
     r: float,
     years_to_maturity: float,
-    d1: float,
-    d2: float,
+    d1: FloatOrNdarray,
+    d2: FloatOrNdarray,
     y: float = 0.0,
-) -> float:
+) -> FloatOrNdarray:
     """
-    get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y) -> returns the price of
-    an option (call or put) given the current stock price 's0' and the option
-    strike 'x', as well as the annualized risk-free rate 'r', the time remaining
-    to maturity in units of year, 'd1' and 'd2' as defined in the Black-Scholes
-    formula, and the stocks's annualized dividend yield 'y' (default is zero,
-    i.e., the stock does not pay dividends).
+    Returns the price of an option.
+
+    Parameters
+    ----------
+    option_type : str
+        `OptionType` literal value, which must be either **call** or **put**.
+    s0 : float | numpy.ndarray
+        Spot price(s) of the underlying asset.
+    x : float | numpy.ndarray
+        Strike price(s).
+    r : float
+        Annualize risk-free interest rate.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    d1 : float | numpy.ndarray
+        `d1` in Black-Scholes formula.
+    d2 : float | numpy.ndarray
+        `d2` in Black-Scholes formula.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        Option price(s).
     """
-    if y > 0.0:
-        s = s0 * exp(-y * years_to_maturity)
-    else:
-        s = s0
+
+    s = s0 * exp(-y * years_to_maturity)
 
     if option_type == "call":
         return round(
@@ -84,20 +129,32 @@ def get_option_price(
 
 
 def get_delta(
-    option_type: OptionType, d1: float, years_to_maturity: float = 0.0, y: float = 0.0
-) -> float:
+    option_type: OptionType,
+    d1: FloatOrNdarray,
+    years_to_maturity: float,
+    y: float = 0.0,
+) -> FloatOrNdarray:
     """
-    get_delta(option_type, d1, years_to_maturity, y) -> computes the Greek Delta for an option
-    (call or put) taking 'd1' as defined in the Black-Scholes formula as a mandatory
-    argument. Optionally, the time remaining to maturity in units of year and
-    the stocks's annualized dividend yield 'y' (default is zero,i.e., the stock
-    does not pay dividends) may be passed as arguments. The Greek Delta estimates
-    how the option price varies as the stock price increases or decreases by $1.
+    Returns the option's Greek Delta.
+
+    Parameters
+    ----------
+    option_type : str
+        `OptionType` literal value, which must be either **call** or **put**.
+    d1 : float | numpy.ndarray
+        `d1` in Black-Scholes formula.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        Option's Greek Delta.
     """
-    if y > 0.0 and years_to_maturity > 0.0:
-        yfac = exp(-y * years_to_maturity)
-    else:
-        yfac = 1.0
+
+    yfac = exp(-y * years_to_maturity)
 
     if option_type == "call":
         return yfac * stats.norm.cdf(d1)
@@ -108,20 +165,35 @@ def get_delta(
 
 
 def get_gamma(
-    s0: float, vol: float, years_to_maturity: float, d1: float, y: float = 0.0
-) -> float:
+    s0: float,
+    vol: float,
+    years_to_maturity: float,
+    d1: FloatOrNdarray,
+    y: float = 0.0,
+) -> FloatOrNdarray:
     """
-    get_gamma(s0, vol, years_to_maturity, d1, y) -> computes the Greek Gamma for an option
-    taking the current stock price 's0', the annualized volatity 'vol', the time
-    remaining to maturity in units of year, 'd1' as defined in the Black-Scholes
-    formula and the stocks's annualized dividend yield 'y' (default is zero,i.e.,
-    the stock does not pay dividends) as arguments. The Greek Gamma provides the
-    variation of Greek Delta as stock price increases or decreases by $1.
+    Returns the option's Greek Gamma.
+
+    Parameters
+    ----------
+    s0 : float
+        Spot price of the underlying asset.
+    vol : float
+        Annualized volatitily.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    d1 : float | numpy.ndarray
+        `d1` in Black-Scholes formula.
+    y : float, optional
+        Annualized divident yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        Option's Greek Gamma.
     """
-    if y > 0.0:
-        yfac = exp(-y * years_to_maturity)
-    else:
-        yfac = 1.0
+
+    yfac = exp(-y * years_to_maturity)
 
     cdf_d1_prime = exp(-0.5 * d1 * d1) / sqrt(2.0 * pi)
 
@@ -131,28 +203,45 @@ def get_gamma(
 def get_theta(
     option_type: OptionType,
     s0: float,
-    x: np.ndarray | float,
+    x: FloatOrNdarray,
     r: float,
     vol: float,
     years_to_maturity: float,
-    d1: float,
-    d2: float,
+    d1: FloatOrNdarray,
+    d2: FloatOrNdarray,
     y: float = 0.0,
-) -> float:
+) -> FloatOrNdarray:
     """
-    get_theta(option_type, s0, x, r, vol, years_to_maturity, d1, d2, y) -> computes the Greek Theta
-    for an option (call or put) taking the current stock price 's0', the exercise
-    price 'x', the annualized risk-free rate 'r', the time remaining to maturity
-    in units of year , the annualized volatility 'vol', 'd1' and 'd2' as defined
-    in the Black-Scholes formula, and the stocks's annualized dividend yield 'y'
-    (default is zero, i.e., the stock does not pay dividends) as arguments. The
-    Greek Theta estimates the value lost per year of an option as the maturity
-    gets closer.
+    Returns the option's Greek Theta.
+
+    Parameters
+    ----------
+    option_type : str
+        `OptionType` literal value, which must be either **call** or **put**.
+    s0 : float
+        Spot price of the underlying asset.
+    x : float | numpy.ndarray
+        Strike price(s).
+    r : float
+        Annualized risk-free interest rate.
+    vol : float
+        Annualized volatility.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    d1 : float | numpy.ndarray
+        `d1` in Black-Scholes formula.
+    d2 : float | numpy.ndarray
+        `d2` in Black-Scholes formula.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        Option's Greek Theta.
     """
-    if y > 0.0:
-        s = s0 * exp(-y * years_to_maturity)
-    else:
-        s = s0
+
+    s = s0 * exp(-y * years_to_maturity)
 
     cdf_d1_prime = exp(-0.5 * d1 * d1) / sqrt(2.0 * pi)
 
@@ -172,46 +261,160 @@ def get_theta(
         raise ValueError("Option type must be either 'call' or 'put'!")
 
 
-def get_vega(s0: float, years_to_maturity: float, d1: float, y: float = 0.0) -> float:
+def get_vega(
+    s0: float,
+    years_to_maturity: float,
+    d1: FloatOrNdarray,
+    y: float = 0.0,
+) -> FloatOrNdarray:
     """
-    get_vega(s0, years_to_maturity, d1) -> computes the Greek Vega for an option taking
-    the current stock price 's0', the time remaining to maturity in units of year,
-    'd1' as defined in the Black-Scholes formula, and the stocks's annualized
-    dividend yield 'y' (default is zero, i.e., the stock does not pay dividends)
-    as arguments. The Greek Vega estimates the amount that the option price changes
-    for every 1% change in the annualized volatility of the underlying asset.
+    Returns the option's Greek Vega.
+
+    Parameters
+    ----------
+    s0 : float
+        Spot price of the underlying asset.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    d1 : float | numpy.ndarray
+        `d1` in Black-Scholes formula.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        Option's Greek Vega.
     """
-    if y > 0.0:
-        s = s0 * exp(-y * years_to_maturity)
-    else:
-        s = s0
+
+    s = s0 * exp(-y * years_to_maturity)
 
     cdf_d1_prime = exp(-0.5 * d1 * d1) / sqrt(2.0 * pi)
 
     return s * cdf_d1_prime * sqrt(years_to_maturity) / 100
 
 
-def get_d1_d2(
-    s0: np.ndarray | float,
-    x: np.ndarray | float,
+def get_rho(
+    option_type: OptionType,
+    x: FloatOrNdarray,
     r: float,
-    vol: float | np.ndarray,
+    years_to_maturity: float,
+    d2: FloatOrNdarray,
+) -> FloatOrNdarray:
+    """
+    Returns the option's Greek Rho.
+
+    Parameters
+    ----------
+    option_type : OptionType
+        `OptionType` literal value, which must be either **call** or **put**.
+    x : float | numpy.ndarray
+        Strike price(s).
+    r : float
+        Annualized risk-free interest rate.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    d2 : float | numpy.ndarray
+        `d2` in Black-Scholes formula.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        Option's Greek Rho.
+    """
+
+    if option_type == "call":
+        return (
+            x
+            * years_to_maturity
+            * exp(-r * years_to_maturity)
+            * stats.norm.cdf(d2)
+            / 100
+        )
+    elif option_type == "put":
+        return (
+            -x
+            * years_to_maturity
+            * exp(-r * years_to_maturity)
+            * stats.norm.cdf(-d2)
+            / 100
+        )
+    else:
+        raise ValueError("Option must be either 'call' or 'put'!")
+
+
+def get_d1(
+    s0: FloatOrNdarray,
+    x: FloatOrNdarray,
+    r: float,
+    vol: FloatOrNdarray,
     years_to_maturity: float,
     y: float = 0.0,
-) -> tuple[float, float]:
+) -> FloatOrNdarray:
     """
-    get_d1_d2(s0, x, r, vol, years_to_maturity, y) -> returns 'd1' and 'd2' taking the
-    current stock price 's0', the exercise price 'x', the annualized risk-free
-    rate 'r', the annualized volatility 'vol', the time remaining to option
-    expiration in units of year, and the stocks's annualized dividend yield 'y'
-    (default is zero, i.e., the stock does not pay dividends) as arguments.
+    Returns `d1` used in Black-Scholes formula.
+
+    Parameters
+    ----------
+    s0 : float | numpy.ndarray
+        Spot price(s) of the underlying asset.
+    x : float | numpy.ndarray
+        Strike price(s).
+    r : float
+        Annualized risk-free interest rate.
+    vol : float | numpy.ndarray
+        Annualized volatility(ies).
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    y : float, optional
+        Annualized divident yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        `d1` in Black-Scholes formula.
     """
-    d1 = (log(s0 / x) + (r - y + vol * vol / 2.0) * years_to_maturity) / (
+
+    return (log(s0 / x) + (r - y + vol * vol / 2.0) * years_to_maturity) / (
         vol * sqrt(years_to_maturity)
     )
-    d2 = d1 - vol * sqrt(years_to_maturity)
 
-    return d1, d2
+
+def get_d2(
+    s0: FloatOrNdarray,
+    x: FloatOrNdarray,
+    r: float,
+    vol: FloatOrNdarray,
+    years_to_maturity: float,
+    y: float = 0.0,
+) -> FloatOrNdarray:
+    """
+    Returns `d2` used in Black-Scholes formula.
+
+    Parameters
+    ----------
+    s0 : float | numpy.ndarray
+        Spot price(s) of the underlying asset.
+    x : float | numpy.ndarray
+        Strike price(s).
+    r : float
+        Annualized risk-free interest rate.
+    vol : float | numpy.ndarray
+        Annualized volatility(ies).
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    y : float, optional
+        Annualized divident yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        `d2` in Black-Scholes formula.
+    """
+
+    return (log(s0 / x) + (r - y - vol * vol / 2.0) * years_to_maturity) / (
+        vol * sqrt(years_to_maturity)
+    )
 
 
 def get_implied_vol(
@@ -222,17 +425,36 @@ def get_implied_vol(
     r: float,
     years_to_maturity: float,
     y: float = 0.0,
-) -> np.ndarray:
+) -> float:
     """
-    get_implied_vol(option_type, oprice, s0, x, r, years_to_maturity, y) -> estimates the implied
-    volatility taking the option type (call or put), the option price, the current
-    stock price 's0', the option strike 'x', the annualized risk-free rate 'r',
-    the time remaining to maturity in units of year, and the stocks's annualized
-    dividend yield 'y' (default is zero,i.e., the stock does not pay dividends)
-    as arguments.
+    Returns the implied volatility of an option.
+
+    Parameters
+    ----------
+    option_type : str
+        `OptionType` literal value, which must be either **call** or **put**.
+    oprice : float
+        Market price of an option.
+    s0 : float
+        Spot price of the underlying asset.
+    x : float
+        Strike price.
+    r : float
+        Annualized risk-free interest rate.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    float
+        Implied volatility of the option.
     """
+
     vol = 0.001 * arange(1, 1001)
-    d1, d2 = get_d1_d2(s0, x, r, vol, years_to_maturity, y)
+    d1 = get_d1(s0, x, r, vol, years_to_maturity, y)
+    d2 = get_d2(s0, x, r, vol, years_to_maturity, y)
     dopt = abs(
         get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y) - oprice
     )
@@ -241,20 +463,32 @@ def get_implied_vol(
 
 
 def get_itm_probability(
-    option_type: OptionType, d2: float, years_to_maturity: float = 0.0, y: float = 0.0
-) -> float:
+    option_type: OptionType,
+    d2: FloatOrNdarray,
+    years_to_maturity: float,
+    y: float = 0.0,
+) -> FloatOrNdarray:
     """
-    get_itm_probability(option_type, d2, years_to_maturity, y) -> returns the estimated probability
-    that an option (either call or put) will be in-the-money at maturity, taking
-    'd2' as defined in the Black-Scholes formula as a mandatory argument. Optionally,
-    the time remaining to maturity in units of year and the stocks's annualized
-    dividend yield 'y' (default is zero,i.e., the stock does not pay dividends)
-    may be passed as arguments.
+    Returns the In-The-Money probability of an option.
+
+    Parameters
+    ----------
+    option_type : str
+        `OptionType` literal value, which must be either **call** or **put**.
+    d2 : float | numpy.ndarray
+        `d2` in Black-Scholes formula.
+    years_to_maturity : float
+        Time remaining to maturity, in years.
+    y : float, optional
+        Annualized dividend yield. The default is 0.0.
+
+    Returns
+    -------
+    float | numpy.ndarray
+        In-The-Money probability(ies).
     """
-    if y > 0.0 and years_to_maturity > 0.0:
-        yfac = exp(-y * years_to_maturity)
-    else:
-        yfac = 1.0
+
+    yfac = exp(-y * years_to_maturity)
 
     if option_type == "call":
         return yfac * stats.norm.cdf(d2)

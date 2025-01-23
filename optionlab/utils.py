@@ -7,23 +7,32 @@ from functools import lru_cache
 import numpy as np
 from holidays import country_holidays
 
-from optionlab.models import Country, EngineData
+from optionlab.models import Outputs
 
 
 @lru_cache
 def get_nonbusiness_days(
-    start_date: dt.date, end_date: dt.date, country: Country = "US"
-):
+    start_date: dt.date, end_date: dt.date, country: str = "US"
+) -> int:
     """
-    get_nonbusiness_days -> returns the number of non-business days between
+    Returns the number of non-business days (i.e., weekends and holidays) between
     the start and end date.
 
-    Arguments
-    ---------
-    start_date: Start date, provided as a 'datetime.date' object.
-    end_date: End date, provided as a 'datetime.date' object.
-    country: Country for which the holidays will be counted as non-business days
-             (default is "US").
+    Parameters
+    ----------
+    start_date : datetime.date
+        Start date.
+    end_date : datetime.date
+        End date.
+    country : str, optional
+        Country of the stock exchange. A list of available countries can be found
+        in the `holidays library documentation <https://holidays.readthedocs.io/en/latest/>`_.
+        The default value is 'US'.
+
+    Returns
+    -------
+    int
+        Number of weekends and holidays between the start and end date.
     """
 
     if end_date > start_date:
@@ -31,7 +40,7 @@ def get_nonbusiness_days(
     else:
         raise ValueError("End date must be after start date!")
 
-    nonbusiness_days = 0
+    nonbusiness_days: int = 0
     holidays = country_holidays(country)
 
     for i in range(n_days):
@@ -43,50 +52,55 @@ def get_nonbusiness_days(
     return nonbusiness_days
 
 
-def get_pl(data: EngineData, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
+def get_pl(outputs: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.ndarray]:
     """
-    get_pl -> returns the profit/loss profile of either a leg or the whole
-    strategy.
+    Returns the stock prices and the corresponding profit/loss profile of either
+    a leg or the whole strategy.
 
     Parameters
     ----------
-    leg : int, optional
-        Index of the leg. Default is None (whole strategy).
+    outputs : Outputs
+        Output data from a strategy calculation.
+    leg : int | None, optional
+        Index of a strategy leg. The default is None, which means the whole strategy.
 
     Returns
     -------
-    stock prices : numpy array
-        Sequence of stock prices within the bounds of the stock price domain.
-    P/L profile : numpy array
-        Profit/loss profile of either a leg or the whole strategy.
+    tuple[numpy.ndarray, numpy.ndarray]
+        Array of stock prices and array or profits/losses.
     """
-    if data.profit.size > 0 and leg and leg < data.profit.shape[0]:
-        return data.stock_price_array, data.profit[leg]
 
-    return data.stock_price_array, data.strategy_profit
+    if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
+        return outputs.data.stock_price_array, outputs.data.profit[leg]
+
+    return outputs.data.stock_price_array, outputs.data.strategy_profit
 
 
 def pl_to_csv(
-    data: EngineData, filename: str = "pl.csv", leg: int | None = None
+    outputs: Outputs, filename: str = "pl.csv", leg: int | None = None
 ) -> None:
     """
-    pl_to_csv -> saves the profit/loss data to a .csv file.
+    Saves the stock prices and corresponding profit/loss profile of either a leg
+    or the whole strategy to a CSV file.
 
     Parameters
     ----------
-    filename : string, optional
-        Name of the .csv file. Default is 'pl.csv'.
-    leg : int, optional
-        Index of the leg. Default is None (whole strategy).
+    outputs : Outputs
+        Output data from a strategy calculation.
+    filename : str, optional
+        Name of the CSV file. The default is 'pl.csv'.
+    leg : int | None, optional
+        Index of a strategy leg. The default is None, which means the whole strategy.
 
     Returns
     -------
     None.
     """
-    if data.profit.size > 0 and leg and leg < data.profit.shape[0]:
-        arr = np.stack((data.stock_price_array, data.profit[leg]))
+
+    if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
+        arr = np.stack((outputs.data.stock_price_array, outputs.data.profit[leg]))
     else:
-        arr = np.stack((data.stock_price_array, data.strategy_profit))
+        arr = np.stack((outputs.data.stock_price_array, outputs.data.strategy_profit))
 
     np.savetxt(
         filename, arr.transpose(), delimiter=",", header="StockPrice,Profit/Loss"
