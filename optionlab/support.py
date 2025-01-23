@@ -28,9 +28,9 @@ def get_pl_profile(
     x: float,
     val: float,
     n: int,
-    s: ndarray,
+    s: np.ndarray,
     commission: float = 0.0,
-) -> tuple[ndarray, float]:
+) -> tuple[np.ndarray, float]:
     """
     Returns the profit/loss profile and cost of an options trade at expiration.
 
@@ -71,11 +71,11 @@ def get_pl_profile(
         )
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
-
+        
 
 def get_pl_profile_stock(
-    s0: float, action: Action, n: int, s: ndarray, commission: float = 0.0
-) -> tuple[ndarray, float]:
+    s0: float, action: Action, n: int, s: np.ndarray, commission: float = 0.0
+) -> tuple[np.ndarray, float]:
     """
     Returns the profit/loss profile and cost of a stock position.
 
@@ -176,7 +176,7 @@ def get_pl_profile_bs(
 
 
 @lru_cache
-def create_price_seq(min_price: float, max_price: float) -> ndarray:
+def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     """
     Generates a sequence of stock prices from a minimum to a maximum price with
     increment $0.01.
