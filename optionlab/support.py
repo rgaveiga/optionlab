@@ -6,6 +6,7 @@ from typing import Optional
 
 import numpy as np
 from numpy import abs, round, arange, sum, exp
+
 from numpy.lib.scimath import log, sqrt
 from scipy import stats
 
@@ -27,9 +28,9 @@ def get_pl_profile(
     x: float,
     val: float,
     n: int,
-    s: np.ndarray,
+    s: ndarray,
     commission: float = 0.0,
-) -> tuple[np.ndarray, float]:
+) -> tuple[ndarray, float]:
     """
     Returns the profit/loss profile and cost of an options trade at expiration.
 
@@ -73,8 +74,8 @@ def get_pl_profile(
 
 
 def get_pl_profile_stock(
-    s0: float, action: Action, n: int, s: np.ndarray, commission: float = 0.0
-) -> tuple[np.ndarray, float]:
+    s0: float, action: Action, n: int, s: ndarray, commission: float = 0.0
+) -> tuple[ndarray, float]:
     """
     Returns the profit/loss profile and cost of a stock position.
 
@@ -116,7 +117,7 @@ def get_pl_profile_bs(
     target_to_maturity_years: float,
     volatility: float,
     n: int,
-    s: np.ndarray,
+    s: ndarray,
     y: float = 0.0,
     commission: float = 0.0,
 ) -> tuple[FloatOrNdarray, float]:
@@ -175,7 +176,7 @@ def get_pl_profile_bs(
 
 
 @lru_cache
-def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
+def create_price_seq(min_price: float, max_price: float) -> ndarray:
     """
     Generates a sequence of stock prices from a minimum to a maximum price with
     increment $0.01.

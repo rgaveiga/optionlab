@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.4.1 (2025-01-04)
+## 1.4.1 (2025-01-23)
 
 - Removed a small bug in `create_price_seq` in support.py
 - Improved the algorithm in `get_profit_range` in support.py, then renamed to `_get_profit_range`
