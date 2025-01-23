@@ -91,7 +91,7 @@ Jupyter notebooks in the **examples** directory.
 Contributions are definitely welcome. However, it should be mentioned that this 
 repository uses [poetry](https://python-poetry.org/) as a package manager and 
 [git hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) with 
-[pre-commit](https://pre-commit.com/)to customize actions on the repository.
+[pre-commit](https://pre-commit.com/) to customize actions on the repository.
 
 ## Disclaimer
 
@@ -101,6 +101,6 @@ code.
 
 Options are very risky derivatives and, like any other type of financial vehicle, 
 trading options requires due diligence. This code is provided for educational and 
-research purposes.
+research purposes only.
 
 Bugs can be reported as issues.
