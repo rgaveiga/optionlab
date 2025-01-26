@@ -8,14 +8,12 @@ a user-defined target date, the range of stock prices for which the strategy is
 profitable (i.e., generating a return greater than \$0.01), the Greeks associated with 
 each leg of the strategy using the Black-Sholes model, the resulting debit or credit on the 
 trading account, the maximum and minimum returns within a specified lower and higher price 
-range of the underlying asset, and an estimate of the strategy's probability of profit, 
-expected profit and expected loss.
+range of the underlying asset, and an estimate of the strategy's probability of profit.
 
-The probability of profit (PoP), expected profit and expected loss at the user-defined target 
-date for the strategy are calculated by default using the Black-Scholes model. Alternatively,
-the user can provide an array of underlying asset prices following a distribution other than 
-the normal (e.g. Laplace) or model other than the Black-Scholes model (e.g. Heston model) that 
-will be used in the calculations.
+The probability of profit (PoP) on the user-defined target date for the strategy is calculated 
+by default using the Black-Scholes model. Alternatively, the user can provide an array of 
+underlying asset prices following a distribution other than the normal (e.g. Laplace) or 
+model other than the Black-Scholes model (e.g. Heston model) that will be used in the calculations.
 
 Despite the code having been developed with option strategies in mind, it can also be 
 used for strategies that combine options with stocks and/or take into account the 
@@ -91,7 +89,8 @@ Jupyter notebooks in the **examples** directory.
 Contributions are definitely welcome. However, it should be mentioned that this 
 repository uses [poetry](https://python-poetry.org/) as a package manager and 
 [git hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) with 
-[pre-commit](https://pre-commit.com/) to customize actions on the repository.
+[pre-commit](https://pre-commit.com/) to customize actions on the repository. Source 
+code must be formatted using [black](https://github.com/psf/black).
 
 ## Disclaimer
 

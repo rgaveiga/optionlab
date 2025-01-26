@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.4.2 (2025-01-25)
+
+- Removed `expected_profit` and `expected_loss` calculation from `_get_pop_bs` in support.py; implementation was not correct, giving wrong results when compared with Monte Carlo simulations
+
 ## 1.4.1 (2025-01-04)
 
 - Removed a small bug in `create_price_seq` in support.py
