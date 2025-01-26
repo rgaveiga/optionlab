@@ -482,7 +482,7 @@ class Outputs(BaseModel):
     def __str__(self):
         s = ""
 
-        for key, value in self.dict(
+        for key, value in self.model_dump(
             exclude={"data", "inputs"},
             exclude_none=True,
             exclude_defaults=True,

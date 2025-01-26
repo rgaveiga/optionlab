@@ -9,8 +9,6 @@ from optionlab.black_scholes import get_bs_info
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945267,
     "profit_ranges": [(164.9, float("inf"))],
-    "expected_profit": 2011.0,
-    "expected_loss": -1758.0,
     "per_leg_cost": [-16899.0, 409.99999999999994],
     "strategy_cost": -16489.0,
     "minimum_return_in_the_domain": -9590.000000000002,
@@ -27,7 +25,6 @@ COVERED_CALL_RESULT = {
 PROB_100_ITM_RESULT = {
     "probability_of_profit": 1.0,
     "profit_ranges": [(0.0, float("inf"))],
-    "expected_profit": 524.0,
     "per_leg_cost": [-750.0, 990.0],
     "strategy_cost": 240.0,
     "minimum_return_in_the_domain": 240.0,
@@ -44,8 +41,6 @@ PROB_100_ITM_RESULT = {
 PROB_NAKED_CALL = {
     "probability_of_profit": 0.8389215512144531,
     "profit_ranges": [(0.0, 176.14)],
-    "expected_profit": 115.0,
-    "expected_loss": -707.0,
     "per_leg_cost": [114.99999999999999],
     "strategy_cost": 114.99999999999999,
     "minimum_return_in_the_domain": -6991.999999999999,
@@ -187,8 +182,6 @@ def test_covered_call_w_prev_position(nvidia):
     ) == {
         "probability_of_profit": 0.7048129541301169,
         "profit_ranges": [(154.9, float("inf"))],
-        "expected_profit": 2566.0,
-        "expected_loss": -1390.0,
         "per_leg_cost": [-15899.0, 409.99999999999994],
         "strategy_cost": -15489.0,
         "minimum_return_in_the_domain": -8590.000000000002,
@@ -311,8 +304,6 @@ def test_3_legs(nvidia):
     ) == {
         "probability_of_profit": 0.6790581742719213,
         "profit_ranges": [(156.6, float("inf"))],
-        "expected_profit": 2997.0,
-        "expected_loss": -1447.0,
         "per_leg_cost": [-15899.0, -750.0, 990.0],
         "strategy_cost": -15659.0,
         "minimum_return_in_the_domain": -8760.000000000002,
@@ -488,8 +479,6 @@ def test_calendar_spread():
     ) == {
         "probability_of_profit": 0.599111819020198,
         "profit_ranges": [(118.87, 136.15)],
-        "expected_profit": 2960.0,
-        "expected_loss": -835.99,
         "per_leg_cost": [4600.0, -5900.0],
         "strategy_cost": -1300.0,
         "minimum_return_in_the_domain": -1300.0000000000146,

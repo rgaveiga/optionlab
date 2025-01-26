@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Optional
 
 import numpy as np
-from numpy import abs, round, arange, sum, exp
+from numpy import abs, round, arange
 from numpy.lib.scimath import log, sqrt
 from scipy import stats
 
@@ -379,9 +379,6 @@ def _get_pop_bs(
         target.
     """
 
-    probability_of_reaching_target = 0.0
-    probability_of_missing_target = 0.0
-
     expected_return_above_target = None
     expected_return_below_target = None
 
@@ -392,52 +389,26 @@ def _get_pop_bs(
     )
 
     for i, t in enumerate(profit_range):
-        prob = []
-        exp_profit = []
+        prob = 0.0
 
-        if t == [(0.0, 0.0)]:
-            continue
-
-        for p_range in t:
-            lval = log(p_range[0]) if p_range[0] > 0.0 else -float("inf")
-            hval = log(p_range[1])
-            drift = (
-                inputs.interest_rate
-                - inputs.dividend_yield
-                - 0.5 * inputs.volatility * inputs.volatility
-            ) * inputs.years_to_target_date
-            m = log(inputs.stock_price) + drift
-            w = stats.norm.cdf((hval - m) / sigma) - stats.norm.cdf((lval - m) / sigma)
-
-            if w > 0.0:
-                v = stats.norm.pdf((hval - m) / sigma) - stats.norm.pdf(
+        if t != [(0.0, 0.0)]:
+            for p_range in t:
+                lval = log(p_range[0]) if p_range[0] > 0.0 else -float("inf")
+                hval = log(p_range[1])
+                drift = (
+                    inputs.interest_rate
+                    - inputs.dividend_yield
+                    - 0.5 * inputs.volatility * inputs.volatility
+                ) * inputs.years_to_target_date
+                m = log(inputs.stock_price) + drift
+                prob += stats.norm.cdf((hval - m) / sigma) - stats.norm.cdf(
                     (lval - m) / sigma
                 )
-                exp_stock = round(
-                    exp(m - sigma * v / w), 2
-                )  # Using inverse Mills ratio
 
-                if exp_stock > 0.0 and exp_stock <= s.max():
-                    exp_stock_index = np.where(s == exp_stock)[0][0]
-                    exp_profit.append(profit[exp_stock_index])
-                    prob.append(w)
-
-        if len(t) > 0:
-            prob_array = np.array(prob)
-            exp_profit_array = np.array(exp_profit)
-
-            if i == 0:
-                probability_of_reaching_target = sum(prob_array)
-                expected_return_above_target = round(
-                    sum(exp_profit_array * prob_array) / probability_of_reaching_target,
-                    2,
-                )
-            else:
-                probability_of_missing_target = sum(prob_array)
-                expected_return_below_target = round(
-                    sum(exp_profit_array * prob_array) / probability_of_missing_target,
-                    2,
-                )
+        if i == 0:
+            probability_of_reaching_target = prob
+        else:
+            probability_of_missing_target = prob
 
     return (
         probability_of_reaching_target,
