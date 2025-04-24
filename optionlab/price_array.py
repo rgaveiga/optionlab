@@ -1,3 +1,11 @@
+"""
+This module defines the `create_price_array` function, which calculates terminal 
+prices from numerical simulations of multiple stock paths.
+
+The terminal price array can later be used to calculate the probability of profit 
+(PoP) of a strategy using the `optionlab.engine.run_strategy` function.
+"""
+
 from functools import lru_cache
 
 import numpy as np
@@ -18,18 +26,15 @@ def create_price_array(
 
     Parameters
     ----------
-    inputs_data : BlackScholesModelInputs | LaplaceInputs | dict
-        Input data used to generate the terminal stock prices. See the documentation
-        for `BlackScholesModelInputs` and `LaplaceInputs` for more details.
-    n : int, optional
-        Number of terminal stock prices. The default is 100,000.
-    seed : int | None, optional
-        Seed for random number generation. The default is None.
+    `inputs_data`: input data used to generate the terminal stock prices.
+
+    `n`: number of terminal stock prices.
+
+    `seed`: seed for random number generation.
 
     Returns
     -------
-    numpy.ndarray
-        Array of terminal prices.
+    Array of terminal prices.
     """
 
     inputs: BlackScholesModelInputs | LaplaceInputs
@@ -37,7 +42,7 @@ def create_price_array(
     if isinstance(inputs_data, dict):
         input_type = inputs_data["model"]
 
-        if input_type in ("black-scholes", "normal"):
+        if input_type == "black-scholes":
             inputs = BlackScholesModelInputs.model_validate(inputs_data)
         elif input_type == "laplace":
             inputs = LaplaceInputs.model_validate(inputs_data)
@@ -55,7 +60,7 @@ def create_price_array(
 
     np_seed_number(seed)
 
-    if input_type in ("black-scholes", "normal"):
+    if input_type == "black-scholes":
         arr = _get_array_price_from_BS(inputs, n)
     elif input_type == "laplace":
         arr = _get_array_price_from_laplace(inputs, n)

@@ -1,6 +1,6 @@
 import pytest
 
-from optionlab.models import Inputs, Outputs, BlackScholesModelInputs, LaplaceInputs
+from optionlab import Inputs, Outputs, BlackScholesModelInputs, LaplaceInputs
 from optionlab.engine import run_strategy
 from optionlab.price_array import create_price_array
 from optionlab.black_scholes import get_bs_info

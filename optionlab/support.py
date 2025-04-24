@@ -1,3 +1,9 @@
+"""
+This module implements a number of helper functions that are not intended to be 
+called directly by users, but rather support functionalities within the 
+`optionlab.engine.run_strategy` function.
+"""
+
 from __future__ import division
 
 from functools import lru_cache
@@ -35,25 +41,23 @@ def get_pl_profile(
 
     Parameters
     ----------
-    option_type : str
-        `OptionType` literal value, which must be either **call** or **put**.
-    action : str
-        `Action` literal value, which must be either **buy** or **sell**.
-    x : float
-        Strike price.
-    val : float
-        Option price.
-    n : int
-        Number of options.
-    s : numpy.ndarray
-        Array of stock prices.
-    commission : float, optional
-        Brokerage commission. The default is 0.0.
+    `option_type`: either *'call'* or *'put'*.
+
+    `action`: either *'buy'* or *'sell'*.
+
+    `x`: strike price.
+
+    `val`: option price.
+
+    `n`: number of options.
+
+    `s`: array of stock prices.
+
+    `commission`: brokerage commission.
 
     Returns
     -------
-    tuple[numpy.ndarray, float]
-        Profit/loss profile and cost of an option trade at expiration.
+    Profit/loss profile and cost of an option trade at expiration.
     """
 
     if action == "buy":
@@ -80,21 +84,19 @@ def get_pl_profile_stock(
 
     Parameters
     ----------
-    s0 : float
-        Initial stock price.
-    action : str
-        `Action` literal value, which must be either **buy** or **sell**.
-    n : int
-        Number of shares.
-    s : numpy.ndarray
-        Array of stock prices.
-    commission : float, optional
-        Brokerage commission. The default is 0.0.
+    `s0`: initial stock price.
+
+    `action`: either *'buy'* or *'sell'*.
+
+    `n`: number of shares.
+
+    `s`: array of stock prices.
+
+    `commission`: brokerage commission.
 
     Returns
     -------
-    tuple[numpy.ndarray, float]
-        Profit/loss profile and cost of a stock position.
+    Profit/loss profile and cost of a stock position.
     """
 
     if action == "buy":
@@ -126,33 +128,32 @@ def get_pl_profile_bs(
 
     Parameters
     ----------
-    option_type : str
-        `OptionType` literal value, which must be either **call** or **put**.
-    action : str
-        `Action` literal value, which must be either **buy** or **sell**.
-    x : float
-        Strike price.
-    val : float
-        Initial option price.
-    r : float
-        Annualized risk-free interest rate.
-    target_to_maturity_years : float
-        Time remaining to maturity from the target date, in years.
-    volatility : float
-        Annualized volatility of the underlying asset.
-    n : int
-        Number of options.
-    s : numpy.ndarray
-        Array of stock prices.
-    y : float, optional
-        Annualized dividend yield. The default is 0.0.
-    commission : float, optional
-        Brokerage commission. The default is 0.0.
+    `option_type`: either *'call'* or *'put'*.
+
+    `action`: either *'buy'* or *'sell'*.
+
+    `x`: strike price.
+
+    `val`: initial option price.
+
+    `r`: annualized risk-free interest rate.
+
+    `target_to_maturity_years`: time remaining to maturity from the target date,
+    in years.
+
+    `volatility`: annualized volatility of the underlying asset.
+
+    `n`: number of options.
+
+    `s`: array of stock prices.
+
+    `y`: annualized dividend yield.
+
+    `commission`: brokerage commission.
 
     Returns
     -------
-    tuple[numpy.ndarray, float]
-        Profit/loss profile and cost of an option trade before expiration.
+    Profit/loss profile and cost of an option trade before expiration.
     """
 
     if action == "buy":
@@ -182,15 +183,13 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 
     Parameters
     ----------
-    min_price : float
-        Minimum stock price in the range.
-    max_price : float
-        Maximum stock price in the range.
+    `min_price`: minimum stock price in the range.
+
+    `max_price`: maximum stock price in the range.
 
     Returns
     -------
-    numpy.ndarray
-        Array of sequential stock prices.
+    Array of sequential stock prices.
     """
 
     if max_price > min_price:
@@ -210,20 +209,17 @@ def get_pop(
 
     Parameters
     ----------
-    s : numpy.ndarray
-        Array of stock prices.
-    profit : numpy.ndarray
-        Array of profits and losses.
-    inputs_data : BlackScholesModelInputs | ArrayInputs
-        Input data used to estimate the probability of profit. See the documentation
-        for `BlackScholesModelInputs` and `ArrayInputs` for more details.
-    target : float, optional
-        Return target. The default is 0.01.
+    `s`: array of stock prices.
+
+    `profit`: array of profits and losses.
+
+    `inputs_data`: input data used to estimate the probability of profit.
+
+    `target`: target return.
 
     Returns
     -------
-    PoPOutputs
-        Outputs. See the documentation for `PoPOutputs` for more details.
+    Outputs of a probability of profit (PoP) calculation.
     """
 
     probability_of_reaching_target: float
@@ -270,21 +266,19 @@ def _get_pl_option(
 
     Parameters
     ----------
-    option_type : str
-        `OptionType` literal value, which must be either **call** or **put**.
-    opvalue : float
-        Option price.
-    action : str
-        `Action` literal value, which must be either **buy** or **sell**.
-    s : numpy.ndarray
-        Array of stock prices.
-    x : float
-        Strike price.
+    `option_type`: either *'call'* or *'put'*.
+
+    `opvalue`: option price.
+
+    `action`: either *'buy'* or *'sell'*.
+
+    `s`: array of stock prices.
+
+    `x`: strike price.
 
     Returns
     -------
-    numpy.ndarray
-        Profit or loss profile of an option leg at expiration.
+    Profit or loss profile of an option leg at expiration.
     """
 
     if action == "sell":
@@ -301,17 +295,15 @@ def _get_payoff(option_type: OptionType, s: np.ndarray, x: float) -> np.ndarray:
 
     Parameters
     ----------
-    option_type : str
-        `OptionType` literal value, which must be either **call** or **put**.
-    s : numpy.ndarray
-        Array of stock prices.
-    x : float
-        Strike price.
+    `option_type`: either *'call'* or *'put'*.
+
+    `s`: array of stock prices.
+
+    `x`: strike price.
 
     Returns
     -------
-    numpy.ndarray
-        Payoff of an option leg at expiration.
+    Payoff of an option leg at expiration.
     """
 
     if option_type == "call":
@@ -328,17 +320,15 @@ def _get_pl_stock(s0: float, action: Action, s: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    s0 : float
-        Spot price of the underlying asset.
-    action : str
-        `Action` literal value, which must be either **buy** or **sell**.
-    s : numpy.ndarray
-        Array of stock prices.
+    `s0`: spot price of the underlying asset.
+
+    `action`: either *'buy'* or *'sell'*.
+
+    `s`: array of stock prices.
 
     Returns
     -------
-    numpy.ndarray
-        Profit or loss profile of a stock position.
+    Profit or loss profile of a stock position.
     """
 
     if action == "sell":
@@ -361,22 +351,20 @@ def _get_pop_bs(
 
     Parameters
     ----------
-    s : numpy.ndarray
-        Array of stock prices.
-    profit : numpy.ndarray
-        Array of profits and losses.
-    inputs : BlackScholesModelInputs
-        Input data used to estimate the probability of profit. See the documentation
-        for `BlackScholesModelInputs` for more details.
-    profit_range : tuple[list[Range], list[Range]]
-        Tuple of lists of stock price pairs defining the profit and loss ranges.
+    `s`: array of stock prices.
+
+    `profit`: array of profits and losses.
+
+    `inputs`: input data used to estimate the probability of profit.
+
+    `profit_range`: lists of stock price pairs defining the profit and loss
+    ranges.
 
     Returns
     -------
-    tuple[float, float | None, float, float | None]
-        Probability of reaching the return target, expected value above the target,
-        probability of missing the return target, and expected value below the
-        target.
+    Probability of reaching the return target, expected value above the target,
+    probability of missing the return target, and expected value below the
+    target.
     """
 
     expected_return_above_target = None
@@ -427,18 +415,15 @@ def _get_pop_array(
 
     Parameters
     ----------
-    inputs : ArrayInputs
-       Input data used to estimate the probability of profit. See the documentation
-       for `ArrayInputs` for more details.
-    target : float
-        Return target.
+    `inputs`: input data used to estimate the probability of profit.
+
+    `target`: target return.
 
     Returns
     -------
-    tuple[float, float | None, float, float | None]
-        Probability of reaching the return target, expected value above the target,
-        probability of missing the return target, and expected value below the
-        target.
+    Probability of reaching the target return, expected value above the target,
+    probability of missing the target return, and expected value below the
+    target.
     """
 
     if inputs.array.shape[0] == 0:
@@ -465,23 +450,21 @@ def _get_profit_range(
     s: np.ndarray, profit: np.ndarray, target: float = 0.01
 ) -> tuple[list[Range], list[Range]]:
     """
-    Returns a tuple of lists of stock price ranges: one representing the ranges
-    where the options trade returns are equal to or greater than the target, and
-    the other representing the ranges where they fall short.
+    Returns lists of stock price ranges: one representing the ranges where the
+    options trade returns are equal to or greater than the target, and the other
+    representing the ranges where they fall short.
 
     Parameters
     ----------
-    s : numpy.ndarray
-        Array of stock prices.
-    profit : numpy.ndarray
-        Array of profits and losses.
-    target : float, optional
-        Profit target. The default is 0.01.
+    `s`: array of stock prices.
+
+    `profit`: array of profits and losses.
+
+    `target`: target profit.
 
     Returns
     -------
-    tuple(list[Range], list[Range])
-        Tuple of lists of stock price pairs.
+    Lists of stock price pairs.
     """
 
     profit_range = []
@@ -551,15 +534,13 @@ def _get_sign_changes(profit: np.ndarray, target: float) -> list[int]:
 
     Parameters
     ----------
-    profit : np.ndarray
-        Array of profits and losses.
-    target : float
-        Profit target.
+    `profit`: array of profits and losses.
+
+    `target`: target profit.
 
     Returns
     -------
-    list[int]
-        List of indices.
+    List of indices.
     """
 
     p_temp = profit - target + 1e-10

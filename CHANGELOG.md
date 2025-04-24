@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.4.3 (2025-04-14)
+
+- Updated docstrings.
+- Added documentation with `pdoc`.
+- Changed __init__.py for compatibility with `pdoc` autodocumentation.
+- Removed `BaseLeg` from models.py.
+- Changed `StrategyType` to `StrategyLegType` in models.py for clarity.
+- Removed "normal" as an alias for "black-scholes" to avoid confusion with Bachelier model.
+
 ## 1.4.2 (2025-01-25)
 
 - Removed `expected_profit` and `expected_loss` calculation from `_get_pop_bs` in support.py; implementation was not correct, giving wrong results when compared with Monte Carlo simulations

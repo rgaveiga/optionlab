@@ -98,7 +98,7 @@ def test_cache_price_samples():
 
     sample3 = create_price_array(
         inputs_data={
-            "model": "normal",
+            "model": "black-scholes",
             "stock_price": stock_price,
             "volatility": volatility,
             "interest_rate": interest_rate,
