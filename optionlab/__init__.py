@@ -22,12 +22,13 @@ of the underlying asset,
 
 - an estimate of the strategy's probability of profit.
 
-The probability of profit (PoP) of the strategy on the user-defined target date  
-is calculated by default using the Black-Scholes model. The user can alternatively 
-provide an array of underlying asset prices obtained elsewhere (e.g. from the 
-Heston model, a Laplace distribution or a Machine Learning/Deep Learning model) 
+The probability of profit (PoP) of the strategy on the user-defined target date 
+is calculated analytically by default using the Black-Scholes model. Alternatively, 
+the user can provide an array of terminal underlying asset prices obtained from 
+other sources (e.g., the Heston model, a Laplace distribution, or a Machine Learning/Deep Learning model) 
 to be used in the calculations instead of the Black-Scholes model. This allows 
-**OptionLab** to function as a calculator using custom models.
+**OptionLab** to function as a calculator that supports a variety of pricing 
+models.
 
 An advanced feature of **OptionLab** that provides great flexibility in building 
 complex dynamic strategies is the ability to include previously created positions 

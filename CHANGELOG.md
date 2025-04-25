@@ -8,6 +8,7 @@
 - Removed `BaseLeg` from models.py.
 - Changed `StrategyType` to `StrategyLegType` in models.py for clarity.
 - Removed "normal" as an alias for "black-scholes" to avoid confusion with Bachelier model.
+- Updated Readme.md.
 
 ## 1.4.2 (2025-01-25)
 
