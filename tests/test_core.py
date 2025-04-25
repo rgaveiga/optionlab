@@ -1,9 +1,9 @@
 import pytest
 
-from optionlab.models import Inputs, Outputs, BlackScholesModelInputs, LaplaceInputs
-from optionlab.engine import run_strategy
-from optionlab.price_array import create_price_array
-from optionlab.black_scholes import get_bs_info
+from optionlab import Inputs, Outputs, BlackScholesModelInputs, LaplaceInputs
+from optionlab import run_strategy
+from optionlab import create_price_array
+from optionlab import get_bs_info
 
 
 COVERED_CALL_RESULT = {

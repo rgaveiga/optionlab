@@ -1,3 +1,8 @@
+"""
+This module implements the `plot_pl` function, which displays the profit/loss diagram 
+of an options trading strategy.
+"""
+
 from __future__ import division
 from __future__ import print_function
 
@@ -14,12 +19,11 @@ def plot_pl(outputs: Outputs) -> None:
 
     Parameters
     ----------
-    outputs : Outputs
-        Output data from a strategy calculation.
+    `outputs`: output data from a strategy calculation with `optionlab.engine.run_strategy`.
 
     Returns
     -------
-    None.
+    `None`.
     """
 
     st = outputs.data

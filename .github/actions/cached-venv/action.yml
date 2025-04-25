@@ -5,7 +5,7 @@ runs:
   using: composite
   steps:
     - name: Cache virtual environment
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       env:
         cache-name: cache-venv-1
       with:

@@ -1,3 +1,7 @@
+"""
+This module defines utility functions.
+"""
+
 from __future__ import division
 
 import datetime as dt
@@ -20,19 +24,15 @@ def get_nonbusiness_days(
 
     Parameters
     ----------
-    start_date : datetime.date
-        Start date.
-    end_date : datetime.date
-        End date.
-    country : str, optional
-        Country of the stock exchange. A list of available countries can be found
-        in the `holidays library documentation <https://holidays.readthedocs.io/en/latest/>`_.
-        The default value is 'US'.
+    `start_date`: start date.
+
+    `end_date`: end date.
+
+    `country`: country of the stock exchange.
 
     Returns
     -------
-    int
-        Number of weekends and holidays between the start and end date.
+    Number of weekends and holidays between the start and end date.
     """
 
     if end_date > start_date:
@@ -59,15 +59,14 @@ def get_pl(outputs: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.nda
 
     Parameters
     ----------
-    outputs : Outputs
-        Output data from a strategy calculation.
-    leg : int | None, optional
-        Index of a strategy leg. The default is None, which means the whole strategy.
+    `outputs`: output data from a strategy calculation.
+
+    `leg`: index of a strategy leg. The default is `None`, which means the whole
+    strategy.
 
     Returns
     -------
-    tuple[numpy.ndarray, numpy.ndarray]
-        Array of stock prices and array or profits/losses.
+    Array of stock prices and array or profits/losses.
     """
 
     if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
@@ -85,16 +84,16 @@ def pl_to_csv(
 
     Parameters
     ----------
-    outputs : Outputs
-        Output data from a strategy calculation.
-    filename : str, optional
-        Name of the CSV file. The default is 'pl.csv'.
-    leg : int | None, optional
-        Index of a strategy leg. The default is None, which means the whole strategy.
+    `outputs`: output data from a strategy calculation.
+
+    `filename`: name of the CSV file.
+
+    `leg`: index of a strategy leg. The default is `None`, which means the whole
+    strategy.
 
     Returns
     -------
-    None.
+    `None`.
     """
 
     if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:

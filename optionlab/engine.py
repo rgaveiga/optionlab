@@ -1,3 +1,11 @@
+"""
+This module defines the `run_strategy` function.
+
+Given input data provided as either an `optionlab.models.Inputs` object or a dictionary,
+`run_strategy` returns the results of an options strategy calculation (e.g., the
+probability of profit on the target date) as an `optionlab.models.Outputs` object.
+"""
+
 from __future__ import division
 from __future__ import print_function
 
@@ -36,15 +44,11 @@ def run_strategy(inputs_data: Inputs | dict) -> Outputs:
 
     Parameters
     ----------
-    inputs_data : Inputs | dict
-        Input data used in the strategy calculation. See the documentation for
-        `Inputs` for more details.
+    `inputs_data`: input data used in the strategy calculation.
 
     Returns
     -------
-    Outputs
-        Output data from the strategy calculation. See the documentation for
-        `Outputs` for more details.
+    Output data from the strategy calculation.
     """
 
     inputs = (
@@ -177,7 +181,7 @@ def _run(data: EngineData) -> EngineData:
         if inputs.model == "array":
             data.strategy_profit_mc += data.profit_mc[i]
 
-    if inputs.model in ("normal", "black-scholes"):
+    if inputs.model == "black-scholes":
         pop_inputs = BlackScholesModelInputs(
             stock_price=inputs.stock_price,
             volatility=inputs.volatility,
