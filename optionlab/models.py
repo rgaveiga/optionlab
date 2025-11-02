@@ -329,6 +329,14 @@ class Inputs(BaseModel):
     The default is an empty array.
     """
 
+    price_increment: float = Field(0.01, gt=0.0)
+    """
+    Price increment for generating the stock price array used in profit/loss calculations.
+    Smaller values create more data points but increase computation time.
+    
+    The default is 0.01 (one cent increments).
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("strategy")

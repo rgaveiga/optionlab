@@ -66,7 +66,7 @@ def run_strategy(inputs_data: Inputs | dict) -> Outputs:
 
 def _init_inputs(inputs: Inputs) -> EngineData:
     data = EngineData(
-        stock_price_array=create_price_seq(inputs.min_stock, inputs.max_stock),
+        stock_price_array=create_price_seq(inputs.min_stock, inputs.max_stock, inputs.price_increment),
         terminal_stock_prices=inputs.array if inputs.model == "array" else array([]),
         inputs=inputs,
     )
