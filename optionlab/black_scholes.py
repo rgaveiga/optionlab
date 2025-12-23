@@ -24,8 +24,8 @@ def get_bs_info(
     Provides information about call and put options calculated using the Black-Scholes
     formula.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s`: stock price.
 
     `x`: strike price(s).
@@ -38,8 +38,8 @@ def get_bs_info(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Information calculated using the Black-Scholes formula.
     """
 
@@ -87,8 +87,8 @@ def get_option_price(
     """
     Returns the price of an option.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `s0`: spot price(s) of the underlying asset.
@@ -105,8 +105,8 @@ def get_option_price(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Option price(s).
     """
 
@@ -137,8 +137,8 @@ def get_delta(
     """
     Returns the option's Greek Delta.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `d1`: `d1` in Black-Scholes formula.
@@ -147,8 +147,8 @@ def get_delta(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Option's Greek Delta.
     """
 
@@ -172,8 +172,8 @@ def get_gamma(
     """
     Returns the option's Greek Gamma.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s0`: spot price of the underlying asset.
 
     `vol`: annualized volatitily.
@@ -184,8 +184,8 @@ def get_gamma(
 
     `y`: annualized divident yield.
 
-    Returns
-    -------
+    ### Returns
+
     Option's Greek Gamma.
     """
 
@@ -210,8 +210,8 @@ def get_theta(
     """
     Returns the option's Greek Theta.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `s0`: spot price of the underlying asset.
@@ -230,8 +230,8 @@ def get_theta(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Option's Greek Theta.
     """
 
@@ -264,8 +264,8 @@ def get_vega(
     """
     Returns the option's Greek Vega.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s0`: spot price of the underlying asset.
 
     `years_to_maturity`: time remaining to maturity, in years.
@@ -274,8 +274,8 @@ def get_vega(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Option's Greek Vega.
     """
 
@@ -296,8 +296,8 @@ def get_rho(
     """
     Returns the option's Greek Rho.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `x`: strike price(s).
@@ -308,8 +308,8 @@ def get_rho(
 
     `d2`: `d2` in Black-Scholes formula.
 
-    Returns
-    -------
+    ### Returns
+
     Option's Greek Rho.
     """
 
@@ -344,8 +344,8 @@ def get_d1(
     """
     Returns `d1` used in Black-Scholes formula.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s0`: spot price(s) of the underlying asset.
 
     `x`: strike price(s).
@@ -358,8 +358,8 @@ def get_d1(
 
     `y`: annualized divident yield.
 
-    Returns
-    -------
+    ### Returns
+
     `d1` in Black-Scholes formula.
     """
 
@@ -379,8 +379,8 @@ def get_d2(
     """
     Returns `d2` used in Black-Scholes formula.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s0`: spot price(s) of the underlying asset.
 
     `x`: strike price(s).
@@ -393,8 +393,8 @@ def get_d2(
 
     `y`: annualized divident yield.
 
-    Returns
-    -------
+    ### Returns
+
     `d2` in Black-Scholes formula.
     """
 
@@ -415,8 +415,8 @@ def get_implied_vol(
     """
     Returns the implied volatility of an option.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `oprice`: market price of an option.
@@ -431,8 +431,8 @@ def get_implied_vol(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Option's implied volatility.
     """
 
@@ -455,8 +455,8 @@ def get_itm_probability(
     """
     Returns the probability(ies) that the option(s) will expire in-the-money (ITM).
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `d2`: `d2` in Black-Scholes formula.
@@ -465,8 +465,8 @@ def get_itm_probability(
 
     `y`: annualized dividend yield.
 
-    Returns
-    -------
+    ### Returns
+
     Probability(ies) that the option(s) will expire in-the-money (ITM).
     """
 

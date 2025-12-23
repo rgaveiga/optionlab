@@ -11,7 +11,7 @@ from functools import lru_cache
 from typing import Optional
 
 import numpy as np
-from numpy import abs, round, arange
+from numpy import abs, round, arange, zeros
 from numpy.lib.scimath import log, sqrt
 from scipy import stats
 
@@ -39,8 +39,8 @@ def get_pl_profile(
     """
     Returns the profit/loss profile and cost of an options trade at expiration.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `action`: either *'buy'* or *'sell'*.
@@ -55,8 +55,8 @@ def get_pl_profile(
 
     `commission`: brokerage commission.
 
-    Returns
-    -------
+    ### Returns
+
     Profit/loss profile and cost of an option trade at expiration.
     """
 
@@ -82,8 +82,8 @@ def get_pl_profile_stock(
     """
     Returns the profit/loss profile and cost of a stock position.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s0`: initial stock price.
 
     `action`: either *'buy'* or *'sell'*.
@@ -94,8 +94,8 @@ def get_pl_profile_stock(
 
     `commission`: brokerage commission.
 
-    Returns
-    -------
+    ### Returns
+
     Profit/loss profile and cost of a stock position.
     """
 
@@ -126,8 +126,8 @@ def get_pl_profile_bs(
     Returns the profit/loss profile and cost of an options trade on a target date
     before expiration using the Black-Scholes model for option pricing.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `action`: either *'buy'* or *'sell'*.
@@ -151,8 +151,8 @@ def get_pl_profile_bs(
 
     `commission`: brokerage commission.
 
-    Returns
-    -------
+    ### Returns
+
     Profit/loss profile and cost of an option trade before expiration.
     """
 
@@ -181,14 +181,14 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
     Generates a sequence of stock prices from a minimum to a maximum price with
     increment $0.01.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `min_price`: minimum stock price in the range.
 
     `max_price`: maximum stock price in the range.
 
-    Returns
-    -------
+    ### Returns
+
     Array of sequential stock prices.
     """
 
@@ -207,18 +207,18 @@ def get_pop(
     """
     Estimates the probability of profit (PoP) of an options trading strategy.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s`: array of stock prices.
 
-    `profit`: array of profits and losses.
+    `profit`: array of profits (and losses).
 
     `inputs_data`: input data used to estimate the probability of profit.
 
     `target`: target return.
 
-    Returns
-    -------
+    ### Returns
+
     Outputs of a probability of profit (PoP) calculation.
     """
 
@@ -234,12 +234,12 @@ def get_pop(
     missing_target_range = t_ranges[1] if t_ranges[1] != [(0.0, 0.0)] else []
 
     if isinstance(inputs_data, BlackScholesModelInputs):
-        (
-            probability_of_reaching_target,
-            expected_return_above_target,
-            probability_of_missing_target,
-            expected_return_below_target,
-        ) = _get_pop_bs(s, profit, inputs_data, t_ranges)
+        probability_of_reaching_target, probability_of_missing_target = _get_pop_bs(
+            s, profit, inputs_data, t_ranges
+        )
+        expected_return_above_target, expected_return_below_target = (
+            _compute_expected_returns_bs(s, profit, inputs_data, target)
+        )
     elif isinstance(inputs_data, ArrayInputs):
         (
             probability_of_reaching_target,
@@ -264,8 +264,8 @@ def _get_pl_option(
     """
     Returns the profit or loss profile of an option leg at expiration.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `opvalue`: option price.
@@ -276,8 +276,8 @@ def _get_pl_option(
 
     `x`: strike price.
 
-    Returns
-    -------
+    ### Returns
+
     Profit or loss profile of an option leg at expiration.
     """
 
@@ -293,16 +293,16 @@ def _get_payoff(option_type: OptionType, s: np.ndarray, x: float) -> np.ndarray:
     """
     Returns the payoff of an option leg at expiration.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `option_type`: either *'call'* or *'put'*.
 
     `s`: array of stock prices.
 
     `x`: strike price.
 
-    Returns
-    -------
+    ### Returns
+
     Payoff of an option leg at expiration.
     """
 
@@ -318,16 +318,16 @@ def _get_pl_stock(s0: float, action: Action, s: np.ndarray) -> np.ndarray:
     """
     Returns the profit or loss profile of a stock position.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s0`: spot price of the underlying asset.
 
     `action`: either *'buy'* or *'sell'*.
 
     `s`: array of stock prices.
 
-    Returns
-    -------
+    ### Returns
+
     Profit or loss profile of a stock position.
     """
 
@@ -344,13 +344,13 @@ def _get_pop_bs(
     profit: np.ndarray,
     inputs: BlackScholesModelInputs,
     profit_range: tuple[list[Range], list[Range]],
-) -> tuple[float, Optional[float], float, Optional[float]]:
+) -> tuple[float, float]:
     """
     Estimates the probability of profit (PoP) of an options trading strategy using
     the Black-Scholes model.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s`: array of stock prices.
 
     `profit`: array of profits and losses.
@@ -360,21 +360,23 @@ def _get_pop_bs(
     `profit_range`: lists of stock price pairs defining the profit and loss
     ranges.
 
-    Returns
-    -------
-    Probability of reaching the return target, expected value above the target,
-    probability of missing the return target, and expected value below the
-    target.
-    """
+    ### Returns
 
-    expected_return_above_target = None
-    expected_return_below_target = None
+    Probability of reaching the return target and probability of missing the
+    return target.
+    """
 
     sigma = (
         inputs.volatility * sqrt(inputs.years_to_target_date)
         if inputs.volatility > 0.0
         else 1e-10
     )
+    drift = (
+        inputs.interest_rate
+        - inputs.dividend_yield
+        - 0.5 * inputs.volatility * inputs.volatility
+    ) * inputs.years_to_target_date
+    m = log(inputs.stock_price) + drift
 
     for i, t in enumerate(profit_range):
         prob = 0.0
@@ -383,12 +385,6 @@ def _get_pop_bs(
             for p_range in t:
                 lval = log(p_range[0]) if p_range[0] > 0.0 else -float("inf")
                 hval = log(p_range[1])
-                drift = (
-                    inputs.interest_rate
-                    - inputs.dividend_yield
-                    - 0.5 * inputs.volatility * inputs.volatility
-                ) * inputs.years_to_target_date
-                m = log(inputs.stock_price) + drift
                 prob += stats.norm.cdf((hval - m) / sigma) - stats.norm.cdf(
                     (lval - m) / sigma
                 )
@@ -398,29 +394,93 @@ def _get_pop_bs(
         else:
             probability_of_missing_target = prob
 
-    return (
-        probability_of_reaching_target,
-        expected_return_above_target,
-        probability_of_missing_target,
-        expected_return_below_target,
-    )
+    return probability_of_reaching_target, probability_of_missing_target
 
 
-def _get_pop_array(
-    inputs: ArrayInputs, target: float
-) -> tuple[float, Optional[float], float, Optional[float]]:
+def _compute_expected_returns_bs(
+    s: np.ndarray,
+    profit: np.ndarray,
+    inputs: BlackScholesModelInputs,
+    target: float = 0.01,
+) -> tuple[float, float]:
     """
-    Estimates the probability of profit (PoP) of an options trading strategy using
-    an array of terminal stock prices.
+    Computes the expected returns above or below the target assuming the Black-Scholes
+    model.
 
-    Parameters
-    ----------
+    ### Parameters
+
+    `s`: array of stock prices.
+
+    `profit`: array of profits and losses.
+
     `inputs`: input data used to estimate the probability of profit.
 
     `target`: target return.
 
-    Returns
-    -------
+    ### Returns
+
+    Expected value above the target and expected value below the target.
+    """
+
+    expected_return_above_target: float
+    expected_return_below_target: float
+
+    mid_point = 0.5 * (profit[:-1] + profit[1:])
+    weighted_profit = zeros(mid_point.shape[0])
+
+    sigma = (
+        inputs.volatility * sqrt(inputs.years_to_target_date)
+        if inputs.volatility > 0.0
+        else 1e-10
+    )
+    drift = (
+        inputs.interest_rate
+        - inputs.dividend_yield
+        - 0.5 * inputs.volatility * inputs.volatility
+    ) * inputs.years_to_target_date
+    m = log(inputs.stock_price) + drift
+
+    lval = np.where(s[:-1] > 0.0, log(s[:-1]), -np.inf)
+    hval = log(s[1:])
+    prob = np.clip(
+        stats.norm.cdf((hval - m) / sigma) - stats.norm.cdf((lval - m) / sigma),
+        0.0,
+        1.0,
+    )
+
+    weighted_profit = mid_point * prob
+    ind_above_target = np.where(mid_point >= target)
+    ind_below_target = np.where(mid_point < target)
+    sum_prob_above_target = prob[ind_above_target].sum()
+    sum_prob_below_target = prob[ind_below_target].sum()
+    tmp1 = weighted_profit[ind_above_target].sum()
+    tmp2 = weighted_profit[ind_below_target].sum()
+
+    expected_return_above_target = (
+        round(tmp1 / sum_prob_above_target, 2) if sum_prob_above_target > 0.0 else 0.0
+    )
+    expected_return_below_target = (
+        round(tmp2 / sum_prob_below_target, 2) if sum_prob_below_target > 0.0 else 0.0
+    )
+
+    return expected_return_above_target, expected_return_below_target
+
+
+def _get_pop_array(
+    inputs: ArrayInputs, target: float
+) -> tuple[float, float, float, float]:
+    """
+    Estimates the probability of profit (PoP) of an options trading strategy using
+    an array of terminal stock prices.
+
+    ### Parameters
+
+    `inputs`: input data used to estimate the probability of profit.
+
+    `target`: target return.
+
+    ### Returns
+
     Probability of reaching the target return, expected value above the target,
     probability of missing the target return, and expected value below the
     target.
@@ -435,8 +495,8 @@ def _get_pop_array(
     probability_of_reaching_target = tmp1.shape[0] / inputs.array.shape[0]
     probability_of_missing_target = 1.0 - probability_of_reaching_target
 
-    expected_return_above_target = round(tmp1.mean(), 2) if tmp1.shape[0] > 0 else None
-    expected_return_below_target = round(tmp2.mean(), 2) if tmp2.shape[0] > 0 else None
+    expected_return_above_target = round(tmp1.mean(), 2) if tmp1.shape[0] > 0 else 0.0
+    expected_return_below_target = round(tmp2.mean(), 2) if tmp2.shape[0] > 0 else 0.0
 
     return (
         probability_of_reaching_target,
@@ -454,16 +514,16 @@ def _get_profit_range(
     options trade returns are equal to or greater than the target, and the other
     representing the ranges where they fall short.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `s`: array of stock prices.
 
     `profit`: array of profits and losses.
 
     `target`: target profit.
 
-    Returns
-    -------
+    ### Returns
+
     Lists of stock price pairs.
     """
 
@@ -532,14 +592,14 @@ def _get_sign_changes(profit: np.ndarray, target: float) -> list[int]:
     """
     Returns a list of the indices in the array of profits where the sign changes.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `profit`: array of profits and losses.
 
     `target`: target profit.
 
-    Returns
-    -------
+    ### Returns
+
     List of indices.
     """
 

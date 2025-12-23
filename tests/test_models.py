@@ -79,7 +79,7 @@ def test_validate_dates(nvidia):
     )
 
 
-def test_array_distribution_with_no_array(nvidia):
+def test_array_with_no_array(nvidia):
     inputs = nvidia | {
         "model": "array",
         "strategy": [

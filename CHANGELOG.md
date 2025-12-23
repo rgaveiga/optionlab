@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.5.0 (2025-12-14)
+
+- Changed `get_pop` to compute the expected profit and expected loss of a strategy with the Black-Scholes model by calling a new function, `_compute_expected_returns_bs`.
+- Updated docstrings.
+- Removed price_array.py (a better Monte Carlo implementation is coming soon).
+- The `expected_return_above_target` and `expected_return_below_target` fields in `PoPOutputs`, in models.py, are no longer optional but floats with default value of 0.0.
+- The same for the `expected_profit` and `expected_loss` fields in `EngineData` and `Outputs`, both also in models.py.
+- Removed test_misc.py.
+
 ## 1.4.3 (2025-04-14)
 
 - Updated docstrings.

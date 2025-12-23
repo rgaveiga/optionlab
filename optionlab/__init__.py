@@ -7,28 +7,28 @@ about options trading to developers of quantitative strategies.
 
 **OptionLab** calculations can produce a number of useful outputs:
 
-- the profit/loss profile of the strategy on a user-defined target date,
+- the profit/loss profile of the strategy on a user-defined target date
 
-- the range of stock prices for which the strategy is profitable,
+- the range of stock prices for which the strategy is profitable
 
-- the Greeks associated with each leg of the strategy,
+- the Greeks associated with each leg of the strategy
 
-- the resulting debit or credit on the trading account,
+- the resulting debit or credit on the trading account
 
 - the maximum and minimum returns within a specified lower and higher price range 
-of the underlying asset, 
+of the underlying asset 
 
-- the expected profit and expected loss, and
+- the expected profit and expected loss of the strategy
 
-- an estimate of the strategy's probability of profit.
+- the probability of profit
 
 The probability of profit (PoP) of the strategy on the user-defined target date 
-is calculated analytically by default using the Black-Scholes model. Alternatively, 
+is calculated analytically by using the Black-Scholes model. Alternatively, 
 the user can provide an array of terminal underlying asset prices obtained from 
-other sources (e.g., the Heston model, a Laplace distribution, or a Machine Learning/Deep Learning model) 
-to be used in the calculations instead of the Black-Scholes model. This allows 
-**OptionLab** to function as a calculator that supports a variety of pricing 
-models.
+other sources (e.g., the Heston model, a Laplace distribution, or a Machine 
+Learning/Deep Learning model) to be used in the calculations instead of the 
+Black-Scholes model. This allows **OptionLab** to function as a calculator that 
+supports a variety of pricing models.
 
 An advanced feature of **OptionLab** that provides great flexibility in building 
 complex dynamic strategies is the ability to include previously created positions 
@@ -149,109 +149,10 @@ Jupyter notebooks in the [examples](https://github.com/rgaveiga/optionlab/tree/m
 directory.
 """
 
-from .models import (
-    Inputs,
-    OptionType,
-    Option,
-    Outputs,
-    ClosedPosition,
-    ArrayInputs,
-    TheoreticalModelInputs,
-    BlackScholesModelInputs,
-    LaplaceInputs,
-    BlackScholesInfo,
-    TheoreticalModel,
-    FloatOrNdarray,
-    StrategyLeg,
-    StrategyLegType,
-    Stock,
-    Action,
-)
-from .black_scholes import (
-    get_itm_probability,
-    get_implied_vol,
-    get_option_price,
-    get_d1,
-    get_d2,
-    get_bs_info,
-    get_vega,
-    get_delta,
-    get_gamma,
-    get_theta,
-    get_rho,
-)
+from .models import Inputs
 from .engine import run_strategy
 from .plot import plot_pl
-from .price_array import create_price_array
-from .support import (
-    get_pl_profile,
-    get_pl_profile_stock,
-    get_pl_profile_bs,
-    create_price_seq,
-    get_pop,
-)
-from .utils import (
-    get_nonbusiness_days,
-    get_pl,
-    pl_to_csv,
-)
-
-
-VERSION = "1.4.3"
+from .utils import get_pl, pl_to_csv
 
 __docformat__ = "markdown"
-__version__ = VERSION
-
-
-ALL = (
-    # models
-    "Inputs",
-    "OptionType",
-    "Option",
-    "Outputs",
-    "ClosedPosition",
-    "ArrayInputs",
-    "TheoreticalModelInputs",
-    "BlackScholesModelInputs",
-    "LaplaceInputs",
-    "BlackScholesInfo",
-    "TheoreticalModel",
-    "FloatOrNdarray",
-    "StrategyLeg",
-    "StrategyLegType",
-    "Stock",
-    "Action",
-    # engine
-    "run_strategy",
-    # support
-    "get_pl_profile",
-    "get_pl_profile_stock",
-    "get_pl_profile_bs",
-    "create_price_seq",
-    "get_pop",
-    # black_scholes
-    "get_d1",
-    "get_d2",
-    "get_option_price",
-    "get_itm_probability",
-    "get_implied_vol",
-    "get_bs_info",
-    "get_vega",
-    "get_delta",
-    "get_gamma",
-    "get_theta",
-    "get_rho",
-    # plot
-    "plot_pl",
-    # price_array
-    "create_price_array",
-    # utils
-    "get_nonbusiness_days",
-    "get_pl",
-    "pl_to_csv",
-)
-"""@private"""
-
-
-def __dir__() -> "list[str]":
-    return list(ALL)
+__version__ = "1.5.0"
