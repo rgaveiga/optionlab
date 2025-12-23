@@ -22,16 +22,16 @@ def get_nonbusiness_days(
     Returns the number of non-business days (i.e., weekends and holidays) between
     the start and end date.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `start_date`: start date.
 
     `end_date`: end date.
 
     `country`: country of the stock exchange.
 
-    Returns
-    -------
+    ### Returns
+
     Number of weekends and holidays between the start and end date.
     """
 
@@ -57,15 +57,15 @@ def get_pl(outputs: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.nda
     Returns the stock prices and the corresponding profit/loss profile of either
     a leg or the whole strategy.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `outputs`: output data from a strategy calculation.
 
     `leg`: index of a strategy leg. The default is `None`, which means the whole
     strategy.
 
-    Returns
-    -------
+    ### Returns
+
     Array of stock prices and array or profits/losses.
     """
 
@@ -82,8 +82,8 @@ def pl_to_csv(
     Saves the stock prices and corresponding profit/loss profile of either a leg
     or the whole strategy to a CSV file.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `outputs`: output data from a strategy calculation.
 
     `filename`: name of the CSV file.
@@ -91,8 +91,8 @@ def pl_to_csv(
     `leg`: index of a strategy leg. The default is `None`, which means the whole
     strategy.
 
-    Returns
-    -------
+    ### Returns
+
     `None`.
     """
 

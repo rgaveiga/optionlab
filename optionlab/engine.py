@@ -1,5 +1,5 @@
 """
-This module defines the `run_strategy` function.
+This module implements the `run_strategy` function.
 
 Given input data provided as either an `optionlab.models.Inputs` object or a dictionary,
 `run_strategy` returns the results of an options strategy calculation (e.g., the
@@ -42,12 +42,12 @@ def run_strategy(inputs_data: Inputs | dict) -> Outputs:
     """
     Runs the calculation for a strategy.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `inputs_data`: input data used in the strategy calculation.
 
-    Returns
-    -------
+    ### Returns
+
     Output data from the strategy calculation.
     """
 

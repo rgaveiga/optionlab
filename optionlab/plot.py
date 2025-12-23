@@ -17,12 +17,12 @@ def plot_pl(outputs: Outputs) -> None:
     """
     Displays the strategy's profit/loss diagram.
 
-    Parameters
-    ----------
+    ### Parameters
+
     `outputs`: output data from a strategy calculation with `optionlab.engine.run_strategy`.
 
-    Returns
-    -------
+    ### Returns
+
     `None`.
     """
 

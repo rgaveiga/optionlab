@@ -1,6 +1,8 @@
 """
-This module primarily implements Pydantic models that represent inputs and outputs 
-of strategy calculations. It also implements constants and custom types.
+This module implements Pydantic models that represent inputs and outputs 
+of strategy calculations. 
+
+It also implements constants and custom types.
 
 From the user's point of view, the two most important classes that they will use 
 to provide input and subsequently process calculation results are `Inputs` and 
@@ -469,8 +471,8 @@ class EngineData(EngineDataResults):
     profit_probability: float = 0.0
     profit_target_probability: float = 0.0
     loss_limit_probability: float = 0.0
-    expected_profit: Optional[float] = None
-    expected_loss: Optional[float] = None
+    expected_profit: float = 0.0
+    expected_loss: float = 0.0
 
 
 class Outputs(BaseModel):
@@ -489,18 +491,18 @@ class Outputs(BaseModel):
     strategy makes at least $0.01.
     """
 
-    expected_profit: Optional[float] = None
+    expected_profit: float = 0.0
     """
     Expected profit when the strategy is profitable. 
     
-    The default is `None`.
+    The default is 0.0.
     """
 
-    expected_loss: Optional[float] = None
+    expected_loss: float = 0.0
     """
     Expected loss when the strategy is not profitable. 
     
-    The default is `None`.
+    The default is 0.0.
     """
 
     per_leg_cost: list[float]
@@ -642,18 +644,18 @@ class PoPOutputs(BaseModel):
     The default is [].
     """
 
-    expected_return_above_target: Optional[float] = None
+    expected_return_above_target: float = 0.0
     """
     Expected value of the strategy return when the return is equal or greater
     than the target. 
     
-    The default is `None`.
+    The default is 0.0.
     """
 
-    expected_return_below_target: Optional[float] = None
+    expected_return_below_target: float = 0.0
     """
     Expected value of the strategy return when the return is less than the
     target. 
     
-    The default is `None`.
+    The default is 0.0.
     """
