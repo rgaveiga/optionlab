@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.5.1 (2025-12-24)
+
+- Added the calculation of the probability of an option ever getting ITM before expiration (see function `get_probability_of_touch` in black_scholes.py and the corresponding fields in models.py).
+- Updated docstrings.
+
 ## 1.5.0 (2025-12-14)
 
 - Changed `get_pop` to compute the expected profit and expected loss of a strategy with the Black-Scholes model by calling a new function, `_compute_expected_returns_bs`.

@@ -7,8 +7,8 @@ from optionlab.black_scholes import get_bs_info
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945267,
-    "expected_profit": 1448.28,
-    "expected_loss": -1703.74,
+    "expected_profit_if_profitable": 1448.28,
+    "expected_loss_if_unprofitable": -1703.74,
     "profit_ranges": [(164.9, float("inf"))],
     "per_leg_cost": [-16899.0, 409.99999999999994],
     "strategy_cost": -16489.0,
@@ -25,7 +25,7 @@ COVERED_CALL_RESULT = {
 
 PROB_100_ITM_RESULT = {
     "probability_of_profit": 1.0,
-    "expected_profit": 492.57,
+    "expected_profit_if_profitable": 492.57,
     "profit_ranges": [(0.0, float("inf"))],
     "per_leg_cost": [-750.0, 990.0],
     "strategy_cost": 240.0,
@@ -42,8 +42,8 @@ PROB_100_ITM_RESULT = {
 
 NAKED_CALL = {
     "probability_of_profit": 0.8389215512144531,
-    "expected_profit": 113.49,
-    "expected_loss": -717.5,
+    "expected_profit_if_profitable": 113.49,
+    "expected_loss_if_unprofitable": -717.5,
     "profit_ranges": [(0.0, 176.14)],
     "per_leg_cost": [114.99999999999999],
     "strategy_cost": 114.99999999999999,
@@ -181,8 +181,8 @@ def test_covered_call_w_prev_position(nvidia):
         exclude_defaults=True,
     ) == {
         "probability_of_profit": 0.7048129541301169,
-        "expected_profit": 2013.63,
-        "expected_loss": -1350.06,
+        "expected_profit_if_profitable": 2013.63,
+        "expected_loss_if_unprofitable": -1350.06,
         "profit_ranges": [(154.9, float("inf"))],
         "per_leg_cost": [-15899.0, 409.99999999999994],
         "strategy_cost": -15489.0,
@@ -303,8 +303,8 @@ def test_3_legs(nvidia):
         exclude_defaults=True,
     ) == {
         "probability_of_profit": 0.6790581742719213,
-        "expected_profit": 2956.8,
-        "expected_loss": -1404.83,
+        "expected_profit_if_profitable": 2956.8,
+        "expected_loss_if_unprofitable": -1404.83,
         "profit_ranges": [(156.6, float("inf"))],
         "per_leg_cost": [-15899.0, -750.0, 990.0],
         "strategy_cost": -15659.0,
@@ -363,8 +363,8 @@ def test_calendar_spread():
         exclude={"data", "inputs"}, exclude_none=True, exclude_defaults=True
     ) == {
         "probability_of_profit": 0.599111819020198,
-        "expected_profit": 1383.2,
-        "expected_loss": -691.09,
+        "expected_profit_if_profitable": 1383.2,
+        "expected_loss_if_unprofitable": -691.09,
         "profit_ranges": [(118.87, 136.15)],
         "per_leg_cost": [4600.0, -5900.0],
         "strategy_cost": -1300.0,

@@ -1,4 +1,4 @@
-![OptionLab](optionlab.png)
+![OptionLab](https://raw.githubusercontent.com/rgaveiga/optionlab/refs/heads/main/optionlab.png)
 
 # OptionLab
 
