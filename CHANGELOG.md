@@ -3,7 +3,7 @@
 ## 1.5.1 (2025-12-24)
 
 - Added the calculation of the probability of an option ever getting ITM before expiration (see function `get_probability_of_touch` in black_scholes.py and the corresponding fields in models.py).
-- Updated docstrings.
+- Updated documentation.
 
 ## 1.5.0 (2025-12-14)
 
