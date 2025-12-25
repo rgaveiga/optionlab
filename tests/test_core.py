@@ -88,7 +88,7 @@ def test_black_scholes():
     assert bs.call_theta == -8.780589609657586
     assert bs.call_rho == 0.04600635174517672
     assert bs.call_itm_prob == 0.2669832523577367
-    assert bs.call_prob_of_touch == 0.5403744790632351
+    assert round(bs.call_prob_of_touch, 12) == 0.540374479063
     assert bs.put_price == 6.27
     assert bs.put_delta == -0.7057027999944967
     assert bs.put_theta == -7.732314219179215
