@@ -498,16 +498,16 @@ def get_probability_of_touch(
     y: float = 0.0,
 ) -> FloatOrNdarray:
     """
-    Returns the probability(ies) that the option(s) will ever get in-the-money (ITM)   
+    Returns the probability(ies) that the option(s) will ever get in-the-money (ITM)
     before expiration.
-    
+
     > [!NOTE]
-    > This function implements equations 2.66 and 2.67 (see pages 80 and 81) in 
-    > *The complete guide to option pricing formulas*, 2nd edition, authored by 
+    > This function implements equations 2.66 and 2.67 (see pages 80 and 81) in
+    > *The complete guide to option pricing formulas*, 2nd edition, authored by
     > Espen Gaarder Haug, PhD, and published by McGraw-Hill.
 
     ### Parameters
-    
+
     `option_type`: either *'call'* or *'put'*.
 
     `s`: stock price.
@@ -524,10 +524,10 @@ def get_probability_of_touch(
 
     ### Returns
 
-    Probability(ies) that the option(s) will ever get in-the-money (ITM) before 
+    Probability(ies) that the option(s) will ever get in-the-money (ITM) before
     expiration.
     """
-    
+
     mu = (r - y - 0.5 * vol * vol) / (vol * vol)
     lam = sqrt((mu * mu) + 2.0 * r / (vol * vol))
     sigma = vol * sqrt(years_to_maturity)
@@ -536,18 +536,18 @@ def get_probability_of_touch(
     exp2 = mu - lam
 
     if option_type == "call":
-        if s>=x:
+        if s >= x:
             return 1.0
         else:
             return ((x / s) ** exp1) * stats.norm.cdf(-z) + (
                 (x / s) ** exp2
-                ) * stats.norm.cdf(2.0 * lam * sigma - z)
+            ) * stats.norm.cdf(2.0 * lam * sigma - z)
     elif option_type == "put":
-        if s<=x:
+        if s <= x:
             return 1.0
         else:
-             return ((x / s) ** exp1) * stats.norm.cdf(z) + (
+            return ((x / s) ** exp1) * stats.norm.cdf(z) + (
                 (x / s) ** exp2
-                ) * stats.norm.cdf(z - 2.0 * lam * sigma)
+            ) * stats.norm.cdf(z - 2.0 * lam * sigma)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
