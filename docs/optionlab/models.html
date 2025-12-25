@@ -338,6 +338,12 @@
                                 <a class="variable" href="#BlackScholesInfo.put_itm_prob">put_itm_prob</a>
                         </li>
                         <li>
+                                <a class="variable" href="#BlackScholesInfo.call_prob_of_touch">call_prob_of_touch</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#BlackScholesInfo.put_prob_of_touch">put_prob_of_touch</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#BlackScholesInfo.model_config">model_config</a>
                         </li>
                         <li>
@@ -359,10 +365,10 @@
                                 <a class="variable" href="#Outputs.profit_ranges">profit_ranges</a>
                         </li>
                         <li>
-                                <a class="variable" href="#Outputs.expected_profit">expected_profit</a>
+                                <a class="variable" href="#Outputs.expected_profit_if_profitable">expected_profit_if_profitable</a>
                         </li>
                         <li>
-                                <a class="variable" href="#Outputs.expected_loss">expected_loss</a>
+                                <a class="variable" href="#Outputs.expected_loss_if_unprofitable">expected_loss_if_unprofitable</a>
                         </li>
                         <li>
                                 <a class="variable" href="#Outputs.per_leg_cost">per_leg_cost</a>
@@ -381,6 +387,9 @@
                         </li>
                         <li>
                                 <a class="variable" href="#Outputs.in_the_money_probability">in_the_money_probability</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Outputs.probability_of_touch">probability_of_touch</a>
                         </li>
                         <li>
                                 <a class="variable" href="#Outputs.delta">delta</a>
@@ -913,238 +922,250 @@ to provide input and subsequently process calculation results are <code><a href=
 </span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>    <span class="n">put_itm_prob</span><span class="p">:</span> <span class="n">FloatOrNdarray</span>
 </span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Probability of expiring in-the-money of a put option.&quot;&quot;&quot;</span>
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>
-</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a>
+</span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>    <span class="n">call_prob_of_touch</span><span class="p">:</span> <span class="n">FloatOrNdarray</span>
+</span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Probability of a call ever getting in-the-money before expiration.&quot;&quot;&quot;</span>
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>
-</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="k">class</span> <span class="nc">EngineDataResults</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>    <span class="n">put_prob_of_touch</span><span class="p">:</span> <span class="n">FloatOrNdarray</span>
+</span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Probability of a put ever getting in-the-money before expiration.&quot;&quot;&quot;</span>
 </span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>
-</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="n">stock_price_array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="n">terminal_stock_prices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
-</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>    <span class="n">profit</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
-</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="n">profit_mc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
-</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>    <span class="n">strategy_profit</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
-</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>    <span class="n">strategy_profit_mc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
-</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="n">strike</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>    <span class="n">premium</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="n">n</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>    <span class="n">action</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Action</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;n/a&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">StrategyLegType</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>
-</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>
-</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a><span class="k">class</span> <span class="nc">EngineData</span><span class="p">(</span><span class="n">EngineDataResults</span><span class="p">):</span>
-</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>
+</span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>
+</span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a><span class="k">class</span> <span class="nc">EngineDataResults</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="L-441"><a href="#L-441"><span class="linenos">441</span></a>
+</span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>    <span class="n">stock_price_array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+</span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>    <span class="n">terminal_stock_prices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
+</span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="n">profit</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
+</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>    <span class="n">profit_mc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
+</span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>    <span class="n">strategy_profit</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
+</span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a>    <span class="n">strategy_profit_mc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">init_empty_array</span><span class="p">)</span>
+</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>    <span class="n">strike</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>    <span class="n">premium</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>    <span class="n">n</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>    <span class="n">action</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Action</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;n/a&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>    <span class="nb">type</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">StrategyLegType</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a>
-</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
-</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>    <span class="n">previous_position</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>    <span class="n">use_bs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>    <span class="n">profit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a>    <span class="n">profit_target_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>    <span class="n">loss_limit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>    <span class="n">days_to_maturity</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>    <span class="n">days_in_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">365</span>
-</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>    <span class="n">days_to_target</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
-</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>    <span class="n">implied_volatility</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>    <span class="n">itm_probability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>    <span class="n">delta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>    <span class="n">gamma</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a>    <span class="n">vega</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>    <span class="n">rho</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a>    <span class="n">theta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a>    <span class="n">cost</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>    <span class="n">profit_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>    <span class="n">profit_target_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>    <span class="n">loss_limit_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>    <span class="n">expected_profit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>    <span class="n">expected_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>
-</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>
-</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a><span class="k">class</span> <span class="nc">Outputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a><span class="sd">    Defines the output data from a strategy calculation.</span>
-</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>
-</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>    <span class="n">probability_of_profit</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a><span class="sd">    Probability of the strategy yielding at least $0.01.</span>
-</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>
-</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>    <span class="n">profit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span>
-</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a><span class="sd">    A list of minimum and maximum stock prices defining ranges in which the</span>
-</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="sd">    strategy makes at least $0.01.</span>
-</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>
-</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>    <span class="n">expected_profit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a><span class="sd">    Expected profit when the strategy is profitable. </span>
-</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a><span class="sd">    </span>
-</span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-455"><a href="#L-455"><span class="linenos">455</span></a>
+</span><span id="L-456"><a href="#L-456"><span class="linenos">456</span></a>
+</span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a><span class="k">class</span> <span class="nc">EngineData</span><span class="p">(</span><span class="n">EngineDataResults</span><span class="p">):</span>
+</span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a>
+</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
+</span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>    <span class="n">previous_position</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a>    <span class="n">use_bs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>    <span class="n">profit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-464"><a href="#L-464"><span class="linenos">464</span></a>    <span class="n">profit_target_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-465"><a href="#L-465"><span class="linenos">465</span></a>    <span class="n">loss_limit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-466"><a href="#L-466"><span class="linenos">466</span></a>    <span class="n">days_to_maturity</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-467"><a href="#L-467"><span class="linenos">467</span></a>    <span class="n">days_in_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">365</span>
+</span><span id="L-468"><a href="#L-468"><span class="linenos">468</span></a>    <span class="n">days_to_target</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
+</span><span id="L-469"><a href="#L-469"><span class="linenos">469</span></a>    <span class="n">implied_volatility</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-470"><a href="#L-470"><span class="linenos">470</span></a>    <span class="n">itm_probability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>    <span class="n">probability_of_touch</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>    <span class="n">delta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a>    <span class="n">gamma</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a>    <span class="n">vega</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>    <span class="n">rho</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>    <span class="n">theta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>    <span class="n">cost</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-478"><a href="#L-478"><span class="linenos">478</span></a>    <span class="n">profit_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-479"><a href="#L-479"><span class="linenos">479</span></a>    <span class="n">profit_target_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-480"><a href="#L-480"><span class="linenos">480</span></a>    <span class="n">loss_limit_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-481"><a href="#L-481"><span class="linenos">481</span></a>    <span class="n">expected_profit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-482"><a href="#L-482"><span class="linenos">482</span></a>    <span class="n">expected_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-483"><a href="#L-483"><span class="linenos">483</span></a>
+</span><span id="L-484"><a href="#L-484"><span class="linenos">484</span></a>
+</span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a><span class="k">class</span> <span class="nc">Outputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a><span class="sd">    Defines the output data from a strategy calculation.</span>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a>
+</span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>    <span class="n">probability_of_profit</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a><span class="sd">    Probability of the strategy yielding at least $0.01.</span>
+</span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>
+</span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a>    <span class="n">profit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span>
+</span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a><span class="sd">    A list of minimum and maximum stock prices defining ranges in which the</span>
+</span><span id="L-498"><a href="#L-498"><span class="linenos">498</span></a><span class="sd">    strategy makes at least $0.01.</span>
 </span><span id="L-499"><a href="#L-499"><span class="linenos">499</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a>
-</span><span id="L-501"><a href="#L-501"><span class="linenos">501</span></a>    <span class="n">expected_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-501"><a href="#L-501"><span class="linenos">501</span></a>    <span class="n">expected_profit_if_profitable</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 </span><span id="L-502"><a href="#L-502"><span class="linenos">502</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a><span class="sd">    Expected loss when the strategy is not profitable. </span>
+</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a><span class="sd">    Expected profit when the strategy is profitable. </span>
 </span><span id="L-504"><a href="#L-504"><span class="linenos">504</span></a><span class="sd">    </span>
 </span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a><span class="sd">    The default is 0.0.</span>
 </span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-507"><a href="#L-507"><span class="linenos">507</span></a>
-</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="n">per_leg_cost</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-508"><a href="#L-508"><span class="linenos">508</span></a>    <span class="n">expected_loss_if_unprofitable</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 </span><span id="L-509"><a href="#L-509"><span class="linenos">509</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a><span class="sd">    List of leg costs.</span>
-</span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>
-</span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a>    <span class="n">strategy_cost</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a><span class="sd">    Total strategy cost.</span>
-</span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>
-</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>    <span class="n">minimum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="sd">    Minimum return of the strategy within the stock price domain.</span>
-</span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a>
-</span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a>    <span class="n">maximum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="L-524"><a href="#L-524"><span class="linenos">524</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a><span class="sd">    Maximum return of the strategy within the stock price domain.</span>
-</span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-527"><a href="#L-527"><span class="linenos">527</span></a>
-</span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a>    <span class="n">implied_volatility</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-529"><a href="#L-529"><span class="linenos">529</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-530"><a href="#L-530"><span class="linenos">530</span></a><span class="sd">    List of implied volatilities, one per strategy leg.</span>
-</span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-532"><a href="#L-532"><span class="linenos">532</span></a>
-</span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a>    <span class="n">in_the_money_probability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a><span class="sd">    List of probabilities of legs expiring in-the-money (ITM).</span>
-</span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>
-</span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a>    <span class="n">delta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a><span class="sd">    List of Delta values, one per strategy leg.</span>
-</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a>
-</span><span id="L-543"><a href="#L-543"><span class="linenos">543</span></a>    <span class="n">gamma</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-544"><a href="#L-544"><span class="linenos">544</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-545"><a href="#L-545"><span class="linenos">545</span></a><span class="sd">    List of Gamma values, one per strategy leg.</span>
-</span><span id="L-546"><a href="#L-546"><span class="linenos">546</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-547"><a href="#L-547"><span class="linenos">547</span></a>
-</span><span id="L-548"><a href="#L-548"><span class="linenos">548</span></a>    <span class="n">theta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-549"><a href="#L-549"><span class="linenos">549</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-550"><a href="#L-550"><span class="linenos">550</span></a><span class="sd">    List of Theta values, one per strategy leg.</span>
-</span><span id="L-551"><a href="#L-551"><span class="linenos">551</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a>
-</span><span id="L-553"><a href="#L-553"><span class="linenos">553</span></a>    <span class="n">vega</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-554"><a href="#L-554"><span class="linenos">554</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-555"><a href="#L-555"><span class="linenos">555</span></a><span class="sd">    List of Vega values, one per strategy leg.</span>
-</span><span id="L-556"><a href="#L-556"><span class="linenos">556</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-557"><a href="#L-557"><span class="linenos">557</span></a>
-</span><span id="L-558"><a href="#L-558"><span class="linenos">558</span></a>    <span class="n">rho</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="L-559"><a href="#L-559"><span class="linenos">559</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a><span class="sd">    List of Rho values, one per strategy leg.</span>
-</span><span id="L-561"><a href="#L-561"><span class="linenos">561</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a>
-</span><span id="L-563"><a href="#L-563"><span class="linenos">563</span></a>    <span class="n">probability_of_profit_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-564"><a href="#L-564"><span class="linenos">564</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-565"><a href="#L-565"><span class="linenos">565</span></a><span class="sd">    Probability of the strategy yielding at least the profit target. </span>
-</span><span id="L-566"><a href="#L-566"><span class="linenos">566</span></a><span class="sd">    </span>
-</span><span id="L-567"><a href="#L-567"><span class="linenos">567</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-510"><a href="#L-510"><span class="linenos">510</span></a><span class="sd">    Expected loss when the strategy is not profitable.</span>
+</span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a><span class="sd">    </span>
+</span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a>
+</span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a>    <span class="n">per_leg_cost</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a><span class="sd">    List of leg costs.</span>
+</span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>
+</span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a>    <span class="n">strategy_cost</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a><span class="sd">    Total strategy cost.</span>
+</span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-524"><a href="#L-524"><span class="linenos">524</span></a>
+</span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a>    <span class="n">minimum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-527"><a href="#L-527"><span class="linenos">527</span></a><span class="sd">    Minimum return of the strategy within the stock price domain.</span>
+</span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-529"><a href="#L-529"><span class="linenos">529</span></a>
+</span><span id="L-530"><a href="#L-530"><span class="linenos">530</span></a>    <span class="n">maximum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-532"><a href="#L-532"><span class="linenos">532</span></a><span class="sd">    Maximum return of the strategy within the stock price domain.</span>
+</span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a>
+</span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a>    <span class="n">implied_volatility</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a><span class="sd">    List of implied volatilities, one per strategy leg.</span>
+</span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a>
+</span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>    <span class="n">in_the_money_probability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-541"><a href="#L-541"><span class="linenos">541</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-542"><a href="#L-542"><span class="linenos">542</span></a><span class="sd">    List of probabilities of legs expiring in-the-money (ITM).</span>
+</span><span id="L-543"><a href="#L-543"><span class="linenos">543</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-544"><a href="#L-544"><span class="linenos">544</span></a>
+</span><span id="L-545"><a href="#L-545"><span class="linenos">545</span></a>    <span class="n">probability_of_touch</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-546"><a href="#L-546"><span class="linenos">546</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-547"><a href="#L-547"><span class="linenos">547</span></a><span class="sd">    List of probabilities of legs ever getting in-the-money (ITM) before expiration.</span>
+</span><span id="L-548"><a href="#L-548"><span class="linenos">548</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-549"><a href="#L-549"><span class="linenos">549</span></a>
+</span><span id="L-550"><a href="#L-550"><span class="linenos">550</span></a>    <span class="n">delta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-551"><a href="#L-551"><span class="linenos">551</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-552"><a href="#L-552"><span class="linenos">552</span></a><span class="sd">    List of Delta values, one per strategy leg.</span>
+</span><span id="L-553"><a href="#L-553"><span class="linenos">553</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-554"><a href="#L-554"><span class="linenos">554</span></a>
+</span><span id="L-555"><a href="#L-555"><span class="linenos">555</span></a>    <span class="n">gamma</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-556"><a href="#L-556"><span class="linenos">556</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-557"><a href="#L-557"><span class="linenos">557</span></a><span class="sd">    List of Gamma values, one per strategy leg.</span>
+</span><span id="L-558"><a href="#L-558"><span class="linenos">558</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-559"><a href="#L-559"><span class="linenos">559</span></a>
+</span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a>    <span class="n">theta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-561"><a href="#L-561"><span class="linenos">561</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a><span class="sd">    List of Theta values, one per strategy leg.</span>
+</span><span id="L-563"><a href="#L-563"><span class="linenos">563</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-564"><a href="#L-564"><span class="linenos">564</span></a>
+</span><span id="L-565"><a href="#L-565"><span class="linenos">565</span></a>    <span class="n">vega</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="L-566"><a href="#L-566"><span class="linenos">566</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-567"><a href="#L-567"><span class="linenos">567</span></a><span class="sd">    List of Vega values, one per strategy leg.</span>
 </span><span id="L-568"><a href="#L-568"><span class="linenos">568</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>
-</span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>    <span class="n">profit_target_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>    <span class="n">rho</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
 </span><span id="L-571"><a href="#L-571"><span class="linenos">571</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges in which the</span>
-</span><span id="L-573"><a href="#L-573"><span class="linenos">573</span></a><span class="sd">    strategy makes at least the profit target. </span>
-</span><span id="L-574"><a href="#L-574"><span class="linenos">574</span></a><span class="sd">    </span>
-</span><span id="L-575"><a href="#L-575"><span class="linenos">575</span></a><span class="sd">    The default is [].</span>
-</span><span id="L-576"><a href="#L-576"><span class="linenos">576</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-577"><a href="#L-577"><span class="linenos">577</span></a>
-</span><span id="L-578"><a href="#L-578"><span class="linenos">578</span></a>    <span class="n">probability_of_loss_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-579"><a href="#L-579"><span class="linenos">579</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-580"><a href="#L-580"><span class="linenos">580</span></a><span class="sd">    Probability of the strategy losing at least the loss limit. </span>
-</span><span id="L-581"><a href="#L-581"><span class="linenos">581</span></a><span class="sd">    </span>
-</span><span id="L-582"><a href="#L-582"><span class="linenos">582</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="L-583"><a href="#L-583"><span class="linenos">583</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-584"><a href="#L-584"><span class="linenos">584</span></a>
-</span><span id="L-585"><a href="#L-585"><span class="linenos">585</span></a>    <span class="n">loss_limit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-586"><a href="#L-586"><span class="linenos">586</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-587"><a href="#L-587"><span class="linenos">587</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges where the</span>
-</span><span id="L-588"><a href="#L-588"><span class="linenos">588</span></a><span class="sd">    strategy loses at least the loss limit. </span>
-</span><span id="L-589"><a href="#L-589"><span class="linenos">589</span></a><span class="sd">    </span>
-</span><span id="L-590"><a href="#L-590"><span class="linenos">590</span></a><span class="sd">    The default is [].</span>
-</span><span id="L-591"><a href="#L-591"><span class="linenos">591</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-592"><a href="#L-592"><span class="linenos">592</span></a>
-</span><span id="L-593"><a href="#L-593"><span class="linenos">593</span></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
-</span><span id="L-594"><a href="#L-594"><span class="linenos">594</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
-</span><span id="L-595"><a href="#L-595"><span class="linenos">595</span></a>
-</span><span id="L-596"><a href="#L-596"><span class="linenos">596</span></a>    <span class="n">data</span><span class="p">:</span> <span class="n">EngineDataResults</span>
-</span><span id="L-597"><a href="#L-597"><span class="linenos">597</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
-</span><span id="L-598"><a href="#L-598"><span class="linenos">598</span></a>
-</span><span id="L-599"><a href="#L-599"><span class="linenos">599</span></a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-600"><a href="#L-600"><span class="linenos">600</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="L-601"><a href="#L-601"><span class="linenos">601</span></a>
-</span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span>
-</span><span id="L-603"><a href="#L-603"><span class="linenos">603</span></a>            <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs&quot;</span><span class="p">},</span>
-</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a>            <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a>            <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a>            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a>
-</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a>        <span class="k">return</span> <span class="n">s</span>
+</span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a><span class="sd">    List of Rho values, one per strategy leg.</span>
+</span><span id="L-573"><a href="#L-573"><span class="linenos">573</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-574"><a href="#L-574"><span class="linenos">574</span></a>
+</span><span id="L-575"><a href="#L-575"><span class="linenos">575</span></a>    <span class="n">probability_of_profit_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-576"><a href="#L-576"><span class="linenos">576</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-577"><a href="#L-577"><span class="linenos">577</span></a><span class="sd">    Probability of the strategy yielding at least the profit target. </span>
+</span><span id="L-578"><a href="#L-578"><span class="linenos">578</span></a><span class="sd">    </span>
+</span><span id="L-579"><a href="#L-579"><span class="linenos">579</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-580"><a href="#L-580"><span class="linenos">580</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-581"><a href="#L-581"><span class="linenos">581</span></a>
+</span><span id="L-582"><a href="#L-582"><span class="linenos">582</span></a>    <span class="n">profit_target_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-583"><a href="#L-583"><span class="linenos">583</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-584"><a href="#L-584"><span class="linenos">584</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges in which the</span>
+</span><span id="L-585"><a href="#L-585"><span class="linenos">585</span></a><span class="sd">    strategy makes at least the profit target. </span>
+</span><span id="L-586"><a href="#L-586"><span class="linenos">586</span></a><span class="sd">    </span>
+</span><span id="L-587"><a href="#L-587"><span class="linenos">587</span></a><span class="sd">    The default is [].</span>
+</span><span id="L-588"><a href="#L-588"><span class="linenos">588</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-589"><a href="#L-589"><span class="linenos">589</span></a>
+</span><span id="L-590"><a href="#L-590"><span class="linenos">590</span></a>    <span class="n">probability_of_loss_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-591"><a href="#L-591"><span class="linenos">591</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-592"><a href="#L-592"><span class="linenos">592</span></a><span class="sd">    Probability of the strategy losing at least the loss limit. </span>
+</span><span id="L-593"><a href="#L-593"><span class="linenos">593</span></a><span class="sd">    </span>
+</span><span id="L-594"><a href="#L-594"><span class="linenos">594</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-595"><a href="#L-595"><span class="linenos">595</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-596"><a href="#L-596"><span class="linenos">596</span></a>
+</span><span id="L-597"><a href="#L-597"><span class="linenos">597</span></a>    <span class="n">loss_limit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-598"><a href="#L-598"><span class="linenos">598</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-599"><a href="#L-599"><span class="linenos">599</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges where the</span>
+</span><span id="L-600"><a href="#L-600"><span class="linenos">600</span></a><span class="sd">    strategy loses at least the loss limit. </span>
+</span><span id="L-601"><a href="#L-601"><span class="linenos">601</span></a><span class="sd">    </span>
+</span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a><span class="sd">    The default is [].</span>
+</span><span id="L-603"><a href="#L-603"><span class="linenos">603</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a>
+</span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
+</span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a>
+</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a>    <span class="n">data</span><span class="p">:</span> <span class="n">EngineDataResults</span>
+</span><span id="L-609"><a href="#L-609"><span class="linenos">609</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
 </span><span id="L-610"><a href="#L-610"><span class="linenos">610</span></a>
-</span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>
-</span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a><span class="k">class</span> <span class="nc">PoPOutputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a><span class="sd">    Defines the output data from a probability of profit (PoP) calculation.</span>
-</span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a>
-</span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a>    <span class="n">probability_of_reaching_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a><span class="sd">    Probability that the strategy return will be equal or greater than the</span>
-</span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a><span class="sd">    target. </span>
-</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a><span class="sd">    </span>
-</span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="L-623"><a href="#L-623"><span class="linenos">623</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a>
-</span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a>    <span class="n">probability_of_missing_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-626"><a href="#L-626"><span class="linenos">626</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a><span class="sd">    Probability that the strategy return will be less than the target. </span>
-</span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a><span class="sd">    </span>
-</span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-631"><a href="#L-631"><span class="linenos">631</span></a>
-</span><span id="L-632"><a href="#L-632"><span class="linenos">632</span></a>    <span class="n">reaching_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-633"><a href="#L-633"><span class="linenos">633</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-634"><a href="#L-634"><span class="linenos">634</span></a><span class="sd">    Range of stock prices where the strategy return is equal or greater than</span>
-</span><span id="L-635"><a href="#L-635"><span class="linenos">635</span></a><span class="sd">    the target. </span>
-</span><span id="L-636"><a href="#L-636"><span class="linenos">636</span></a><span class="sd">    </span>
-</span><span id="L-637"><a href="#L-637"><span class="linenos">637</span></a><span class="sd">    The default is [].</span>
-</span><span id="L-638"><a href="#L-638"><span class="linenos">638</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-639"><a href="#L-639"><span class="linenos">639</span></a>
-</span><span id="L-640"><a href="#L-640"><span class="linenos">640</span></a>    <span class="n">missing_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-641"><a href="#L-641"><span class="linenos">641</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a><span class="sd">    Range of stock prices where the strategy return is less than the target.</span>
-</span><span id="L-643"><a href="#L-643"><span class="linenos">643</span></a><span class="sd">    </span>
-</span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a><span class="sd">    The default is [].</span>
-</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a>
-</span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a>    <span class="n">expected_return_above_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-649"><a href="#L-649"><span class="linenos">649</span></a><span class="sd">    Expected value of the strategy return when the return is equal or greater</span>
-</span><span id="L-650"><a href="#L-650"><span class="linenos">650</span></a><span class="sd">    than the target. </span>
-</span><span id="L-651"><a href="#L-651"><span class="linenos">651</span></a><span class="sd">    </span>
-</span><span id="L-652"><a href="#L-652"><span class="linenos">652</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a>
-</span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a>    <span class="n">expected_return_below_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a><span class="sd">    Expected value of the strategy return when the return is less than the</span>
-</span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a><span class="sd">    target. </span>
-</span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a><span class="sd">    </span>
-</span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="L-661"><a href="#L-661"><span class="linenos">661</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-611"><a href="#L-611"><span class="linenos">611</span></a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-612"><a href="#L-612"><span class="linenos">612</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-613"><a href="#L-613"><span class="linenos">613</span></a>
+</span><span id="L-614"><a href="#L-614"><span class="linenos">614</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span>
+</span><span id="L-615"><a href="#L-615"><span class="linenos">615</span></a>            <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs&quot;</span><span class="p">},</span>
+</span><span id="L-616"><a href="#L-616"><span class="linenos">616</span></a>            <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="L-617"><a href="#L-617"><span class="linenos">617</span></a>            <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="L-618"><a href="#L-618"><span class="linenos">618</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="L-619"><a href="#L-619"><span class="linenos">619</span></a>            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-620"><a href="#L-620"><span class="linenos">620</span></a>
+</span><span id="L-621"><a href="#L-621"><span class="linenos">621</span></a>        <span class="k">return</span> <span class="n">s</span>
+</span><span id="L-622"><a href="#L-622"><span class="linenos">622</span></a>
+</span><span id="L-623"><a href="#L-623"><span class="linenos">623</span></a>
+</span><span id="L-624"><a href="#L-624"><span class="linenos">624</span></a><span class="k">class</span> <span class="nc">PoPOutputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-625"><a href="#L-625"><span class="linenos">625</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-626"><a href="#L-626"><span class="linenos">626</span></a><span class="sd">    Defines the output data from a probability of profit (PoP) calculation.</span>
+</span><span id="L-627"><a href="#L-627"><span class="linenos">627</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-628"><a href="#L-628"><span class="linenos">628</span></a>
+</span><span id="L-629"><a href="#L-629"><span class="linenos">629</span></a>    <span class="n">probability_of_reaching_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-630"><a href="#L-630"><span class="linenos">630</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-631"><a href="#L-631"><span class="linenos">631</span></a><span class="sd">    Probability that the strategy return will be equal or greater than the</span>
+</span><span id="L-632"><a href="#L-632"><span class="linenos">632</span></a><span class="sd">    target. </span>
+</span><span id="L-633"><a href="#L-633"><span class="linenos">633</span></a><span class="sd">    </span>
+</span><span id="L-634"><a href="#L-634"><span class="linenos">634</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-635"><a href="#L-635"><span class="linenos">635</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-636"><a href="#L-636"><span class="linenos">636</span></a>
+</span><span id="L-637"><a href="#L-637"><span class="linenos">637</span></a>    <span class="n">probability_of_missing_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-638"><a href="#L-638"><span class="linenos">638</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-639"><a href="#L-639"><span class="linenos">639</span></a><span class="sd">    Probability that the strategy return will be less than the target. </span>
+</span><span id="L-640"><a href="#L-640"><span class="linenos">640</span></a><span class="sd">    </span>
+</span><span id="L-641"><a href="#L-641"><span class="linenos">641</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-643"><a href="#L-643"><span class="linenos">643</span></a>
+</span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a>    <span class="n">reaching_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a><span class="sd">    Range of stock prices where the strategy return is equal or greater than</span>
+</span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a><span class="sd">    the target. </span>
+</span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a><span class="sd">    </span>
+</span><span id="L-649"><a href="#L-649"><span class="linenos">649</span></a><span class="sd">    The default is [].</span>
+</span><span id="L-650"><a href="#L-650"><span class="linenos">650</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-651"><a href="#L-651"><span class="linenos">651</span></a>
+</span><span id="L-652"><a href="#L-652"><span class="linenos">652</span></a>    <span class="n">missing_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a><span class="sd">    Range of stock prices where the strategy return is less than the target.</span>
+</span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a><span class="sd">    </span>
+</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a><span class="sd">    The default is [].</span>
+</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a>
+</span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a>    <span class="n">expected_return_above_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-661"><a href="#L-661"><span class="linenos">661</span></a><span class="sd">    Expected value of the strategy return when the return is equal or greater</span>
+</span><span id="L-662"><a href="#L-662"><span class="linenos">662</span></a><span class="sd">    than the target. </span>
+</span><span id="L-663"><a href="#L-663"><span class="linenos">663</span></a><span class="sd">    </span>
+</span><span id="L-664"><a href="#L-664"><span class="linenos">664</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-665"><a href="#L-665"><span class="linenos">665</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-666"><a href="#L-666"><span class="linenos">666</span></a>
+</span><span id="L-667"><a href="#L-667"><span class="linenos">667</span></a>    <span class="n">expected_return_below_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-668"><a href="#L-668"><span class="linenos">668</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-669"><a href="#L-669"><span class="linenos">669</span></a><span class="sd">    Expected value of the strategy return when the return is less than the</span>
+</span><span id="L-670"><a href="#L-670"><span class="linenos">670</span></a><span class="sd">    target. </span>
+</span><span id="L-671"><a href="#L-671"><span class="linenos">671</span></a><span class="sd">    </span>
+</span><span id="L-672"><a href="#L-672"><span class="linenos">672</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="L-673"><a href="#L-673"><span class="linenos">673</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span></pre></div>
 
 
@@ -2776,7 +2797,13 @@ mapping of field names to [<code>FieldInfo</code>][pydantic.fields.FieldInfo] ob
 </span><span id="BlackScholesInfo-428"><a href="#BlackScholesInfo-428"><span class="linenos">428</span></a>    <span class="n">put_itm_prob</span><span class="p">:</span> <span class="n">FloatOrNdarray</span>
 </span><span id="BlackScholesInfo-429"><a href="#BlackScholesInfo-429"><span class="linenos">429</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Probability of expiring in-the-money of a put option.&quot;&quot;&quot;</span>
 </span><span id="BlackScholesInfo-430"><a href="#BlackScholesInfo-430"><span class="linenos">430</span></a>
-</span><span id="BlackScholesInfo-431"><a href="#BlackScholesInfo-431"><span class="linenos">431</span></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="BlackScholesInfo-431"><a href="#BlackScholesInfo-431"><span class="linenos">431</span></a>    <span class="n">call_prob_of_touch</span><span class="p">:</span> <span class="n">FloatOrNdarray</span>
+</span><span id="BlackScholesInfo-432"><a href="#BlackScholesInfo-432"><span class="linenos">432</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Probability of a call ever getting in-the-money before expiration.&quot;&quot;&quot;</span>
+</span><span id="BlackScholesInfo-433"><a href="#BlackScholesInfo-433"><span class="linenos">433</span></a>
+</span><span id="BlackScholesInfo-434"><a href="#BlackScholesInfo-434"><span class="linenos">434</span></a>    <span class="n">put_prob_of_touch</span><span class="p">:</span> <span class="n">FloatOrNdarray</span>
+</span><span id="BlackScholesInfo-435"><a href="#BlackScholesInfo-435"><span class="linenos">435</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Probability of a put ever getting in-the-money before expiration.&quot;&quot;&quot;</span>
+</span><span id="BlackScholesInfo-436"><a href="#BlackScholesInfo-436"><span class="linenos">436</span></a>
+</span><span id="BlackScholesInfo-437"><a href="#BlackScholesInfo-437"><span class="linenos">437</span></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -2940,6 +2967,32 @@ mapping of field names to [<code>FieldInfo</code>][pydantic.fields.FieldInfo] ob
 
 
                             </div>
+                            <div id="BlackScholesInfo.call_prob_of_touch" class="classattr">
+                                <div class="attr variable">
+            <span class="name">call_prob_of_touch</span><span class="annotation">: float | numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#BlackScholesInfo.call_prob_of_touch"></a>
+    
+            <div class="docstring"><p>Probability of a call ever getting in-the-money before expiration.</p>
+</div>
+
+
+                            </div>
+                            <div id="BlackScholesInfo.put_prob_of_touch" class="classattr">
+                                <div class="attr variable">
+            <span class="name">put_prob_of_touch</span><span class="annotation">: float | numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#BlackScholesInfo.put_prob_of_touch"></a>
+    
+            <div class="docstring"><p>Probability of a put ever getting in-the-money before expiration.</p>
+</div>
+
+
+                            </div>
                             <div id="BlackScholesInfo.model_config" class="classattr">
                                 <div class="attr variable">
             <span class="name">model_config</span>        =
@@ -2958,7 +3011,7 @@ mapping of field names to [<code>FieldInfo</code>][pydantic.fields.FieldInfo] ob
                                 <div class="attr variable">
             <span class="name">model_fields</span><span class="annotation">: ClassVar[Dict[str, pydantic.fields.FieldInfo]]</span>        =
 <input id="BlackScholesInfo.model_fields-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-            <label class="view-value-button pdoc-button" for="BlackScholesInfo.model_fields-view-value"></label><span class="default_value">{&#39;call_price&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_price&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_delta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_delta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_theta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_theta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;gamma&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;vega&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_rho&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_rho&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_itm_prob&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_itm_prob&#39;: FieldInfo(annotation=Union[float, ndarray], required=True)}</span>
+            <label class="view-value-button pdoc-button" for="BlackScholesInfo.model_fields-view-value"></label><span class="default_value">{&#39;call_price&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_price&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_delta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_delta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_theta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_theta&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;gamma&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;vega&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_rho&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_rho&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_itm_prob&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_itm_prob&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;call_prob_of_touch&#39;: FieldInfo(annotation=Union[float, ndarray], required=True), &#39;put_prob_of_touch&#39;: FieldInfo(annotation=Union[float, ndarray], required=True)}</span>
 
         
     </div>
@@ -2998,138 +3051,143 @@ mapping of field names to [<code>FieldInfo</code>][pydantic.fields.FieldInfo] ob
 
     </div>
     <a class="headerlink" href="#Outputs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Outputs-479"><a href="#Outputs-479"><span class="linenos">479</span></a><span class="k">class</span> <span class="nc">Outputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Outputs-480"><a href="#Outputs-480"><span class="linenos">480</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-481"><a href="#Outputs-481"><span class="linenos">481</span></a><span class="sd">    Defines the output data from a strategy calculation.</span>
-</span><span id="Outputs-482"><a href="#Outputs-482"><span class="linenos">482</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-483"><a href="#Outputs-483"><span class="linenos">483</span></a>
-</span><span id="Outputs-484"><a href="#Outputs-484"><span class="linenos">484</span></a>    <span class="n">probability_of_profit</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="Outputs-485"><a href="#Outputs-485"><span class="linenos">485</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-486"><a href="#Outputs-486"><span class="linenos">486</span></a><span class="sd">    Probability of the strategy yielding at least $0.01.</span>
-</span><span id="Outputs-487"><a href="#Outputs-487"><span class="linenos">487</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-488"><a href="#Outputs-488"><span class="linenos">488</span></a>
-</span><span id="Outputs-489"><a href="#Outputs-489"><span class="linenos">489</span></a>    <span class="n">profit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span>
-</span><span id="Outputs-490"><a href="#Outputs-490"><span class="linenos">490</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-491"><a href="#Outputs-491"><span class="linenos">491</span></a><span class="sd">    A list of minimum and maximum stock prices defining ranges in which the</span>
-</span><span id="Outputs-492"><a href="#Outputs-492"><span class="linenos">492</span></a><span class="sd">    strategy makes at least $0.01.</span>
-</span><span id="Outputs-493"><a href="#Outputs-493"><span class="linenos">493</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-494"><a href="#Outputs-494"><span class="linenos">494</span></a>
-</span><span id="Outputs-495"><a href="#Outputs-495"><span class="linenos">495</span></a>    <span class="n">expected_profit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="Outputs-496"><a href="#Outputs-496"><span class="linenos">496</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-497"><a href="#Outputs-497"><span class="linenos">497</span></a><span class="sd">    Expected profit when the strategy is profitable. </span>
-</span><span id="Outputs-498"><a href="#Outputs-498"><span class="linenos">498</span></a><span class="sd">    </span>
-</span><span id="Outputs-499"><a href="#Outputs-499"><span class="linenos">499</span></a><span class="sd">    The default is 0.0.</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Outputs-486"><a href="#Outputs-486"><span class="linenos">486</span></a><span class="k">class</span> <span class="nc">Outputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Outputs-487"><a href="#Outputs-487"><span class="linenos">487</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-488"><a href="#Outputs-488"><span class="linenos">488</span></a><span class="sd">    Defines the output data from a strategy calculation.</span>
+</span><span id="Outputs-489"><a href="#Outputs-489"><span class="linenos">489</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-490"><a href="#Outputs-490"><span class="linenos">490</span></a>
+</span><span id="Outputs-491"><a href="#Outputs-491"><span class="linenos">491</span></a>    <span class="n">probability_of_profit</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="Outputs-492"><a href="#Outputs-492"><span class="linenos">492</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-493"><a href="#Outputs-493"><span class="linenos">493</span></a><span class="sd">    Probability of the strategy yielding at least $0.01.</span>
+</span><span id="Outputs-494"><a href="#Outputs-494"><span class="linenos">494</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-495"><a href="#Outputs-495"><span class="linenos">495</span></a>
+</span><span id="Outputs-496"><a href="#Outputs-496"><span class="linenos">496</span></a>    <span class="n">profit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span>
+</span><span id="Outputs-497"><a href="#Outputs-497"><span class="linenos">497</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-498"><a href="#Outputs-498"><span class="linenos">498</span></a><span class="sd">    A list of minimum and maximum stock prices defining ranges in which the</span>
+</span><span id="Outputs-499"><a href="#Outputs-499"><span class="linenos">499</span></a><span class="sd">    strategy makes at least $0.01.</span>
 </span><span id="Outputs-500"><a href="#Outputs-500"><span class="linenos">500</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Outputs-501"><a href="#Outputs-501"><span class="linenos">501</span></a>
-</span><span id="Outputs-502"><a href="#Outputs-502"><span class="linenos">502</span></a>    <span class="n">expected_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="Outputs-502"><a href="#Outputs-502"><span class="linenos">502</span></a>    <span class="n">expected_profit_if_profitable</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 </span><span id="Outputs-503"><a href="#Outputs-503"><span class="linenos">503</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-504"><a href="#Outputs-504"><span class="linenos">504</span></a><span class="sd">    Expected loss when the strategy is not profitable. </span>
+</span><span id="Outputs-504"><a href="#Outputs-504"><span class="linenos">504</span></a><span class="sd">    Expected profit when the strategy is profitable. </span>
 </span><span id="Outputs-505"><a href="#Outputs-505"><span class="linenos">505</span></a><span class="sd">    </span>
 </span><span id="Outputs-506"><a href="#Outputs-506"><span class="linenos">506</span></a><span class="sd">    The default is 0.0.</span>
 </span><span id="Outputs-507"><a href="#Outputs-507"><span class="linenos">507</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Outputs-508"><a href="#Outputs-508"><span class="linenos">508</span></a>
-</span><span id="Outputs-509"><a href="#Outputs-509"><span class="linenos">509</span></a>    <span class="n">per_leg_cost</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-509"><a href="#Outputs-509"><span class="linenos">509</span></a>    <span class="n">expected_loss_if_unprofitable</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 </span><span id="Outputs-510"><a href="#Outputs-510"><span class="linenos">510</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-511"><a href="#Outputs-511"><span class="linenos">511</span></a><span class="sd">    List of leg costs.</span>
-</span><span id="Outputs-512"><a href="#Outputs-512"><span class="linenos">512</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-513"><a href="#Outputs-513"><span class="linenos">513</span></a>
-</span><span id="Outputs-514"><a href="#Outputs-514"><span class="linenos">514</span></a>    <span class="n">strategy_cost</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="Outputs-515"><a href="#Outputs-515"><span class="linenos">515</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-516"><a href="#Outputs-516"><span class="linenos">516</span></a><span class="sd">    Total strategy cost.</span>
-</span><span id="Outputs-517"><a href="#Outputs-517"><span class="linenos">517</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-518"><a href="#Outputs-518"><span class="linenos">518</span></a>
-</span><span id="Outputs-519"><a href="#Outputs-519"><span class="linenos">519</span></a>    <span class="n">minimum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="Outputs-520"><a href="#Outputs-520"><span class="linenos">520</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-521"><a href="#Outputs-521"><span class="linenos">521</span></a><span class="sd">    Minimum return of the strategy within the stock price domain.</span>
-</span><span id="Outputs-522"><a href="#Outputs-522"><span class="linenos">522</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-523"><a href="#Outputs-523"><span class="linenos">523</span></a>
-</span><span id="Outputs-524"><a href="#Outputs-524"><span class="linenos">524</span></a>    <span class="n">maximum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
-</span><span id="Outputs-525"><a href="#Outputs-525"><span class="linenos">525</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-526"><a href="#Outputs-526"><span class="linenos">526</span></a><span class="sd">    Maximum return of the strategy within the stock price domain.</span>
-</span><span id="Outputs-527"><a href="#Outputs-527"><span class="linenos">527</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-528"><a href="#Outputs-528"><span class="linenos">528</span></a>
-</span><span id="Outputs-529"><a href="#Outputs-529"><span class="linenos">529</span></a>    <span class="n">implied_volatility</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-530"><a href="#Outputs-530"><span class="linenos">530</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-531"><a href="#Outputs-531"><span class="linenos">531</span></a><span class="sd">    List of implied volatilities, one per strategy leg.</span>
-</span><span id="Outputs-532"><a href="#Outputs-532"><span class="linenos">532</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-533"><a href="#Outputs-533"><span class="linenos">533</span></a>
-</span><span id="Outputs-534"><a href="#Outputs-534"><span class="linenos">534</span></a>    <span class="n">in_the_money_probability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-535"><a href="#Outputs-535"><span class="linenos">535</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-536"><a href="#Outputs-536"><span class="linenos">536</span></a><span class="sd">    List of probabilities of legs expiring in-the-money (ITM).</span>
-</span><span id="Outputs-537"><a href="#Outputs-537"><span class="linenos">537</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-538"><a href="#Outputs-538"><span class="linenos">538</span></a>
-</span><span id="Outputs-539"><a href="#Outputs-539"><span class="linenos">539</span></a>    <span class="n">delta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-540"><a href="#Outputs-540"><span class="linenos">540</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-541"><a href="#Outputs-541"><span class="linenos">541</span></a><span class="sd">    List of Delta values, one per strategy leg.</span>
-</span><span id="Outputs-542"><a href="#Outputs-542"><span class="linenos">542</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-543"><a href="#Outputs-543"><span class="linenos">543</span></a>
-</span><span id="Outputs-544"><a href="#Outputs-544"><span class="linenos">544</span></a>    <span class="n">gamma</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-545"><a href="#Outputs-545"><span class="linenos">545</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-546"><a href="#Outputs-546"><span class="linenos">546</span></a><span class="sd">    List of Gamma values, one per strategy leg.</span>
-</span><span id="Outputs-547"><a href="#Outputs-547"><span class="linenos">547</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-548"><a href="#Outputs-548"><span class="linenos">548</span></a>
-</span><span id="Outputs-549"><a href="#Outputs-549"><span class="linenos">549</span></a>    <span class="n">theta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-550"><a href="#Outputs-550"><span class="linenos">550</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-551"><a href="#Outputs-551"><span class="linenos">551</span></a><span class="sd">    List of Theta values, one per strategy leg.</span>
-</span><span id="Outputs-552"><a href="#Outputs-552"><span class="linenos">552</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-553"><a href="#Outputs-553"><span class="linenos">553</span></a>
-</span><span id="Outputs-554"><a href="#Outputs-554"><span class="linenos">554</span></a>    <span class="n">vega</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-555"><a href="#Outputs-555"><span class="linenos">555</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-556"><a href="#Outputs-556"><span class="linenos">556</span></a><span class="sd">    List of Vega values, one per strategy leg.</span>
-</span><span id="Outputs-557"><a href="#Outputs-557"><span class="linenos">557</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-558"><a href="#Outputs-558"><span class="linenos">558</span></a>
-</span><span id="Outputs-559"><a href="#Outputs-559"><span class="linenos">559</span></a>    <span class="n">rho</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-</span><span id="Outputs-560"><a href="#Outputs-560"><span class="linenos">560</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-561"><a href="#Outputs-561"><span class="linenos">561</span></a><span class="sd">    List of Rho values, one per strategy leg.</span>
-</span><span id="Outputs-562"><a href="#Outputs-562"><span class="linenos">562</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-563"><a href="#Outputs-563"><span class="linenos">563</span></a>
-</span><span id="Outputs-564"><a href="#Outputs-564"><span class="linenos">564</span></a>    <span class="n">probability_of_profit_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="Outputs-565"><a href="#Outputs-565"><span class="linenos">565</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-566"><a href="#Outputs-566"><span class="linenos">566</span></a><span class="sd">    Probability of the strategy yielding at least the profit target. </span>
-</span><span id="Outputs-567"><a href="#Outputs-567"><span class="linenos">567</span></a><span class="sd">    </span>
-</span><span id="Outputs-568"><a href="#Outputs-568"><span class="linenos">568</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="Outputs-511"><a href="#Outputs-511"><span class="linenos">511</span></a><span class="sd">    Expected loss when the strategy is not profitable.</span>
+</span><span id="Outputs-512"><a href="#Outputs-512"><span class="linenos">512</span></a><span class="sd">    </span>
+</span><span id="Outputs-513"><a href="#Outputs-513"><span class="linenos">513</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="Outputs-514"><a href="#Outputs-514"><span class="linenos">514</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-515"><a href="#Outputs-515"><span class="linenos">515</span></a>
+</span><span id="Outputs-516"><a href="#Outputs-516"><span class="linenos">516</span></a>    <span class="n">per_leg_cost</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-517"><a href="#Outputs-517"><span class="linenos">517</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-518"><a href="#Outputs-518"><span class="linenos">518</span></a><span class="sd">    List of leg costs.</span>
+</span><span id="Outputs-519"><a href="#Outputs-519"><span class="linenos">519</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-520"><a href="#Outputs-520"><span class="linenos">520</span></a>
+</span><span id="Outputs-521"><a href="#Outputs-521"><span class="linenos">521</span></a>    <span class="n">strategy_cost</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="Outputs-522"><a href="#Outputs-522"><span class="linenos">522</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-523"><a href="#Outputs-523"><span class="linenos">523</span></a><span class="sd">    Total strategy cost.</span>
+</span><span id="Outputs-524"><a href="#Outputs-524"><span class="linenos">524</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-525"><a href="#Outputs-525"><span class="linenos">525</span></a>
+</span><span id="Outputs-526"><a href="#Outputs-526"><span class="linenos">526</span></a>    <span class="n">minimum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="Outputs-527"><a href="#Outputs-527"><span class="linenos">527</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-528"><a href="#Outputs-528"><span class="linenos">528</span></a><span class="sd">    Minimum return of the strategy within the stock price domain.</span>
+</span><span id="Outputs-529"><a href="#Outputs-529"><span class="linenos">529</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-530"><a href="#Outputs-530"><span class="linenos">530</span></a>
+</span><span id="Outputs-531"><a href="#Outputs-531"><span class="linenos">531</span></a>    <span class="n">maximum_return_in_the_domain</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="Outputs-532"><a href="#Outputs-532"><span class="linenos">532</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-533"><a href="#Outputs-533"><span class="linenos">533</span></a><span class="sd">    Maximum return of the strategy within the stock price domain.</span>
+</span><span id="Outputs-534"><a href="#Outputs-534"><span class="linenos">534</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-535"><a href="#Outputs-535"><span class="linenos">535</span></a>
+</span><span id="Outputs-536"><a href="#Outputs-536"><span class="linenos">536</span></a>    <span class="n">implied_volatility</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-537"><a href="#Outputs-537"><span class="linenos">537</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-538"><a href="#Outputs-538"><span class="linenos">538</span></a><span class="sd">    List of implied volatilities, one per strategy leg.</span>
+</span><span id="Outputs-539"><a href="#Outputs-539"><span class="linenos">539</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-540"><a href="#Outputs-540"><span class="linenos">540</span></a>
+</span><span id="Outputs-541"><a href="#Outputs-541"><span class="linenos">541</span></a>    <span class="n">in_the_money_probability</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-542"><a href="#Outputs-542"><span class="linenos">542</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-543"><a href="#Outputs-543"><span class="linenos">543</span></a><span class="sd">    List of probabilities of legs expiring in-the-money (ITM).</span>
+</span><span id="Outputs-544"><a href="#Outputs-544"><span class="linenos">544</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-545"><a href="#Outputs-545"><span class="linenos">545</span></a>
+</span><span id="Outputs-546"><a href="#Outputs-546"><span class="linenos">546</span></a>    <span class="n">probability_of_touch</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-547"><a href="#Outputs-547"><span class="linenos">547</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-548"><a href="#Outputs-548"><span class="linenos">548</span></a><span class="sd">    List of probabilities of legs ever getting in-the-money (ITM) before expiration.</span>
+</span><span id="Outputs-549"><a href="#Outputs-549"><span class="linenos">549</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-550"><a href="#Outputs-550"><span class="linenos">550</span></a>
+</span><span id="Outputs-551"><a href="#Outputs-551"><span class="linenos">551</span></a>    <span class="n">delta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-552"><a href="#Outputs-552"><span class="linenos">552</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-553"><a href="#Outputs-553"><span class="linenos">553</span></a><span class="sd">    List of Delta values, one per strategy leg.</span>
+</span><span id="Outputs-554"><a href="#Outputs-554"><span class="linenos">554</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-555"><a href="#Outputs-555"><span class="linenos">555</span></a>
+</span><span id="Outputs-556"><a href="#Outputs-556"><span class="linenos">556</span></a>    <span class="n">gamma</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-557"><a href="#Outputs-557"><span class="linenos">557</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-558"><a href="#Outputs-558"><span class="linenos">558</span></a><span class="sd">    List of Gamma values, one per strategy leg.</span>
+</span><span id="Outputs-559"><a href="#Outputs-559"><span class="linenos">559</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-560"><a href="#Outputs-560"><span class="linenos">560</span></a>
+</span><span id="Outputs-561"><a href="#Outputs-561"><span class="linenos">561</span></a>    <span class="n">theta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-562"><a href="#Outputs-562"><span class="linenos">562</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-563"><a href="#Outputs-563"><span class="linenos">563</span></a><span class="sd">    List of Theta values, one per strategy leg.</span>
+</span><span id="Outputs-564"><a href="#Outputs-564"><span class="linenos">564</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-565"><a href="#Outputs-565"><span class="linenos">565</span></a>
+</span><span id="Outputs-566"><a href="#Outputs-566"><span class="linenos">566</span></a>    <span class="n">vega</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+</span><span id="Outputs-567"><a href="#Outputs-567"><span class="linenos">567</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-568"><a href="#Outputs-568"><span class="linenos">568</span></a><span class="sd">    List of Vega values, one per strategy leg.</span>
 </span><span id="Outputs-569"><a href="#Outputs-569"><span class="linenos">569</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Outputs-570"><a href="#Outputs-570"><span class="linenos">570</span></a>
-</span><span id="Outputs-571"><a href="#Outputs-571"><span class="linenos">571</span></a>    <span class="n">profit_target_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Outputs-571"><a href="#Outputs-571"><span class="linenos">571</span></a>    <span class="n">rho</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
 </span><span id="Outputs-572"><a href="#Outputs-572"><span class="linenos">572</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-573"><a href="#Outputs-573"><span class="linenos">573</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges in which the</span>
-</span><span id="Outputs-574"><a href="#Outputs-574"><span class="linenos">574</span></a><span class="sd">    strategy makes at least the profit target. </span>
-</span><span id="Outputs-575"><a href="#Outputs-575"><span class="linenos">575</span></a><span class="sd">    </span>
-</span><span id="Outputs-576"><a href="#Outputs-576"><span class="linenos">576</span></a><span class="sd">    The default is [].</span>
-</span><span id="Outputs-577"><a href="#Outputs-577"><span class="linenos">577</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-578"><a href="#Outputs-578"><span class="linenos">578</span></a>
-</span><span id="Outputs-579"><a href="#Outputs-579"><span class="linenos">579</span></a>    <span class="n">probability_of_loss_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="Outputs-580"><a href="#Outputs-580"><span class="linenos">580</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-581"><a href="#Outputs-581"><span class="linenos">581</span></a><span class="sd">    Probability of the strategy losing at least the loss limit. </span>
-</span><span id="Outputs-582"><a href="#Outputs-582"><span class="linenos">582</span></a><span class="sd">    </span>
-</span><span id="Outputs-583"><a href="#Outputs-583"><span class="linenos">583</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="Outputs-584"><a href="#Outputs-584"><span class="linenos">584</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-585"><a href="#Outputs-585"><span class="linenos">585</span></a>
-</span><span id="Outputs-586"><a href="#Outputs-586"><span class="linenos">586</span></a>    <span class="n">loss_limit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Outputs-587"><a href="#Outputs-587"><span class="linenos">587</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Outputs-588"><a href="#Outputs-588"><span class="linenos">588</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges where the</span>
-</span><span id="Outputs-589"><a href="#Outputs-589"><span class="linenos">589</span></a><span class="sd">    strategy loses at least the loss limit. </span>
-</span><span id="Outputs-590"><a href="#Outputs-590"><span class="linenos">590</span></a><span class="sd">    </span>
-</span><span id="Outputs-591"><a href="#Outputs-591"><span class="linenos">591</span></a><span class="sd">    The default is [].</span>
-</span><span id="Outputs-592"><a href="#Outputs-592"><span class="linenos">592</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Outputs-593"><a href="#Outputs-593"><span class="linenos">593</span></a>
-</span><span id="Outputs-594"><a href="#Outputs-594"><span class="linenos">594</span></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
-</span><span id="Outputs-595"><a href="#Outputs-595"><span class="linenos">595</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
-</span><span id="Outputs-596"><a href="#Outputs-596"><span class="linenos">596</span></a>
-</span><span id="Outputs-597"><a href="#Outputs-597"><span class="linenos">597</span></a>    <span class="n">data</span><span class="p">:</span> <span class="n">EngineDataResults</span>
-</span><span id="Outputs-598"><a href="#Outputs-598"><span class="linenos">598</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
-</span><span id="Outputs-599"><a href="#Outputs-599"><span class="linenos">599</span></a>
-</span><span id="Outputs-600"><a href="#Outputs-600"><span class="linenos">600</span></a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Outputs-601"><a href="#Outputs-601"><span class="linenos">601</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="Outputs-602"><a href="#Outputs-602"><span class="linenos">602</span></a>
-</span><span id="Outputs-603"><a href="#Outputs-603"><span class="linenos">603</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span>
-</span><span id="Outputs-604"><a href="#Outputs-604"><span class="linenos">604</span></a>            <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs&quot;</span><span class="p">},</span>
-</span><span id="Outputs-605"><a href="#Outputs-605"><span class="linenos">605</span></a>            <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="Outputs-606"><a href="#Outputs-606"><span class="linenos">606</span></a>            <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="Outputs-607"><a href="#Outputs-607"><span class="linenos">607</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="Outputs-608"><a href="#Outputs-608"><span class="linenos">608</span></a>            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-</span><span id="Outputs-609"><a href="#Outputs-609"><span class="linenos">609</span></a>
-</span><span id="Outputs-610"><a href="#Outputs-610"><span class="linenos">610</span></a>        <span class="k">return</span> <span class="n">s</span>
+</span><span id="Outputs-573"><a href="#Outputs-573"><span class="linenos">573</span></a><span class="sd">    List of Rho values, one per strategy leg.</span>
+</span><span id="Outputs-574"><a href="#Outputs-574"><span class="linenos">574</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-575"><a href="#Outputs-575"><span class="linenos">575</span></a>
+</span><span id="Outputs-576"><a href="#Outputs-576"><span class="linenos">576</span></a>    <span class="n">probability_of_profit_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="Outputs-577"><a href="#Outputs-577"><span class="linenos">577</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-578"><a href="#Outputs-578"><span class="linenos">578</span></a><span class="sd">    Probability of the strategy yielding at least the profit target. </span>
+</span><span id="Outputs-579"><a href="#Outputs-579"><span class="linenos">579</span></a><span class="sd">    </span>
+</span><span id="Outputs-580"><a href="#Outputs-580"><span class="linenos">580</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="Outputs-581"><a href="#Outputs-581"><span class="linenos">581</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-582"><a href="#Outputs-582"><span class="linenos">582</span></a>
+</span><span id="Outputs-583"><a href="#Outputs-583"><span class="linenos">583</span></a>    <span class="n">profit_target_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Outputs-584"><a href="#Outputs-584"><span class="linenos">584</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-585"><a href="#Outputs-585"><span class="linenos">585</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges in which the</span>
+</span><span id="Outputs-586"><a href="#Outputs-586"><span class="linenos">586</span></a><span class="sd">    strategy makes at least the profit target. </span>
+</span><span id="Outputs-587"><a href="#Outputs-587"><span class="linenos">587</span></a><span class="sd">    </span>
+</span><span id="Outputs-588"><a href="#Outputs-588"><span class="linenos">588</span></a><span class="sd">    The default is [].</span>
+</span><span id="Outputs-589"><a href="#Outputs-589"><span class="linenos">589</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-590"><a href="#Outputs-590"><span class="linenos">590</span></a>
+</span><span id="Outputs-591"><a href="#Outputs-591"><span class="linenos">591</span></a>    <span class="n">probability_of_loss_limit</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="Outputs-592"><a href="#Outputs-592"><span class="linenos">592</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-593"><a href="#Outputs-593"><span class="linenos">593</span></a><span class="sd">    Probability of the strategy losing at least the loss limit. </span>
+</span><span id="Outputs-594"><a href="#Outputs-594"><span class="linenos">594</span></a><span class="sd">    </span>
+</span><span id="Outputs-595"><a href="#Outputs-595"><span class="linenos">595</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="Outputs-596"><a href="#Outputs-596"><span class="linenos">596</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-597"><a href="#Outputs-597"><span class="linenos">597</span></a>
+</span><span id="Outputs-598"><a href="#Outputs-598"><span class="linenos">598</span></a>    <span class="n">loss_limit_ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Outputs-599"><a href="#Outputs-599"><span class="linenos">599</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Outputs-600"><a href="#Outputs-600"><span class="linenos">600</span></a><span class="sd">    List of minimum and maximum stock prices defining ranges where the</span>
+</span><span id="Outputs-601"><a href="#Outputs-601"><span class="linenos">601</span></a><span class="sd">    strategy loses at least the loss limit. </span>
+</span><span id="Outputs-602"><a href="#Outputs-602"><span class="linenos">602</span></a><span class="sd">    </span>
+</span><span id="Outputs-603"><a href="#Outputs-603"><span class="linenos">603</span></a><span class="sd">    The default is [].</span>
+</span><span id="Outputs-604"><a href="#Outputs-604"><span class="linenos">604</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Outputs-605"><a href="#Outputs-605"><span class="linenos">605</span></a>
+</span><span id="Outputs-606"><a href="#Outputs-606"><span class="linenos">606</span></a>    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
+</span><span id="Outputs-607"><a href="#Outputs-607"><span class="linenos">607</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="Outputs-608"><a href="#Outputs-608"><span class="linenos">608</span></a>
+</span><span id="Outputs-609"><a href="#Outputs-609"><span class="linenos">609</span></a>    <span class="n">data</span><span class="p">:</span> <span class="n">EngineDataResults</span>
+</span><span id="Outputs-610"><a href="#Outputs-610"><span class="linenos">610</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;@private&quot;&quot;&quot;</span>
+</span><span id="Outputs-611"><a href="#Outputs-611"><span class="linenos">611</span></a>
+</span><span id="Outputs-612"><a href="#Outputs-612"><span class="linenos">612</span></a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Outputs-613"><a href="#Outputs-613"><span class="linenos">613</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="Outputs-614"><a href="#Outputs-614"><span class="linenos">614</span></a>
+</span><span id="Outputs-615"><a href="#Outputs-615"><span class="linenos">615</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span>
+</span><span id="Outputs-616"><a href="#Outputs-616"><span class="linenos">616</span></a>            <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs&quot;</span><span class="p">},</span>
+</span><span id="Outputs-617"><a href="#Outputs-617"><span class="linenos">617</span></a>            <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="Outputs-618"><a href="#Outputs-618"><span class="linenos">618</span></a>            <span class="n">exclude_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="Outputs-619"><a href="#Outputs-619"><span class="linenos">619</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="Outputs-620"><a href="#Outputs-620"><span class="linenos">620</span></a>            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="Outputs-621"><a href="#Outputs-621"><span class="linenos">621</span></a>
+</span><span id="Outputs-622"><a href="#Outputs-622"><span class="linenos">622</span></a>        <span class="k">return</span> <span class="n">s</span>
 </span></pre></div>
 
 
@@ -3164,13 +3222,13 @@ strategy makes at least $0.01.</p>
 
 
                             </div>
-                            <div id="Outputs.expected_profit" class="classattr">
+                            <div id="Outputs.expected_profit_if_profitable" class="classattr">
                                 <div class="attr variable">
-            <span class="name">expected_profit</span><span class="annotation">: float</span>
+            <span class="name">expected_profit_if_profitable</span><span class="annotation">: float</span>
 
         
     </div>
-    <a class="headerlink" href="#Outputs.expected_profit"></a>
+    <a class="headerlink" href="#Outputs.expected_profit_if_profitable"></a>
     
             <div class="docstring"><p>Expected profit when the strategy is profitable. </p>
 
@@ -3179,15 +3237,15 @@ strategy makes at least $0.01.</p>
 
 
                             </div>
-                            <div id="Outputs.expected_loss" class="classattr">
+                            <div id="Outputs.expected_loss_if_unprofitable" class="classattr">
                                 <div class="attr variable">
-            <span class="name">expected_loss</span><span class="annotation">: float</span>
+            <span class="name">expected_loss_if_unprofitable</span><span class="annotation">: float</span>
 
         
     </div>
-    <a class="headerlink" href="#Outputs.expected_loss"></a>
+    <a class="headerlink" href="#Outputs.expected_loss_if_unprofitable"></a>
     
-            <div class="docstring"><p>Expected loss when the strategy is not profitable. </p>
+            <div class="docstring"><p>Expected loss when the strategy is not profitable.</p>
 
 <p>The default is 0.0.</p>
 </div>
@@ -3268,6 +3326,19 @@ strategy makes at least $0.01.</p>
     <a class="headerlink" href="#Outputs.in_the_money_probability"></a>
     
             <div class="docstring"><p>List of probabilities of legs expiring in-the-money (ITM).</p>
+</div>
+
+
+                            </div>
+                            <div id="Outputs.probability_of_touch" class="classattr">
+                                <div class="attr variable">
+            <span class="name">probability_of_touch</span><span class="annotation">: list[float]</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Outputs.probability_of_touch"></a>
+    
+            <div class="docstring"><p>List of probabilities of legs ever getting in-the-money (ITM) before expiration.</p>
 </div>
 
 
@@ -3417,7 +3488,7 @@ strategy loses at least the loss limit. </p>
                                 <div class="attr variable">
             <span class="name">model_fields</span><span class="annotation">: ClassVar[Dict[str, pydantic.fields.FieldInfo]]</span>        =
 <input id="Outputs.model_fields-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-            <label class="view-value-button pdoc-button" for="Outputs.model_fields-view-value"></label><span class="default_value">{&#39;probability_of_profit&#39;: FieldInfo(annotation=float, required=True), &#39;profit_ranges&#39;: FieldInfo(annotation=list[tuple[float, float]], required=True), &#39;expected_profit&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;expected_loss&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;per_leg_cost&#39;: FieldInfo(annotation=list[float], required=True), &#39;strategy_cost&#39;: FieldInfo(annotation=float, required=True), &#39;minimum_return_in_the_domain&#39;: FieldInfo(annotation=float, required=True), &#39;maximum_return_in_the_domain&#39;: FieldInfo(annotation=float, required=True), &#39;implied_volatility&#39;: FieldInfo(annotation=list[float], required=True), &#39;in_the_money_probability&#39;: FieldInfo(annotation=list[float], required=True), &#39;delta&#39;: FieldInfo(annotation=list[float], required=True), &#39;gamma&#39;: FieldInfo(annotation=list[float], required=True), &#39;theta&#39;: FieldInfo(annotation=list[float], required=True), &#39;vega&#39;: FieldInfo(annotation=list[float], required=True), &#39;rho&#39;: FieldInfo(annotation=list[float], required=True), &#39;probability_of_profit_target&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;profit_target_ranges&#39;: FieldInfo(annotation=list[tuple[float, float]], required=False, default=[]), &#39;probability_of_loss_limit&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;loss_limit_ranges&#39;: FieldInfo(annotation=list[tuple[float, float]], required=False, default=[]), &#39;inputs&#39;: FieldInfo(annotation=Inputs, required=True), &#39;data&#39;: FieldInfo(annotation=EngineDataResults, required=True)}</span>
+            <label class="view-value-button pdoc-button" for="Outputs.model_fields-view-value"></label><span class="default_value">{&#39;probability_of_profit&#39;: FieldInfo(annotation=float, required=True), &#39;profit_ranges&#39;: FieldInfo(annotation=list[tuple[float, float]], required=True), &#39;expected_profit_if_profitable&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;expected_loss_if_unprofitable&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;per_leg_cost&#39;: FieldInfo(annotation=list[float], required=True), &#39;strategy_cost&#39;: FieldInfo(annotation=float, required=True), &#39;minimum_return_in_the_domain&#39;: FieldInfo(annotation=float, required=True), &#39;maximum_return_in_the_domain&#39;: FieldInfo(annotation=float, required=True), &#39;implied_volatility&#39;: FieldInfo(annotation=list[float], required=True), &#39;in_the_money_probability&#39;: FieldInfo(annotation=list[float], required=True), &#39;probability_of_touch&#39;: FieldInfo(annotation=list[float], required=True), &#39;delta&#39;: FieldInfo(annotation=list[float], required=True), &#39;gamma&#39;: FieldInfo(annotation=list[float], required=True), &#39;theta&#39;: FieldInfo(annotation=list[float], required=True), &#39;vega&#39;: FieldInfo(annotation=list[float], required=True), &#39;rho&#39;: FieldInfo(annotation=list[float], required=True), &#39;probability_of_profit_target&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;profit_target_ranges&#39;: FieldInfo(annotation=list[tuple[float, float]], required=False, default=[]), &#39;probability_of_loss_limit&#39;: FieldInfo(annotation=float, required=False, default=0.0), &#39;loss_limit_ranges&#39;: FieldInfo(annotation=list[tuple[float, float]], required=False, default=[]), &#39;inputs&#39;: FieldInfo(annotation=Inputs, required=True), &#39;data&#39;: FieldInfo(annotation=EngineDataResults, required=True)}</span>
 
         
     </div>
@@ -3457,56 +3528,56 @@ mapping of field names to [<code>FieldInfo</code>][pydantic.fields.FieldInfo] ob
 
     </div>
     <a class="headerlink" href="#PoPOutputs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PoPOutputs-613"><a href="#PoPOutputs-613"><span class="linenos">613</span></a><span class="k">class</span> <span class="nc">PoPOutputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="PoPOutputs-614"><a href="#PoPOutputs-614"><span class="linenos">614</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-615"><a href="#PoPOutputs-615"><span class="linenos">615</span></a><span class="sd">    Defines the output data from a probability of profit (PoP) calculation.</span>
-</span><span id="PoPOutputs-616"><a href="#PoPOutputs-616"><span class="linenos">616</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-617"><a href="#PoPOutputs-617"><span class="linenos">617</span></a>
-</span><span id="PoPOutputs-618"><a href="#PoPOutputs-618"><span class="linenos">618</span></a>    <span class="n">probability_of_reaching_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="PoPOutputs-619"><a href="#PoPOutputs-619"><span class="linenos">619</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-620"><a href="#PoPOutputs-620"><span class="linenos">620</span></a><span class="sd">    Probability that the strategy return will be equal or greater than the</span>
-</span><span id="PoPOutputs-621"><a href="#PoPOutputs-621"><span class="linenos">621</span></a><span class="sd">    target. </span>
-</span><span id="PoPOutputs-622"><a href="#PoPOutputs-622"><span class="linenos">622</span></a><span class="sd">    </span>
-</span><span id="PoPOutputs-623"><a href="#PoPOutputs-623"><span class="linenos">623</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="PoPOutputs-624"><a href="#PoPOutputs-624"><span class="linenos">624</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-625"><a href="#PoPOutputs-625"><span class="linenos">625</span></a>
-</span><span id="PoPOutputs-626"><a href="#PoPOutputs-626"><span class="linenos">626</span></a>    <span class="n">probability_of_missing_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="PoPOutputs-627"><a href="#PoPOutputs-627"><span class="linenos">627</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-628"><a href="#PoPOutputs-628"><span class="linenos">628</span></a><span class="sd">    Probability that the strategy return will be less than the target. </span>
-</span><span id="PoPOutputs-629"><a href="#PoPOutputs-629"><span class="linenos">629</span></a><span class="sd">    </span>
-</span><span id="PoPOutputs-630"><a href="#PoPOutputs-630"><span class="linenos">630</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="PoPOutputs-631"><a href="#PoPOutputs-631"><span class="linenos">631</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-632"><a href="#PoPOutputs-632"><span class="linenos">632</span></a>
-</span><span id="PoPOutputs-633"><a href="#PoPOutputs-633"><span class="linenos">633</span></a>    <span class="n">reaching_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="PoPOutputs-634"><a href="#PoPOutputs-634"><span class="linenos">634</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-635"><a href="#PoPOutputs-635"><span class="linenos">635</span></a><span class="sd">    Range of stock prices where the strategy return is equal or greater than</span>
-</span><span id="PoPOutputs-636"><a href="#PoPOutputs-636"><span class="linenos">636</span></a><span class="sd">    the target. </span>
-</span><span id="PoPOutputs-637"><a href="#PoPOutputs-637"><span class="linenos">637</span></a><span class="sd">    </span>
-</span><span id="PoPOutputs-638"><a href="#PoPOutputs-638"><span class="linenos">638</span></a><span class="sd">    The default is [].</span>
-</span><span id="PoPOutputs-639"><a href="#PoPOutputs-639"><span class="linenos">639</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-640"><a href="#PoPOutputs-640"><span class="linenos">640</span></a>
-</span><span id="PoPOutputs-641"><a href="#PoPOutputs-641"><span class="linenos">641</span></a>    <span class="n">missing_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="PoPOutputs-642"><a href="#PoPOutputs-642"><span class="linenos">642</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-643"><a href="#PoPOutputs-643"><span class="linenos">643</span></a><span class="sd">    Range of stock prices where the strategy return is less than the target.</span>
-</span><span id="PoPOutputs-644"><a href="#PoPOutputs-644"><span class="linenos">644</span></a><span class="sd">    </span>
-</span><span id="PoPOutputs-645"><a href="#PoPOutputs-645"><span class="linenos">645</span></a><span class="sd">    The default is [].</span>
-</span><span id="PoPOutputs-646"><a href="#PoPOutputs-646"><span class="linenos">646</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-647"><a href="#PoPOutputs-647"><span class="linenos">647</span></a>
-</span><span id="PoPOutputs-648"><a href="#PoPOutputs-648"><span class="linenos">648</span></a>    <span class="n">expected_return_above_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="PoPOutputs-649"><a href="#PoPOutputs-649"><span class="linenos">649</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-650"><a href="#PoPOutputs-650"><span class="linenos">650</span></a><span class="sd">    Expected value of the strategy return when the return is equal or greater</span>
-</span><span id="PoPOutputs-651"><a href="#PoPOutputs-651"><span class="linenos">651</span></a><span class="sd">    than the target. </span>
-</span><span id="PoPOutputs-652"><a href="#PoPOutputs-652"><span class="linenos">652</span></a><span class="sd">    </span>
-</span><span id="PoPOutputs-653"><a href="#PoPOutputs-653"><span class="linenos">653</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="PoPOutputs-654"><a href="#PoPOutputs-654"><span class="linenos">654</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-655"><a href="#PoPOutputs-655"><span class="linenos">655</span></a>
-</span><span id="PoPOutputs-656"><a href="#PoPOutputs-656"><span class="linenos">656</span></a>    <span class="n">expected_return_below_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="PoPOutputs-657"><a href="#PoPOutputs-657"><span class="linenos">657</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="PoPOutputs-658"><a href="#PoPOutputs-658"><span class="linenos">658</span></a><span class="sd">    Expected value of the strategy return when the return is less than the</span>
-</span><span id="PoPOutputs-659"><a href="#PoPOutputs-659"><span class="linenos">659</span></a><span class="sd">    target. </span>
-</span><span id="PoPOutputs-660"><a href="#PoPOutputs-660"><span class="linenos">660</span></a><span class="sd">    </span>
-</span><span id="PoPOutputs-661"><a href="#PoPOutputs-661"><span class="linenos">661</span></a><span class="sd">    The default is 0.0.</span>
-</span><span id="PoPOutputs-662"><a href="#PoPOutputs-662"><span class="linenos">662</span></a><span class="sd">    &quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PoPOutputs-625"><a href="#PoPOutputs-625"><span class="linenos">625</span></a><span class="k">class</span> <span class="nc">PoPOutputs</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="PoPOutputs-626"><a href="#PoPOutputs-626"><span class="linenos">626</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-627"><a href="#PoPOutputs-627"><span class="linenos">627</span></a><span class="sd">    Defines the output data from a probability of profit (PoP) calculation.</span>
+</span><span id="PoPOutputs-628"><a href="#PoPOutputs-628"><span class="linenos">628</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-629"><a href="#PoPOutputs-629"><span class="linenos">629</span></a>
+</span><span id="PoPOutputs-630"><a href="#PoPOutputs-630"><span class="linenos">630</span></a>    <span class="n">probability_of_reaching_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="PoPOutputs-631"><a href="#PoPOutputs-631"><span class="linenos">631</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-632"><a href="#PoPOutputs-632"><span class="linenos">632</span></a><span class="sd">    Probability that the strategy return will be equal or greater than the</span>
+</span><span id="PoPOutputs-633"><a href="#PoPOutputs-633"><span class="linenos">633</span></a><span class="sd">    target. </span>
+</span><span id="PoPOutputs-634"><a href="#PoPOutputs-634"><span class="linenos">634</span></a><span class="sd">    </span>
+</span><span id="PoPOutputs-635"><a href="#PoPOutputs-635"><span class="linenos">635</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="PoPOutputs-636"><a href="#PoPOutputs-636"><span class="linenos">636</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-637"><a href="#PoPOutputs-637"><span class="linenos">637</span></a>
+</span><span id="PoPOutputs-638"><a href="#PoPOutputs-638"><span class="linenos">638</span></a>    <span class="n">probability_of_missing_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="PoPOutputs-639"><a href="#PoPOutputs-639"><span class="linenos">639</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-640"><a href="#PoPOutputs-640"><span class="linenos">640</span></a><span class="sd">    Probability that the strategy return will be less than the target. </span>
+</span><span id="PoPOutputs-641"><a href="#PoPOutputs-641"><span class="linenos">641</span></a><span class="sd">    </span>
+</span><span id="PoPOutputs-642"><a href="#PoPOutputs-642"><span class="linenos">642</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="PoPOutputs-643"><a href="#PoPOutputs-643"><span class="linenos">643</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-644"><a href="#PoPOutputs-644"><span class="linenos">644</span></a>
+</span><span id="PoPOutputs-645"><a href="#PoPOutputs-645"><span class="linenos">645</span></a>    <span class="n">reaching_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="PoPOutputs-646"><a href="#PoPOutputs-646"><span class="linenos">646</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-647"><a href="#PoPOutputs-647"><span class="linenos">647</span></a><span class="sd">    Range of stock prices where the strategy return is equal or greater than</span>
+</span><span id="PoPOutputs-648"><a href="#PoPOutputs-648"><span class="linenos">648</span></a><span class="sd">    the target. </span>
+</span><span id="PoPOutputs-649"><a href="#PoPOutputs-649"><span class="linenos">649</span></a><span class="sd">    </span>
+</span><span id="PoPOutputs-650"><a href="#PoPOutputs-650"><span class="linenos">650</span></a><span class="sd">    The default is [].</span>
+</span><span id="PoPOutputs-651"><a href="#PoPOutputs-651"><span class="linenos">651</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-652"><a href="#PoPOutputs-652"><span class="linenos">652</span></a>
+</span><span id="PoPOutputs-653"><a href="#PoPOutputs-653"><span class="linenos">653</span></a>    <span class="n">missing_target_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="PoPOutputs-654"><a href="#PoPOutputs-654"><span class="linenos">654</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-655"><a href="#PoPOutputs-655"><span class="linenos">655</span></a><span class="sd">    Range of stock prices where the strategy return is less than the target.</span>
+</span><span id="PoPOutputs-656"><a href="#PoPOutputs-656"><span class="linenos">656</span></a><span class="sd">    </span>
+</span><span id="PoPOutputs-657"><a href="#PoPOutputs-657"><span class="linenos">657</span></a><span class="sd">    The default is [].</span>
+</span><span id="PoPOutputs-658"><a href="#PoPOutputs-658"><span class="linenos">658</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-659"><a href="#PoPOutputs-659"><span class="linenos">659</span></a>
+</span><span id="PoPOutputs-660"><a href="#PoPOutputs-660"><span class="linenos">660</span></a>    <span class="n">expected_return_above_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="PoPOutputs-661"><a href="#PoPOutputs-661"><span class="linenos">661</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-662"><a href="#PoPOutputs-662"><span class="linenos">662</span></a><span class="sd">    Expected value of the strategy return when the return is equal or greater</span>
+</span><span id="PoPOutputs-663"><a href="#PoPOutputs-663"><span class="linenos">663</span></a><span class="sd">    than the target. </span>
+</span><span id="PoPOutputs-664"><a href="#PoPOutputs-664"><span class="linenos">664</span></a><span class="sd">    </span>
+</span><span id="PoPOutputs-665"><a href="#PoPOutputs-665"><span class="linenos">665</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="PoPOutputs-666"><a href="#PoPOutputs-666"><span class="linenos">666</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-667"><a href="#PoPOutputs-667"><span class="linenos">667</span></a>
+</span><span id="PoPOutputs-668"><a href="#PoPOutputs-668"><span class="linenos">668</span></a>    <span class="n">expected_return_below_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="PoPOutputs-669"><a href="#PoPOutputs-669"><span class="linenos">669</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PoPOutputs-670"><a href="#PoPOutputs-670"><span class="linenos">670</span></a><span class="sd">    Expected value of the strategy return when the return is less than the</span>
+</span><span id="PoPOutputs-671"><a href="#PoPOutputs-671"><span class="linenos">671</span></a><span class="sd">    target. </span>
+</span><span id="PoPOutputs-672"><a href="#PoPOutputs-672"><span class="linenos">672</span></a><span class="sd">    </span>
+</span><span id="PoPOutputs-673"><a href="#PoPOutputs-673"><span class="linenos">673</span></a><span class="sd">    The default is 0.0.</span>
+</span><span id="PoPOutputs-674"><a href="#PoPOutputs-674"><span class="linenos">674</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span></pre></div>
 
 

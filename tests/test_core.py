@@ -7,8 +7,8 @@ from optionlab.black_scholes import get_bs_info
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945267,
-    "expected_profit": 1448.28,
-    "expected_loss": -1703.74,
+    "expected_profit_if_profitable": 1448.28,
+    "expected_loss_if_unprofitable": -1703.74,
     "profit_ranges": [(164.9, float("inf"))],
     "per_leg_cost": [-16899.0, 409.99999999999994],
     "strategy_cost": -16489.0,
@@ -16,6 +16,7 @@ COVERED_CALL_RESULT = {
     "maximum_return_in_the_domain": 2011.0,
     "implied_volatility": [0.0, 0.456],
     "in_the_money_probability": [1.0, 0.256866624586934],
+    "probability_of_touch": [1.0, 0.5277250352054264],
     "delta": [1.0, -0.30713817729665704],
     "gamma": [0.0, 0.013948977387090415],
     "theta": [0.0, 0.19283555235589467],
@@ -25,7 +26,7 @@ COVERED_CALL_RESULT = {
 
 PROB_100_ITM_RESULT = {
     "probability_of_profit": 1.0,
-    "expected_profit": 492.57,
+    "expected_profit_if_profitable": 492.57,
     "profit_ranges": [(0.0, float("inf"))],
     "per_leg_cost": [-750.0, 990.0],
     "strategy_cost": 240.0,
@@ -33,6 +34,7 @@ PROB_100_ITM_RESULT = {
     "maximum_return_in_the_domain": 740.0000000000018,
     "implied_volatility": [0.494, 0.482],
     "in_the_money_probability": [0.54558925139931, 0.465831136209786],
+    "probability_of_touch": [1.0, 0.9661799112521838],
     "delta": [0.6039490632362865, -0.525237550169406],
     "gamma": [0.015297136732317718, 0.015806160944019643],
     "theta": [-0.21821351060901806, 0.22301627833773927],
@@ -42,8 +44,8 @@ PROB_100_ITM_RESULT = {
 
 NAKED_CALL = {
     "probability_of_profit": 0.8389215512144531,
-    "expected_profit": 113.49,
-    "expected_loss": -717.5,
+    "expected_profit_if_profitable": 113.49,
+    "expected_loss_if_unprofitable": -717.5,
     "profit_ranges": [(0.0, 176.14)],
     "per_leg_cost": [114.99999999999999],
     "strategy_cost": 114.99999999999999,
@@ -51,6 +53,7 @@ NAKED_CALL = {
     "maximum_return_in_the_domain": 114.99999999999999,
     "implied_volatility": [0.256],
     "in_the_money_probability": [0.1832371984432129],
+    "probability_of_touch": [0.3741546603689868],
     "delta": [-0.20371918274704337],
     "gamma": [0.023104402361599465],
     "theta": [0.091289876347897],
@@ -85,11 +88,13 @@ def test_black_scholes():
     assert bs.call_theta == -8.780589609657586
     assert bs.call_rho == 0.04600635174517672
     assert bs.call_itm_prob == 0.2669832523577367
+    assert round(bs.call_prob_of_touch, 12) == 0.540374479063
     assert bs.put_price == 6.27
     assert bs.put_delta == -0.7057027999944967
     assert bs.put_theta == -7.732314219179215
     assert bs.put_rho == -0.12631289052524033
     assert bs.put_itm_prob == 0.7330167476422633
+    assert bs.put_prob_of_touch == 1.0
     assert bs.gamma == 0.042503588182705464
     assert bs.vega == 0.13973782416231934
 
@@ -181,8 +186,8 @@ def test_covered_call_w_prev_position(nvidia):
         exclude_defaults=True,
     ) == {
         "probability_of_profit": 0.7048129541301169,
-        "expected_profit": 2013.63,
-        "expected_loss": -1350.06,
+        "expected_profit_if_profitable": 2013.63,
+        "expected_loss_if_unprofitable": -1350.06,
         "profit_ranges": [(154.9, float("inf"))],
         "per_leg_cost": [-15899.0, 409.99999999999994],
         "strategy_cost": -15489.0,
@@ -190,6 +195,7 @@ def test_covered_call_w_prev_position(nvidia):
         "maximum_return_in_the_domain": 3011.0,
         "implied_volatility": [0.0, 0.456],
         "in_the_money_probability": [1.0, 0.256866624586934],
+        "probability_of_touch": [1.0, 0.5277250352054264],
         "delta": [1.0, -0.30713817729665704],
         "gamma": [0.0, 0.013948977387090415],
         "theta": [0.0, 0.19283555235589467],
@@ -303,8 +309,8 @@ def test_3_legs(nvidia):
         exclude_defaults=True,
     ) == {
         "probability_of_profit": 0.6790581742719213,
-        "expected_profit": 2956.8,
-        "expected_loss": -1404.83,
+        "expected_profit_if_profitable": 2956.8,
+        "expected_loss_if_unprofitable": -1404.83,
         "profit_ranges": [(156.6, float("inf"))],
         "per_leg_cost": [-15899.0, -750.0, 990.0],
         "strategy_cost": -15659.0,
@@ -312,6 +318,7 @@ def test_3_legs(nvidia):
         "maximum_return_in_the_domain": 11740.0,
         "implied_volatility": [0.0, 0.494, 0.482],
         "in_the_money_probability": [1.0, 0.54558925139931, 0.465831136209786],
+        "probability_of_touch": [1.0, 1.0, 0.9661799112521838],
         "delta": [1.0, 0.6039490632362865, -0.525237550169406],
         "gamma": [0.0, 0.015297136732317718, 0.015806160944019643],
         "theta": [0.0, -0.21821351060901806, 0.22301627833773927],
@@ -363,8 +370,8 @@ def test_calendar_spread():
         exclude={"data", "inputs"}, exclude_none=True, exclude_defaults=True
     ) == {
         "probability_of_profit": 0.599111819020198,
-        "expected_profit": 1383.2,
-        "expected_loss": -691.09,
+        "expected_profit_if_profitable": 1383.2,
+        "expected_loss_if_unprofitable": -691.09,
         "profit_ranges": [(118.87, 136.15)],
         "per_leg_cost": [4600.0, -5900.0],
         "strategy_cost": -1300.0,
@@ -372,6 +379,7 @@ def test_calendar_spread():
         "maximum_return_in_the_domain": 3009.999999999999,
         "implied_volatility": [0.47300000000000003, 0.419],
         "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
+        "probability_of_touch": [1.0, 1.0],
         "delta": [-0.5216914758915705, 0.5273457614638198],
         "gamma": [0.03882722919950356, 0.02669940508461828],
         "theta": [0.22727438444823292, -0.15634971608107964],

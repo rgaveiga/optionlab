@@ -57,6 +57,12 @@ def get_bs_info(
     put_rho = get_rho("put", x, r, years_to_maturity, d2)
     call_itm_prob = get_itm_probability("call", d2, years_to_maturity, y)
     put_itm_prob = get_itm_probability("put", d2, years_to_maturity, y)
+    call_prob_of_touch = get_probability_of_touch(
+        "call", s, x, r, vol, years_to_maturity, y
+    )
+    put_prob_of_touch = get_probability_of_touch(
+        "put", s, x, r, vol, years_to_maturity, y
+    )
 
     return BlackScholesInfo(
         call_price=call_price,
@@ -71,6 +77,8 @@ def get_bs_info(
         put_rho=put_rho,
         call_itm_prob=call_itm_prob,
         put_itm_prob=put_itm_prob,
+        call_prob_of_touch=call_prob_of_touch,
+        put_prob_of_touch=put_prob_of_touch,
     )
 
 
@@ -476,5 +484,70 @@ def get_itm_probability(
         return yfac * stats.norm.cdf(d2)
     elif option_type == "put":
         return yfac * stats.norm.cdf(-d2)
+    else:
+        raise ValueError("Option type must be either 'call' or 'put'!")
+
+
+def get_probability_of_touch(
+    option_type: OptionType,
+    s: float,
+    x: FloatOrNdarray,
+    r: float,
+    vol: float,
+    years_to_maturity: float,
+    y: float = 0.0,
+) -> FloatOrNdarray:
+    """
+    Returns the probability(ies) that the option(s) will ever get in-the-money (ITM)
+    before expiration.
+
+    > [!NOTE]
+    > This function implements equations 2.66 and 2.67 (see pages 80 and 81) in
+    > *The complete guide to option pricing formulas*, 2nd edition, authored by
+    > Espen Gaarder Haug, PhD, and published by McGraw-Hill.
+
+    ### Parameters
+
+    `option_type`: either *'call'* or *'put'*.
+
+    `s`: stock price.
+
+    `x`: strike price(s).
+
+    `r`: annualized risk-free interest rate.
+
+    `vol`: annualized volatility.
+
+    `years_to_maturity`: time remaining to maturity, in years.
+
+    `y`: annualized dividend yield.
+
+    ### Returns
+
+    Probability(ies) that the option(s) will ever get in-the-money (ITM) before
+    expiration.
+    """
+
+    mu = (r - y - 0.5 * vol * vol) / (vol * vol)
+    lam = sqrt((mu * mu) + 2.0 * r / (vol * vol))
+    sigma = vol * sqrt(years_to_maturity)
+    z = log(x / s) / sigma + lam * sigma
+    exp1 = mu + lam
+    exp2 = mu - lam
+
+    if option_type == "call":
+        if s >= x:
+            return 1.0
+        else:
+            return ((x / s) ** exp1) * stats.norm.cdf(-z) + (
+                (x / s) ** exp2
+            ) * stats.norm.cdf(2.0 * lam * sigma - z)
+    elif option_type == "put":
+        if s <= x:
+            return 1.0
+        else:
+            return ((x / s) ** exp1) * stats.norm.cdf(z) + (
+                (x / s) ** exp2
+            ) * stats.norm.cdf(z - 2.0 * lam * sigma)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")

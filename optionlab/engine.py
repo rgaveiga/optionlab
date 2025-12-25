@@ -235,6 +235,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         # Previous position is closed
         data.implied_volatility.append(0.0)
         data.itm_probability.append(0.0)
+        data.probability_of_touch.append(0.0)
         data.delta.append(0.0)
         data.gamma.append(0.0)
         data.vega.append(0.0)
@@ -287,6 +288,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
 
     if type == "call":
         data.itm_probability.append(float(bs.call_itm_prob))
+        data.probability_of_touch.append(float(bs.call_prob_of_touch))
         data.delta.append(float(bs.call_delta * negative_multiplier))
         data.theta.append(
             float(bs.call_theta / data.days_in_year * negative_multiplier)
@@ -294,6 +296,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         data.rho.append(float(bs.call_rho * negative_multiplier))
     else:
         data.itm_probability.append(float(bs.put_itm_prob))
+        data.probability_of_touch.append(float(bs.put_prob_of_touch))
         data.delta.append(float(bs.put_delta * negative_multiplier))
         data.theta.append(float(bs.put_theta / data.days_in_year * negative_multiplier))
         data.rho.append(float(bs.put_rho * negative_multiplier))
@@ -371,6 +374,7 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
         data.delta.append(-1.0)
 
     data.itm_probability.append(1.0)
+    data.probability_of_touch.append(1.0)
     data.implied_volatility.append(0.0)
     data.gamma.append(0.0)
     data.vega.append(0.0)
@@ -421,6 +425,7 @@ def _run_closed_position_calcs(data: EngineData, i: int) -> EngineData:
 
     data.implied_volatility.append(0.0)
     data.itm_probability.append(0.0)
+    data.probability_of_touch.append(0.0)
     data.delta.append(0.0)
     data.gamma.append(0.0)
     data.vega.append(0.0)
@@ -441,8 +446,8 @@ def _generate_outputs(data: EngineData) -> Outputs:
         inputs=data.inputs,
         data=data,
         probability_of_profit=data.profit_probability,
-        expected_profit=data.expected_profit,
-        expected_loss=data.expected_loss,
+        expected_profit_if_profitable=data.expected_profit,
+        expected_loss_if_unprofitable=data.expected_loss,
         strategy_cost=sum(data.cost),
         per_leg_cost=data.cost,
         profit_ranges=data.profit_ranges,
@@ -450,6 +455,7 @@ def _generate_outputs(data: EngineData) -> Outputs:
         maximum_return_in_the_domain=data.strategy_profit.max(),
         implied_volatility=data.implied_volatility,
         in_the_money_probability=data.itm_probability,
+        probability_of_touch=data.probability_of_touch,
         delta=data.delta,
         gamma=data.gamma,
         theta=data.theta,

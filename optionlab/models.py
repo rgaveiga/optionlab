@@ -427,6 +427,12 @@ class BlackScholesInfo(BaseModel):
     put_itm_prob: FloatOrNdarray
     """Probability of expiring in-the-money of a put option."""
 
+    call_prob_of_touch: FloatOrNdarray
+    """Probability of a call ever getting in-the-money before expiration."""
+
+    put_prob_of_touch: FloatOrNdarray
+    """Probability of a put ever getting in-the-money before expiration."""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
@@ -462,6 +468,7 @@ class EngineData(EngineDataResults):
     days_to_target: int = 30
     implied_volatility: list[float] = []
     itm_probability: list[float] = []
+    probability_of_touch: list[float] = []
     delta: list[float] = []
     gamma: list[float] = []
     vega: list[float] = []
@@ -491,16 +498,16 @@ class Outputs(BaseModel):
     strategy makes at least $0.01.
     """
 
-    expected_profit: float = 0.0
+    expected_profit_if_profitable: float = 0.0
     """
     Expected profit when the strategy is profitable. 
     
     The default is 0.0.
     """
 
-    expected_loss: float = 0.0
+    expected_loss_if_unprofitable: float = 0.0
     """
-    Expected loss when the strategy is not profitable. 
+    Expected loss when the strategy is not profitable.
     
     The default is 0.0.
     """
@@ -533,6 +540,11 @@ class Outputs(BaseModel):
     in_the_money_probability: list[float]
     """
     List of probabilities of legs expiring in-the-money (ITM).
+    """
+
+    probability_of_touch: list[float]
+    """
+    List of probabilities of legs ever getting in-the-money (ITM) before expiration.
     """
 
     delta: list[float]
