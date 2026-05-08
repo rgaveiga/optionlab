@@ -121,17 +121,13 @@ def get_option_price(
     s = s0 * exp(-y * years_to_maturity)
 
     if option_type == "call":
-        return round(
-            s * stats.norm.cdf(d1)
-            - x * exp(-r * years_to_maturity) * stats.norm.cdf(d2),
-            2,
-        )
+        return s * stats.norm.cdf(d1) - x * exp(
+            -r * years_to_maturity
+        ) * stats.norm.cdf(d2)
     elif option_type == "put":
-        return round(
-            x * exp(-r * years_to_maturity) * stats.norm.cdf(-d2)
-            - s * stats.norm.cdf(-d1),
-            2,
-        )
+        return x * exp(-r * years_to_maturity) * stats.norm.cdf(
+            -d2
+        ) - s * stats.norm.cdf(-d1)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
