@@ -155,4 +155,4 @@ from .plot import plot_pl
 from .utils import get_pl, pl_to_csv
 
 __docformat__ = "markdown"
-__version__ = "1.5.1"
+__version__ = "1.6.0"
