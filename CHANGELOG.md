@@ -1,28 +1,33 @@
 # CHANGELOG
 
+## 1.6.0 (2026-05-31)
+
+- Removed option price rounding in black_scholes.py
+- Refactored tests for clarity
+
 ## 1.5.1 (2025-12-24)
 
-- Added the calculation of the probability of an option ever getting ITM before expiration (see function `get_probability_of_touch` in black_scholes.py and the corresponding fields in models.py).
-- Updated documentation.
+- Added the calculation of the probability of an option ever getting ITM before expiration (see function `get_probability_of_touch` in black_scholes.py and the corresponding fields in models.py)
+- Updated documentation
 
 ## 1.5.0 (2025-12-14)
 
 - Changed `get_pop` to compute the expected profit and expected loss of a strategy with the Black-Scholes model by calling a new function, `_compute_expected_returns_bs`.
-- Updated docstrings.
-- Removed price_array.py (a better Monte Carlo implementation is coming soon).
-- The `expected_return_above_target` and `expected_return_below_target` fields in `PoPOutputs`, in models.py, are no longer optional but floats with default value of 0.0.
-- The same for the `expected_profit` and `expected_loss` fields in `EngineData` and `Outputs`, both also in models.py.
-- Removed test_misc.py.
+- Updated docstrings
+- Removed price_array.py (a better Monte Carlo implementation is coming soon)
+- The `expected_return_above_target` and `expected_return_below_target` fields in `PoPOutputs`, in models.py, are no longer optional but floats with default value of 0.0
+- The same for the `expected_profit` and `expected_loss` fields in `EngineData` and `Outputs`, both also in models.py
+- Removed test_misc.py
 
 ## 1.4.3 (2025-04-14)
 
-- Updated docstrings.
-- Added documentation with `pdoc`.
-- Changed __init__.py for compatibility with `pdoc` autodocumentation.
-- Removed `BaseLeg` from models.py.
-- Changed `StrategyType` to `StrategyLegType` in models.py for clarity.
-- Removed "normal" as an alias for "black-scholes" to avoid confusion with Bachelier model.
-- Updated Readme.md.
+- Updated docstrings
+- Added documentation with `pdoc`
+- Changed __init__.py for compatibility with `pdoc` autodocumentation
+- Removed `BaseLeg` from models.py
+- Changed `StrategyType` to `StrategyLegType` in models.py for clarity
+- Removed "normal" as an alias for "black-scholes" to avoid confusion with Bachelier model
+- Updated Readme.md
 
 ## 1.4.2 (2025-01-25)
 
