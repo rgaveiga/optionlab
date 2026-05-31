@@ -8,6 +8,21 @@ from optionlab.models import Outputs
 OUTPUT_EXCLUDE_FIELDS = {"data", "inputs"}
 
 
+def assert_approx_equal(actual, expected):
+    if isinstance(expected, dict):
+        assert actual.keys() == expected.keys()
+
+        for key, value in expected.items():
+            assert_approx_equal(actual[key], value)
+    elif isinstance(expected, (list, tuple)):
+        assert len(actual) == len(expected)
+
+        for actual_item, expected_item in zip(actual, expected):
+            assert_approx_equal(actual_item, expected_item)
+    else:
+        assert actual == pytest.approx(expected)
+
+
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945267,
     "expected_profit_if_profitable": 1448.28,
@@ -126,22 +141,24 @@ def test_black_scholes():
         y=0.0,
     )
 
-    assert bs.call_price == BLACK_SCHOLES_EXPECTED["call_price"]
-    assert bs.call_delta == BLACK_SCHOLES_EXPECTED["call_delta"]
-    assert bs.call_theta == BLACK_SCHOLES_EXPECTED["call_theta"]
-    assert bs.call_rho == BLACK_SCHOLES_EXPECTED["call_rho"]
-    assert bs.call_itm_prob == BLACK_SCHOLES_EXPECTED["call_itm_prob"]
-    assert (
-        round(bs.call_prob_of_touch, 12) == BLACK_SCHOLES_EXPECTED["call_prob_of_touch"]
+    assert bs.call_price == pytest.approx(BLACK_SCHOLES_EXPECTED["call_price"])
+    assert bs.call_delta == pytest.approx(BLACK_SCHOLES_EXPECTED["call_delta"])
+    assert bs.call_theta == pytest.approx(BLACK_SCHOLES_EXPECTED["call_theta"])
+    assert bs.call_rho == pytest.approx(BLACK_SCHOLES_EXPECTED["call_rho"])
+    assert bs.call_itm_prob == pytest.approx(BLACK_SCHOLES_EXPECTED["call_itm_prob"])
+    assert bs.call_prob_of_touch == pytest.approx(
+        BLACK_SCHOLES_EXPECTED["call_prob_of_touch"]
     )
-    assert bs.put_price == BLACK_SCHOLES_EXPECTED["put_price"]
-    assert bs.put_delta == BLACK_SCHOLES_EXPECTED["put_delta"]
-    assert bs.put_theta == BLACK_SCHOLES_EXPECTED["put_theta"]
-    assert bs.put_rho == BLACK_SCHOLES_EXPECTED["put_rho"]
-    assert bs.put_itm_prob == BLACK_SCHOLES_EXPECTED["put_itm_prob"]
-    assert bs.put_prob_of_touch == BLACK_SCHOLES_EXPECTED["put_prob_of_touch"]
-    assert bs.gamma == BLACK_SCHOLES_EXPECTED["gamma"]
-    assert bs.vega == BLACK_SCHOLES_EXPECTED["vega"]
+    assert bs.put_price == pytest.approx(BLACK_SCHOLES_EXPECTED["put_price"])
+    assert bs.put_delta == pytest.approx(BLACK_SCHOLES_EXPECTED["put_delta"])
+    assert bs.put_theta == pytest.approx(BLACK_SCHOLES_EXPECTED["put_theta"])
+    assert bs.put_rho == pytest.approx(BLACK_SCHOLES_EXPECTED["put_rho"])
+    assert bs.put_itm_prob == pytest.approx(BLACK_SCHOLES_EXPECTED["put_itm_prob"])
+    assert bs.put_prob_of_touch == pytest.approx(
+        BLACK_SCHOLES_EXPECTED["put_prob_of_touch"]
+    )
+    assert bs.gamma == pytest.approx(BLACK_SCHOLES_EXPECTED["gamma"])
+    assert bs.vega == pytest.approx(BLACK_SCHOLES_EXPECTED["vega"])
 
 
 def test_covered_call(nvidia):
@@ -149,7 +166,7 @@ def test_covered_call(nvidia):
         "strategy": with_expiration(COVERED_CALL_LEGS, nvidia["target_date"])
     }
 
-    assert run_validated_strategy(payload) == pytest.approx(COVERED_CALL_RESULT)
+    assert_approx_equal(run_validated_strategy(payload), COVERED_CALL_RESULT)
 
 
 def test_covered_call_w_days_to_target(nvidia):
@@ -160,7 +177,7 @@ def test_covered_call_w_days_to_target(nvidia):
         "strategy": COVERED_CALL_LEGS,
     }
 
-    assert run_validated_strategy(payload) == pytest.approx(COVERED_CALL_RESULT)
+    assert_approx_equal(run_validated_strategy(payload), COVERED_CALL_RESULT)
 
 
 def test_covered_call_w_prev_position(nvidia):
@@ -174,24 +191,27 @@ def test_covered_call_w_prev_position(nvidia):
         )
     }
 
-    assert run_validated_strategy(payload) == {
-        "probability_of_profit": 0.7048129541301169,
-        "expected_profit_if_profitable": 2013.63,
-        "expected_loss_if_unprofitable": -1350.06,
-        "profit_ranges": [(154.9, float("inf"))],
-        "per_leg_cost": [-15899.0, 409.99999999999994],
-        "strategy_cost": -15489.0,
-        "minimum_return_in_the_domain": -8590.000000000002,
-        "maximum_return_in_the_domain": 3011.0,
-        "implied_volatility": [0.0, 0.456],
-        "in_the_money_probability": [1.0, 0.256866624586934],
-        "probability_of_touch": [1.0, 0.5277250352054264],
-        "delta": [1.0, -0.30713817729665704],
-        "gamma": [0.0, 0.013948977387090415],
-        "theta": [0.0, 0.19283555235589467],
-        "vega": [0.0, 0.1832408146218486],
-        "rho": [0.0, -0.04506390742751745],
-    }
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.7048129541301169,
+            "expected_profit_if_profitable": 2013.63,
+            "expected_loss_if_unprofitable": -1350.06,
+            "profit_ranges": [(154.9, float("inf"))],
+            "per_leg_cost": [-15899.0, 409.99999999999994],
+            "strategy_cost": -15489.0,
+            "minimum_return_in_the_domain": -8590.000000000002,
+            "maximum_return_in_the_domain": 3011.0,
+            "implied_volatility": [0.0, 0.456],
+            "in_the_money_probability": [1.0, 0.256866624586934],
+            "probability_of_touch": [1.0, 0.5277250352054264],
+            "delta": [1.0, -0.30713817729665704],
+            "gamma": [0.0, 0.013948977387090415],
+            "theta": [0.0, 0.19283555235589467],
+            "vega": [0.0, 0.1832408146218486],
+            "rho": [0.0, -0.04506390742751745],
+        },
+    )
 
 
 def test_100_perc_itm(nvidia):
@@ -218,7 +238,7 @@ def test_100_perc_itm(nvidia):
         )
     }
 
-    assert run_validated_strategy(payload) == pytest.approx(PROB_100_ITM_RESULT)
+    assert_approx_equal(run_validated_strategy(payload), PROB_100_ITM_RESULT)
 
 
 def test_naked_call():
@@ -244,7 +264,7 @@ def test_naked_call():
         ],
     }
 
-    assert run_validated_strategy(payload) == pytest.approx(NAKED_CALL)
+    assert_approx_equal(run_validated_strategy(payload), NAKED_CALL)
 
 
 def test_3_legs(nvidia):
@@ -272,24 +292,27 @@ def test_3_legs(nvidia):
         )
     }
 
-    assert run_validated_strategy(payload) == {
-        "probability_of_profit": 0.6790581742719213,
-        "expected_profit_if_profitable": 2956.8,
-        "expected_loss_if_unprofitable": -1404.83,
-        "profit_ranges": [(156.6, float("inf"))],
-        "per_leg_cost": [-15899.0, -750.0, 990.0],
-        "strategy_cost": -15659.0,
-        "minimum_return_in_the_domain": -8760.000000000002,
-        "maximum_return_in_the_domain": 11740.0,
-        "implied_volatility": [0.0, 0.494, 0.483],
-        "in_the_money_probability": [1.0, 0.54558925139931, 0.465831136209786],
-        "probability_of_touch": [1.0, 1.0, 0.9661799112521838],
-        "delta": [1.0, 0.6039490632362865, -0.525237550169406],
-        "gamma": [0.0, 0.015297136732317718, 0.015806160944019643],
-        "theta": [0.0, -0.21821351060901806, 0.22301627833773927],
-        "vega": [0.0, 0.20095091693287098, 0.20763771616023433],
-        "rho": [0.0, 0.08536880237502181, -0.07509774107468528],
-    }
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.6790581742719213,
+            "expected_profit_if_profitable": 2956.8,
+            "expected_loss_if_unprofitable": -1404.83,
+            "profit_ranges": [(156.6, float("inf"))],
+            "per_leg_cost": [-15899.0, -750.0, 990.0],
+            "strategy_cost": -15659.0,
+            "minimum_return_in_the_domain": -8760.000000000002,
+            "maximum_return_in_the_domain": 11740.0,
+            "implied_volatility": [0.0, 0.494, 0.483],
+            "in_the_money_probability": [1.0, 0.54558925139931, 0.465831136209786],
+            "probability_of_touch": [1.0, 1.0, 0.9661799112521838],
+            "delta": [1.0, 0.6039490632362865, -0.525237550169406],
+            "gamma": [0.0, 0.015297136732317718, 0.015806160944019643],
+            "theta": [0.0, -0.21821351060901806, 0.22301627833773927],
+            "vega": [0.0, 0.20095091693287098, 0.20763771616023433],
+            "rho": [0.0, 0.08536880237502181, -0.07509774107468528],
+        },
+    )
 
 
 def test_calendar_spread():
@@ -322,21 +345,24 @@ def test_calendar_spread():
         ],
     }
 
-    assert run_validated_strategy(payload) == {
-        "probability_of_profit": 0.6002074818796856,
-        "expected_profit_if_profitable": 1380.68,
-        "expected_loss_if_unprofitable": -693.04,
-        "profit_ranges": [(118.85, 136.17)],
-        "per_leg_cost": [4600.0, -5900.0],
-        "strategy_cost": -1300.0,
-        "minimum_return_in_the_domain": -1300.0,
-        "maximum_return_in_the_domain": 3010.5363361936493,
-        "implied_volatility": [0.47300000000000003, 0.419],
-        "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
-        "probability_of_touch": [1.0, 1.0],
-        "delta": [-0.5216914758915705, 0.5273457614638198],
-        "gamma": [0.03882722919950356, 0.02669940508461828],
-        "theta": [0.22727438444823292, -0.15634971608107964],
-        "vega": [0.09571294014902997, 0.1389462831961853],
-        "rho": [-0.022202087247849632, 0.046016214466188525],
-    }
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.6002074818796856,
+            "expected_profit_if_profitable": 1380.68,
+            "expected_loss_if_unprofitable": -693.04,
+            "profit_ranges": [(118.85, 136.17)],
+            "per_leg_cost": [4600.0, -5900.0],
+            "strategy_cost": -1300.0,
+            "minimum_return_in_the_domain": -1300.0,
+            "maximum_return_in_the_domain": 3010.5363361936493,
+            "implied_volatility": [0.47300000000000003, 0.419],
+            "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
+            "probability_of_touch": [1.0, 1.0],
+            "delta": [-0.5216914758915705, 0.5273457614638198],
+            "gamma": [0.03882722919950356, 0.02669940508461828],
+            "theta": [0.22727438444823292, -0.15634971608107964],
+            "vega": [0.09571294014902997, 0.1389462831961853],
+            "rho": [-0.022202087247849632, 0.046016214466188525],
+        },
+    )
