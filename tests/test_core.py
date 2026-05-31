@@ -131,7 +131,9 @@ def test_black_scholes():
     assert bs.call_theta == BLACK_SCHOLES_EXPECTED["call_theta"]
     assert bs.call_rho == BLACK_SCHOLES_EXPECTED["call_rho"]
     assert bs.call_itm_prob == BLACK_SCHOLES_EXPECTED["call_itm_prob"]
-    assert round(bs.call_prob_of_touch, 12) == BLACK_SCHOLES_EXPECTED["call_prob_of_touch"]
+    assert (
+        round(bs.call_prob_of_touch, 12) == BLACK_SCHOLES_EXPECTED["call_prob_of_touch"]
+    )
     assert bs.put_price == BLACK_SCHOLES_EXPECTED["put_price"]
     assert bs.put_delta == BLACK_SCHOLES_EXPECTED["put_delta"]
     assert bs.put_theta == BLACK_SCHOLES_EXPECTED["put_theta"]
@@ -143,7 +145,9 @@ def test_black_scholes():
 
 
 def test_covered_call(nvidia):
-    payload = nvidia | {"strategy": with_expiration(COVERED_CALL_LEGS, nvidia["target_date"])}
+    payload = nvidia | {
+        "strategy": with_expiration(COVERED_CALL_LEGS, nvidia["target_date"])
+    }
 
     assert run_validated_strategy(payload) == pytest.approx(COVERED_CALL_RESULT)
 

@@ -89,7 +89,9 @@ def test_array_with_no_array(nvidia):
             {"type": "closed", "prev_pos": 100},
         ],
     }
-    expected_message = "Array of terminal stock prices must be provided if model is 'array'."
+    expected_message = (
+        "Array of terminal stock prices must be provided if model is 'array'."
+    )
 
     assert_inputs_validation_error(payload, expected_message)
     assert_inputs_validation_error(payload | {"array": array([])}, expected_message)
