@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.6.1 (2026-06-22)
+
+- Improved `get_implied_vol` function in black_scholes.py for performance
+- Improved `_compute_expected_returns_bs` function in support.py to consider the contribution of tails in the log normal distribution of prices
+
 ## 1.6.0 (2026-05-31)
 
 - Removed option price rounding in black_scholes.py

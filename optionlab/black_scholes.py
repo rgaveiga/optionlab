@@ -5,8 +5,8 @@ and the Greeks, related to the Black-Scholes model.
 
 from __future__ import division
 
-from scipy import stats
-from numpy import exp, arange, abs, argmin, pi
+from scipy import optimize, stats
+from numpy import exp, pi
 from numpy.lib.scimath import log, sqrt
 
 from optionlab.models import BlackScholesInfo, OptionType, FloatOrNdarray
@@ -440,14 +440,26 @@ def get_implied_vol(
     Option's implied volatility.
     """
 
-    vol = 0.001 * arange(1, 1001)
-    d1 = get_d1(s0, x, r, vol, years_to_maturity, y)
-    d2 = get_d2(s0, x, r, vol, years_to_maturity, y)
-    dopt = abs(
-        get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y) - oprice
-    )
+    min_vol = 0.001
+    max_vol = 1.0
 
-    return vol[argmin(dopt)]
+    def price_diff(vol: float) -> float:
+        d1 = get_d1(s0, x, r, vol, years_to_maturity, y)
+        d2 = get_d2(s0, x, r, vol, years_to_maturity, y)
+        return (
+            get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y)
+            - oprice
+        )
+
+    min_diff = price_diff(min_vol)
+    max_diff = price_diff(max_vol)
+
+    if min_diff >= 0.0:
+        return min_vol
+    if max_diff <= 0.0:
+        return max_vol
+
+    return float(optimize.brentq(price_diff, min_vol, max_vol, xtol=5e-7, maxiter=50))
 
 
 def get_itm_probability(
