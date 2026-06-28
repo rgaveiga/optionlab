@@ -135,6 +135,39 @@ def with_expiration(strategy, expiration):
     ]
 
 
+def test_selected_calculations(nvidia):
+    payload = nvidia | {
+        "strategy": with_expiration(COVERED_CALL_LEGS, nvidia["target_date"]),
+        "calculations": ["PoP"],
+    }
+
+    outputs = run_strategy(payload)
+
+    assert outputs.probability_of_profit == pytest.approx(
+        COVERED_CALL_RESULT["probability_of_profit"]
+    )
+    assert outputs.expected_profit_if_profitable == 0.0
+    assert outputs.expected_loss_if_unprofitable == 0.0
+    assert outputs.implied_volatility == []
+    assert outputs.delta == []
+
+    payload["calculations"] = ["expectation", "impvol"]
+    outputs = run_strategy(payload)
+
+    assert outputs.probability_of_profit == 0.0
+    assert outputs.profit_ranges == []
+    assert outputs.expected_profit_if_profitable == pytest.approx(
+        COVERED_CALL_RESULT["expected_profit_if_profitable"]
+    )
+    assert outputs.expected_loss_if_unprofitable == pytest.approx(
+        COVERED_CALL_RESULT["expected_loss_if_unprofitable"]
+    )
+    assert outputs.implied_volatility == pytest.approx(
+        COVERED_CALL_RESULT["implied_volatility"], rel=1e-6, abs=1e-6
+    )
+    assert outputs.delta == []
+
+
 def test_black_scholes():
     bs = get_bs_info(
         s=100.0,

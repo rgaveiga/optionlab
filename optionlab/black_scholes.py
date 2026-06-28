@@ -446,7 +446,7 @@ def get_implied_vol(
     def price_diff(vol: float) -> float:
         d1 = get_d1(s0, x, r, vol, years_to_maturity, y)
         d2 = get_d2(s0, x, r, vol, years_to_maturity, y)
-        return (
+        return float(
             get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y)
             - oprice
         )

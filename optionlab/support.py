@@ -8,7 +8,7 @@ from __future__ import division
 
 from functools import lru_cache
 
-from typing import Optional
+from typing import Optional, cast
 
 import numpy as np
 from numpy import abs, round, arange
@@ -493,22 +493,24 @@ def _compute_expected_returns_bs(
                     (lower_price, cross_price, True),
                     (cross_price, upper_price, False),
                 ]
-        elif (lower_profit >= target and upper_profit >= target) or (
-            lower_profit < target and upper_profit < target
-        ):
-            intervals = [(lower_price, upper_price, lower_profit >= target)]
         else:
-            cross_price = (target - intercept) / slope
-            if lower_profit < target:
-                intervals = [
-                    (lower_price, cross_price, False),
-                    (cross_price, upper_price, True),
-                ]
+            assert upper_profit is not None
+            if (lower_profit >= target and upper_profit >= target) or (
+                lower_profit < target and upper_profit < target
+            ):
+                intervals = [(lower_price, upper_price, lower_profit >= target)]
             else:
-                intervals = [
-                    (lower_price, cross_price, True),
-                    (cross_price, upper_price, False),
-                ]
+                cross_price = (target - intercept) / slope
+                if lower_profit < target:
+                    intervals = [
+                        (lower_price, cross_price, False),
+                        (cross_price, upper_price, True),
+                    ]
+                else:
+                    intervals = [
+                        (lower_price, cross_price, True),
+                        (cross_price, upper_price, False),
+                    ]
 
         for interval_lower, interval_upper, is_above in intervals:
             add_interval(interval_lower, interval_upper, slope, intercept, is_above)
@@ -575,23 +577,27 @@ def _compute_expected_returns_bs(
 
 
 def _integrate_linear_profit_bs(
-    lower_price: FloatOrNdarray,
-    upper_price: FloatOrNdarray,
-    slope: FloatOrNdarray,
-    intercept: FloatOrNdarray,
+    lower_price: np.ndarray,
+    upper_price: np.ndarray,
+    slope: np.ndarray,
+    intercept: np.ndarray,
     log_mean: float,
     sigma: float,
-) -> tuple[FloatOrNdarray, FloatOrNdarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Integrates a linear profit function over a Black-Scholes stock-price interval.
     """
 
-    lower_z = _lognormal_z(lower_price, log_mean, sigma)
-    upper_z = _lognormal_z(upper_price, log_mean, sigma)
+    lower_z = cast(np.ndarray, _lognormal_z(lower_price, log_mean, sigma))
+    upper_z = cast(np.ndarray, _lognormal_z(upper_price, log_mean, sigma))
     probability = stats.norm.cdf(upper_z) - stats.norm.cdf(lower_z)
 
-    lower_moment_z = _lognormal_z(lower_price, log_mean + sigma * sigma, sigma)
-    upper_moment_z = _lognormal_z(upper_price, log_mean + sigma * sigma, sigma)
+    lower_moment_z = cast(
+        np.ndarray, _lognormal_z(lower_price, log_mean + sigma * sigma, sigma)
+    )
+    upper_moment_z = cast(
+        np.ndarray, _lognormal_z(upper_price, log_mean + sigma * sigma, sigma)
+    )
     first_moment = np.exp(log_mean + 0.5 * sigma * sigma) * (
         stats.norm.cdf(upper_moment_z) - stats.norm.cdf(lower_moment_z)
     )

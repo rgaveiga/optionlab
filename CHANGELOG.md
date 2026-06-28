@@ -4,6 +4,7 @@
 
 - Improved `get_implied_vol` function in black_scholes.py for performance
 - Improved `_compute_expected_returns_bs` function in support.py to consider the contribution of tails in the log normal distribution of prices
+- Added `calculations` attribute to `Inputs` in models.py to define the calculations to be performed for a strategy
 
 ## 1.6.0 (2026-05-31)
 

@@ -1,11 +1,11 @@
 """
-This module implements Pydantic models that represent inputs and outputs 
-of strategy calculations. 
+This module implements Pydantic models that represent inputs and outputs
+of strategy calculations.
 
 It also implements constants and custom types.
 
-From the user's point of view, the two most important classes that they will use 
-to provide input and subsequently process calculation results are `Inputs` and 
+From the user's point of view, the two most important classes that they will use
+to provide input and subsequently process calculation results are `Inputs` and
 `Outputs`, respectively.
 """
 
@@ -29,6 +29,9 @@ TheoreticalModel = Literal["black-scholes", "array"]
 Theoretical model used in probability of profit (PoP) calculations.
 """
 
+Calculation = Literal["pop", "PoP", "expectation", "impvol", "greeks"]
+"""Computation to run for a strategy or strategy leg."""
+
 Range = tuple[float, float]
 """Range boundaries."""
 
@@ -40,6 +43,12 @@ def init_empty_array() -> np.ndarray:
     """@private"""
 
     return np.array([])
+
+
+def init_calculations() -> list[Calculation]:
+    """@private"""
+
+    return ["pop", "expectation", "impvol", "greeks"]
 
 
 class Stock(BaseModel):
@@ -57,14 +66,14 @@ class Stock(BaseModel):
     prev_pos: Optional[float] = None
     """
     Stock price effectively paid or received in a previously opened position.
-    
+
     - If positive, the position remains open and the payoff calculation considers
-    this price instead of the current stock price. 
-    
-    - If negative, the position is closed and the difference between this price 
-    and the current price is included in the payoff calculation. 
-    
-    The default is `None`, which means this stock position is not a previously 
+    this price instead of the current stock price.
+
+    - If negative, the position is closed and the difference between this price
+    and the current price is included in the payoff calculation.
+
+    The default is `None`, which means this stock position is not a previously
     opened position.
     """
 
@@ -89,23 +98,23 @@ class Option(BaseModel):
 
     prev_pos: Optional[float] = None
     """
-    Premium effectively paid or received in a previously opened position. 
-    
+    Premium effectively paid or received in a previously opened position.
+
     - If positive, the position remains open and the payoff calculation considers
-    this price instead of the current price of the option. 
-    
-    - If negative, the position is closed and the difference between this price 
-    and the current price is included in the payoff calculation. 
-    
-    The default is `None`, which means this option position is not a previously 
+    this price instead of the current price of the option.
+
+    - If negative, the position is closed and the difference between this price
+    and the current price is included in the payoff calculation.
+
+    The default is `None`, which means this option position is not a previously
     opened position.
     """
 
     expiration: dt.date | int | None = None
     """
-    Expiration date or number of days remaining to expiration. 
-    
-    The default is `None`, which means the expiration is the same as `Inputs.target_date` 
+    Expiration date or number of days remaining to expiration.
+
+    The default is `None`, which means the expiration is the same as `Inputs.target_date`
     or `Inputs.days_to_target_date`.
     """
 
@@ -126,13 +135,13 @@ class ClosedPosition(BaseModel):
 
     prev_pos: float
     """
-    The total amount of the closed position. 
-    
+    The total amount of the closed position.
+
     - If positive, it resulted in a profit.
-    
+
     - If negative, it incurred a loss.
-    
-    This amount will be added to the payoff and taken into account in the strategy 
+
+    This amount will be added to the payoff and taken into account in the strategy
     calculations.
     """
 
@@ -162,15 +171,15 @@ class BlackScholesModelInputs(TheoreticalModelInputs):
 
     interest_rate: float = Field(0.0, ge=0.0)
     """
-    Annualized risk-free interest rate. 
-    
+    Annualized risk-free interest rate.
+
     The default is 0.0.
     """
 
     dividend_yield: float = Field(0.0, ge=0.0, le=1.0)
     """
-    Annualized dividend yield. 
-    
+    Annualized dividend yield.
+
     The default is 0.0.
     """
 
@@ -240,95 +249,107 @@ class Inputs(BaseModel):
 
     dividend_yield: float = Field(0.0, ge=0.0)
     """
-    Annualized dividend yield. 
-    
+    Annualized dividend yield.
+
     The default is 0.0.
     """
 
     profit_target: Optional[float] = None
     """
-    Target profit level. 
-    
+    Target profit level.
+
     The default is `None`, which means it is not calculated.
     """
 
     loss_limit: Optional[float] = None
     """
-    Limit loss level. 
-    
+    Limit loss level.
+
     The default is `None`, which means it is not calculated.
     """
 
     opt_commission: float = 0.0
     """
-    Brokerage commission for options transactions. 
-    
+    Brokerage commission for options transactions.
+
     The default is 0.0.
     """
 
     stock_commission: float = 0.0
     """
-    Brokerage commission for stocks transactions. 
-    
+    Brokerage commission for stocks transactions.
+
     The default is 0.0.
     """
 
     discard_nonbusiness_days: bool = True
     """
     Discards weekends and holidays when counting the number of days between
-    two dates. 
-    
+    two dates.
+
     The default is `True`.
     """
 
     business_days_in_year: int = 252
     """
-    Number of business days in a year. 
-    
+    Number of business days in a year.
+
     The default is 252.
     """
 
     country: str = "US"
     """
     Country whose holidays will be counted if `discard_nonbusinessdays` is
-    set to `True`. 
-    
+    set to `True`.
+
     The default is '*US*'.
     """
 
     start_date: dt.date | None = None
     """
-    Start date in the calculations. 
-    
+    Start date in the calculations.
+
     If not provided, `days_to_target_date` must be provided.
     """
 
     target_date: dt.date | None = None
     """
-    Target date in the calculations. 
-    
+    Target date in the calculations.
+
     If not provided, `days_to_target_date` must be provided.
     """
 
     days_to_target_date: int = Field(0, ge=0)
     """
-    Days remaining to the target date. 
-    
+    Days remaining to the target date.
+
     If not provided, `start_date` and `target_date` must be provided.
     """
 
     model: TheoreticalModel = "black-scholes"
     """
-    Theoretical model used in the calculations of probability of profit. 
-    
-    It can be *'black-scholes'* or *'array*'. 
+    Theoretical model used in the calculations of probability of profit.
+
+    It can be *'black-scholes'* or *'array*'.
     """
 
     array: np.ndarray = Field(default_factory=init_empty_array)
     """
-    Array of terminal stock prices. 
-    
+    Array of terminal stock prices.
+
     The default is an empty array.
+    """
+
+    calculations: list[Calculation] = Field(default_factory=init_calculations)
+    """
+    List of calculations to run.
+
+    It can contain *'pop'* or *'PoP'* for probability of profit,
+    *'expectation'* for expected profit and loss, *'impvol'* for implied
+    volatility, and *'greeks'* for Delta, Gamma, Theta, Rho, Vega,
+    in-the-money probability and probability of touch.
+
+    The default is `["pop", "expectation", "impvol", "greeks"]`.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -500,15 +521,15 @@ class Outputs(BaseModel):
 
     expected_profit_if_profitable: float = 0.0
     """
-    Expected profit when the strategy is profitable. 
-    
+    Expected profit when the strategy is profitable.
+
     The default is 0.0.
     """
 
     expected_loss_if_unprofitable: float = 0.0
     """
     Expected loss when the strategy is not profitable.
-    
+
     The default is 0.0.
     """
 
@@ -574,31 +595,31 @@ class Outputs(BaseModel):
 
     probability_of_profit_target: float = 0.0
     """
-    Probability of the strategy yielding at least the profit target. 
-    
+    Probability of the strategy yielding at least the profit target.
+
     The default is 0.0.
     """
 
     profit_target_ranges: list[Range] = []
     """
     List of minimum and maximum stock prices defining ranges in which the
-    strategy makes at least the profit target. 
-    
+    strategy makes at least the profit target.
+
     The default is [].
     """
 
     probability_of_loss_limit: float = 0.0
     """
-    Probability of the strategy losing at least the loss limit. 
-    
+    Probability of the strategy losing at least the loss limit.
+
     The default is 0.0.
     """
 
     loss_limit_ranges: list[Range] = []
     """
     List of minimum and maximum stock prices defining ranges where the
-    strategy loses at least the loss limit. 
-    
+    strategy loses at least the loss limit.
+
     The default is [].
     """
 
@@ -629,45 +650,45 @@ class PoPOutputs(BaseModel):
     probability_of_reaching_target: float = 0.0
     """
     Probability that the strategy return will be equal or greater than the
-    target. 
-    
+    target.
+
     The default is 0.0.
     """
 
     probability_of_missing_target: float = 0.0
     """
-    Probability that the strategy return will be less than the target. 
-    
+    Probability that the strategy return will be less than the target.
+
     The default is 0.0.
     """
 
     reaching_target_range: list[Range] = []
     """
     Range of stock prices where the strategy return is equal or greater than
-    the target. 
-    
+    the target.
+
     The default is [].
     """
 
     missing_target_range: list[Range] = []
     """
     Range of stock prices where the strategy return is less than the target.
-    
+
     The default is [].
     """
 
     expected_return_above_target: float = 0.0
     """
     Expected value of the strategy return when the return is equal or greater
-    than the target. 
-    
+    than the target.
+
     The default is 0.0.
     """
 
     expected_return_below_target: float = 0.0
     """
     Expected value of the strategy return when the return is less than the
-    target. 
-    
+    target.
+
     The default is 0.0.
     """

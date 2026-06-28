@@ -38,6 +38,11 @@ from optionlab.support import (
 from optionlab.utils import get_nonbusiness_days
 
 
+def _has_calculation(inputs: Inputs, calculation: str) -> bool:
+    calculations = {"pop" if item == "PoP" else item for item in inputs.calculations}
+    return calculation in calculations
+
+
 def run_strategy(inputs_data: Inputs | dict) -> Outputs:
     """
     Runs the calculation for a strategy.
@@ -165,6 +170,8 @@ def _run(data: EngineData) -> EngineData:
         data.profit_mc = zeros((len(data.type), data.terminal_stock_prices.shape[0]))
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
 
+    calculate_pop = _has_calculation(inputs, "pop")
+    calculate_expectation = _has_calculation(inputs, "expectation")
     pop_inputs: BlackScholesModelInputs | ArrayInputs
     pop_out: PoPOutputs
 
@@ -181,47 +188,55 @@ def _run(data: EngineData) -> EngineData:
         if inputs.model == "array":
             data.strategy_profit_mc += data.profit_mc[i]
 
-    if inputs.model == "black-scholes":
-        pop_inputs = BlackScholesModelInputs(
-            stock_price=inputs.stock_price,
-            volatility=inputs.volatility,
-            years_to_target_date=time_to_target,
-            interest_rate=inputs.interest_rate,
-            dividend_yield=inputs.dividend_yield,
-        )
-    elif inputs.model == "array":
-        pop_inputs = ArrayInputs(array=data.strategy_profit_mc)
-    else:
-        raise ValueError("Model is not valid!")
+    if calculate_pop or calculate_expectation:
+        if inputs.model == "black-scholes":
+            pop_inputs = BlackScholesModelInputs(
+                stock_price=inputs.stock_price,
+                volatility=inputs.volatility,
+                years_to_target_date=time_to_target,
+                interest_rate=inputs.interest_rate,
+                dividend_yield=inputs.dividend_yield,
+            )
+        elif inputs.model == "array":
+            pop_inputs = ArrayInputs(array=data.strategy_profit_mc)
+        else:
+            raise ValueError("Model is not valid!")
 
-    pop_out = get_pop(data.stock_price_array, data.strategy_profit, pop_inputs)
+        pop_out = get_pop(data.stock_price_array, data.strategy_profit, pop_inputs)
 
-    data.profit_probability = pop_out.probability_of_reaching_target
-    data.expected_profit = pop_out.expected_return_above_target
-    data.expected_loss = pop_out.expected_return_below_target
-    data.profit_ranges = pop_out.reaching_target_range
+        if calculate_pop:
+            data.profit_probability = pop_out.probability_of_reaching_target
+            data.profit_ranges = pop_out.reaching_target_range
 
-    if inputs.profit_target is not None and inputs.profit_target > 0.01:
-        pop_out_prof_targ = get_pop(
-            data.stock_price_array,
-            data.strategy_profit,
-            pop_inputs,
-            inputs.profit_target,
-        )
-        data.profit_target_probability = (
-            pop_out_prof_targ.probability_of_reaching_target
-        )
-        data.profit_target_ranges = pop_out_prof_targ.reaching_target_range
+        if calculate_expectation:
+            data.expected_profit = pop_out.expected_return_above_target
+            data.expected_loss = pop_out.expected_return_below_target
 
-    if inputs.loss_limit is not None and inputs.loss_limit < 0.0:
-        pop_out_loss_lim = get_pop(
-            data.stock_price_array,
-            data.strategy_profit,
-            pop_inputs,
-            inputs.loss_limit + 0.01,
-        )
-        data.loss_limit_probability = pop_out_loss_lim.probability_of_missing_target
-        data.loss_limit_ranges = pop_out_loss_lim.missing_target_range
+        if (
+            calculate_pop
+            and inputs.profit_target is not None
+            and inputs.profit_target > 0.01
+        ):
+            pop_out_prof_targ = get_pop(
+                data.stock_price_array,
+                data.strategy_profit,
+                pop_inputs,
+                inputs.profit_target,
+            )
+            data.profit_target_probability = (
+                pop_out_prof_targ.probability_of_reaching_target
+            )
+            data.profit_target_ranges = pop_out_prof_targ.reaching_target_range
+
+        if calculate_pop and inputs.loss_limit is not None and inputs.loss_limit < 0.0:
+            pop_out_loss_lim = get_pop(
+                data.stock_price_array,
+                data.strategy_profit,
+                pop_inputs,
+                inputs.loss_limit + 0.01,
+            )
+            data.loss_limit_probability = pop_out_loss_lim.probability_of_missing_target
+            data.loss_limit_ranges = pop_out_loss_lim.missing_target_range
 
     return data
 
@@ -230,17 +245,22 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
     type: OptionType = data.type[i]  # type: ignore
+    calculate_impvol = _has_calculation(inputs, "impvol")
+    calculate_greeks = _has_calculation(inputs, "greeks")
 
     if data.previous_position[i] < 0.0:
         # Previous position is closed
-        data.implied_volatility.append(0.0)
-        data.itm_probability.append(0.0)
-        data.probability_of_touch.append(0.0)
-        data.delta.append(0.0)
-        data.gamma.append(0.0)
-        data.vega.append(0.0)
-        data.theta.append(0.0)
-        data.rho.append(0.0)
+        if calculate_impvol:
+            data.implied_volatility.append(0.0)
+
+        if calculate_greeks:
+            data.itm_probability.append(0.0)
+            data.probability_of_touch.append(0.0)
+            data.delta.append(0.0)
+            data.gamma.append(0.0)
+            data.vega.append(0.0)
+            data.theta.append(0.0)
+            data.rho.append(0.0)
 
         cost = (data.premium[i] + data.previous_position[i]) * data.n[i]
 
@@ -256,50 +276,55 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         return data
 
     time_to_maturity = data.days_to_maturity[i] / data.days_in_year
-    bs = get_bs_info(
-        inputs.stock_price,
-        data.strike[i],
-        inputs.interest_rate,
-        inputs.volatility,
-        time_to_maturity,
-        inputs.dividend_yield,
-    )
 
-    data.gamma.append(
-        float(bs.gamma)
-    )  # TODO: This is required because of mypy. Check later for workarounds, maybe using zero-dimensional numpy arrays
-    data.vega.append(float(bs.vega))
-
-    data.implied_volatility.append(
-        float(
-            get_implied_vol(
-                type,
-                data.premium[i],
-                inputs.stock_price,
-                data.strike[i],
-                inputs.interest_rate,
-                time_to_maturity,
-                inputs.dividend_yield,
+    if calculate_impvol:
+        data.implied_volatility.append(
+            float(
+                get_implied_vol(
+                    type,
+                    data.premium[i],
+                    inputs.stock_price,
+                    data.strike[i],
+                    inputs.interest_rate,
+                    time_to_maturity,
+                    inputs.dividend_yield,
+                )
             )
         )
-    )
 
-    negative_multiplier = 1 if data.action[i] == "buy" else -1
-
-    if type == "call":
-        data.itm_probability.append(float(bs.call_itm_prob))
-        data.probability_of_touch.append(float(bs.call_prob_of_touch))
-        data.delta.append(float(bs.call_delta * negative_multiplier))
-        data.theta.append(
-            float(bs.call_theta / data.days_in_year * negative_multiplier)
+    if calculate_greeks:
+        bs = get_bs_info(
+            inputs.stock_price,
+            data.strike[i],
+            inputs.interest_rate,
+            inputs.volatility,
+            time_to_maturity,
+            inputs.dividend_yield,
         )
-        data.rho.append(float(bs.call_rho * negative_multiplier))
-    else:
-        data.itm_probability.append(float(bs.put_itm_prob))
-        data.probability_of_touch.append(float(bs.put_prob_of_touch))
-        data.delta.append(float(bs.put_delta * negative_multiplier))
-        data.theta.append(float(bs.put_theta / data.days_in_year * negative_multiplier))
-        data.rho.append(float(bs.put_rho * negative_multiplier))
+
+        data.gamma.append(
+            float(bs.gamma)
+        )  # TODO: This is required because of mypy. Check later for workarounds, maybe using zero-dimensional numpy arrays
+        data.vega.append(float(bs.vega))
+
+        negative_multiplier = 1 if data.action[i] == "buy" else -1
+
+        if type == "call":
+            data.itm_probability.append(float(bs.call_itm_prob))
+            data.probability_of_touch.append(float(bs.call_prob_of_touch))
+            data.delta.append(float(bs.call_delta * negative_multiplier))
+            data.theta.append(
+                float(bs.call_theta / data.days_in_year * negative_multiplier)
+            )
+            data.rho.append(float(bs.call_rho * negative_multiplier))
+        else:
+            data.itm_probability.append(float(bs.put_itm_prob))
+            data.probability_of_touch.append(float(bs.put_prob_of_touch))
+            data.delta.append(float(bs.put_delta * negative_multiplier))
+            data.theta.append(
+                float(bs.put_theta / data.days_in_year * negative_multiplier)
+            )
+            data.rho.append(float(bs.put_rho * negative_multiplier))
 
     if data.previous_position[i] > 0.0:  # Premium of the open position
         opt_value = data.previous_position[i]
@@ -367,19 +392,24 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
 def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
+    calculate_impvol = _has_calculation(inputs, "impvol")
+    calculate_greeks = _has_calculation(inputs, "greeks")
 
-    if action == "buy":
-        data.delta.append(1.0)
-    else:
-        data.delta.append(-1.0)
+    if calculate_greeks:
+        if action == "buy":
+            data.delta.append(1.0)
+        else:
+            data.delta.append(-1.0)
 
-    data.itm_probability.append(1.0)
-    data.probability_of_touch.append(1.0)
-    data.implied_volatility.append(0.0)
-    data.gamma.append(0.0)
-    data.vega.append(0.0)
-    data.rho.append(0.0)
-    data.theta.append(0.0)
+        data.itm_probability.append(1.0)
+        data.probability_of_touch.append(1.0)
+        data.gamma.append(0.0)
+        data.vega.append(0.0)
+        data.rho.append(0.0)
+        data.theta.append(0.0)
+
+    if calculate_impvol:
+        data.implied_volatility.append(0.0)
 
     if data.previous_position[i] < 0.0:  # Previous position is closed
         costtmp = (inputs.stock_price + data.previous_position[i]) * data.n[i]
@@ -423,14 +453,17 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
 def _run_closed_position_calcs(data: EngineData, i: int) -> EngineData:
     inputs = data.inputs
 
-    data.implied_volatility.append(0.0)
-    data.itm_probability.append(0.0)
-    data.probability_of_touch.append(0.0)
-    data.delta.append(0.0)
-    data.gamma.append(0.0)
-    data.vega.append(0.0)
-    data.rho.append(0.0)
-    data.theta.append(0.0)
+    if _has_calculation(inputs, "impvol"):
+        data.implied_volatility.append(0.0)
+
+    if _has_calculation(inputs, "greeks"):
+        data.itm_probability.append(0.0)
+        data.probability_of_touch.append(0.0)
+        data.delta.append(0.0)
+        data.gamma.append(0.0)
+        data.vega.append(0.0)
+        data.rho.append(0.0)
+        data.theta.append(0.0)
 
     data.cost[i] = data.previous_position[i]
     data.profit[i] += data.previous_position[i]
