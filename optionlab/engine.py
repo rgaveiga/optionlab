@@ -202,7 +202,12 @@ def _run(data: EngineData) -> EngineData:
         else:
             raise ValueError("Model is not valid!")
 
-        pop_out = get_pop(data.stock_price_array, data.strategy_profit, pop_inputs)
+        pop_out = get_pop(
+            data.stock_price_array,
+            data.strategy_profit,
+            pop_inputs,
+            calculate_expectation=calculate_expectation,
+        )
 
         if calculate_pop:
             data.profit_probability = pop_out.probability_of_reaching_target
@@ -222,6 +227,7 @@ def _run(data: EngineData) -> EngineData:
                 data.strategy_profit,
                 pop_inputs,
                 inputs.profit_target,
+                calculate_expectation=False,
             )
             data.profit_target_probability = (
                 pop_out_prof_targ.probability_of_reaching_target
@@ -234,6 +240,7 @@ def _run(data: EngineData) -> EngineData:
                 data.strategy_profit,
                 pop_inputs,
                 inputs.loss_limit + 0.01,
+                calculate_expectation=False,
             )
             data.loss_limit_probability = pop_out_loss_lim.probability_of_missing_target
             data.loss_limit_ranges = pop_out_loss_lim.missing_target_range

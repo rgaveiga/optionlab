@@ -8,7 +8,7 @@ from __future__ import division
 
 from functools import lru_cache
 
-from typing import Optional, cast
+from typing import cast
 
 import numpy as np
 from numpy import abs, round, arange
@@ -203,6 +203,7 @@ def get_pop(
     profit: np.ndarray,
     inputs_data: BlackScholesModelInputs | ArrayInputs,
     target: float = 0.01,
+    calculate_expectation: bool = True,
 ) -> PoPOutputs:
     """
     Estimates the probability of profit (PoP) of an options trading strategy.
@@ -217,6 +218,10 @@ def get_pop(
 
     `target`: target return.
 
+    `calculate_expectation`: whether to compute expected returns above and below
+    the target.
+
+
     ### Returns
 
     Outputs of a probability of profit (PoP) calculation.
@@ -225,8 +230,8 @@ def get_pop(
     probability_of_reaching_target: float
     probability_of_missing_target: float
 
-    expected_return_above_target: Optional[float] = None
-    expected_return_below_target: Optional[float] = None
+    expected_return_above_target = 0.0
+    expected_return_below_target = 0.0
 
     t_ranges = _get_profit_range(s, profit, target)
 
@@ -237,9 +242,10 @@ def get_pop(
         probability_of_reaching_target, probability_of_missing_target = _get_pop_bs(
             s, profit, inputs_data, t_ranges
         )
-        expected_return_above_target, expected_return_below_target = (
-            _compute_expected_returns_bs(s, profit, inputs_data, target)
-        )
+        if calculate_expectation:
+            expected_return_above_target, expected_return_below_target = (
+                _compute_expected_returns_bs(s, profit, inputs_data, target)
+            )
     elif isinstance(inputs_data, ArrayInputs):
         (
             probability_of_reaching_target,
@@ -247,6 +253,9 @@ def get_pop(
             probability_of_missing_target,
             expected_return_below_target,
         ) = _get_pop_array(inputs_data, target)
+        if not calculate_expectation:
+            expected_return_above_target = 0.0
+            expected_return_below_target = 0.0
 
     return PoPOutputs(
         probability_of_reaching_target=probability_of_reaching_target,
@@ -416,6 +425,7 @@ def _compute_expected_returns_bs(
     `inputs`: input data used to estimate the probability of profit.
 
     `target`: target return.
+
 
     ### Returns
 
@@ -633,6 +643,7 @@ def _get_pop_array(
     `inputs`: input data used to estimate the probability of profit.
 
     `target`: target return.
+
 
     ### Returns
 
