@@ -6,7 +6,8 @@ and the Greeks, related to the Black-Scholes model.
 from __future__ import division
 
 from scipy import optimize, stats
-from numpy import exp, pi
+from scipy.special import ndtr
+from numpy import exp, isscalar, pi, where
 from numpy.lib.scimath import log, sqrt
 
 from optionlab.models import BlackScholesInfo, OptionType, FloatOrNdarray
@@ -43,26 +44,74 @@ def get_bs_info(
     Information calculated using the Black-Scholes formula.
     """
 
-    d1 = get_d1(s, x, r, vol, years_to_maturity, y)
-    d2 = get_d2(s, x, r, vol, years_to_maturity, y)
-    call_price = get_option_price("call", s, x, r, years_to_maturity, d1, d2, y)
-    put_price = get_option_price("put", s, x, r, years_to_maturity, d1, d2, y)
-    call_delta = get_delta("call", d1, years_to_maturity, y)
-    put_delta = get_delta("put", d1, years_to_maturity, y)
-    call_theta = get_theta("call", s, x, r, vol, years_to_maturity, d1, d2, y)
-    put_theta = get_theta("put", s, x, r, vol, years_to_maturity, d1, d2, y)
-    gamma = get_gamma(s, vol, years_to_maturity, d1, y)
-    vega = get_vega(s, years_to_maturity, d1, y)
-    call_rho = get_rho("call", x, r, years_to_maturity, d2)
-    put_rho = get_rho("put", x, r, years_to_maturity, d2)
-    call_itm_prob = get_itm_probability("call", d2, years_to_maturity, y)
-    put_itm_prob = get_itm_probability("put", d2, years_to_maturity, y)
-    call_prob_of_touch = get_probability_of_touch(
-        "call", s, x, r, vol, years_to_maturity, y
+    sqrt_time = sqrt(years_to_maturity)
+    discount_y = exp(-y * years_to_maturity)
+    discount_r = exp(-r * years_to_maturity)
+    dividend_adjusted_spot = s * discount_y
+
+    d1 = (log(s / x) + (r - y + vol * vol / 2.0) * years_to_maturity) / (
+        vol * sqrt_time
     )
-    put_prob_of_touch = get_probability_of_touch(
-        "put", s, x, r, vol, years_to_maturity, y
+    d2 = d1 - vol * sqrt_time
+
+    cdf_d1 = ndtr(d1)
+    cdf_d2 = ndtr(d2)
+    cdf_minus_d1 = ndtr(-d1)
+    cdf_minus_d2 = ndtr(-d2)
+    pdf_d1 = exp(-0.5 * d1 * d1) / sqrt(2.0 * pi)
+
+    discounted_strike = x * discount_r
+    call_price = dividend_adjusted_spot * cdf_d1 - discounted_strike * cdf_d2
+    put_price = discounted_strike * cdf_minus_d2 - dividend_adjusted_spot * cdf_minus_d1
+
+    call_delta = discount_y * cdf_d1
+    put_delta = discount_y * (cdf_d1 - 1.0)
+
+    theta_decay = dividend_adjusted_spot * vol * pdf_d1 / (2.0 * sqrt_time)
+    call_theta = -(
+        theta_decay
+        + r * discounted_strike * cdf_d2
+        - y * dividend_adjusted_spot * cdf_d1
     )
+    put_theta = -(
+        theta_decay
+        - r * discounted_strike * cdf_minus_d2
+        + y * dividend_adjusted_spot * cdf_minus_d1
+    )
+
+    gamma = discount_y * pdf_d1 / (s * vol * sqrt_time)
+    vega = dividend_adjusted_spot * pdf_d1 * sqrt_time / 100
+
+    rho_factor = x * years_to_maturity * discount_r / 100
+    call_rho = rho_factor * cdf_d2
+    put_rho = -rho_factor * cdf_minus_d2
+
+    call_itm_prob = discount_y * cdf_d2
+    put_itm_prob = discount_y * cdf_minus_d2
+
+    mu = (r - y - 0.5 * vol * vol) / (vol * vol)
+    lam = sqrt((mu * mu) + 2.0 * r / (vol * vol))
+    sigma = vol * sqrt_time
+    z = log(x / s) / sigma + lam * sigma
+    exp1 = mu + lam
+    exp2 = mu - lam
+    ratio = x / s
+    touch_high = ratio**exp1
+    touch_low = ratio**exp2
+
+    call_prob_of_touch_value = touch_high * ndtr(-z) + touch_low * ndtr(
+        2.0 * lam * sigma - z
+    )
+    put_prob_of_touch_value = touch_high * ndtr(z) + touch_low * ndtr(
+        z - 2.0 * lam * sigma
+    )
+
+    if isscalar(x):
+        call_prob_of_touch = 1.0 if s >= x else call_prob_of_touch_value
+        put_prob_of_touch = 1.0 if s <= x else put_prob_of_touch_value
+    else:
+        call_prob_of_touch = where(s >= x, 1.0, call_prob_of_touch_value)
+        put_prob_of_touch = where(s <= x, 1.0, put_prob_of_touch_value)
 
     return BlackScholesInfo(
         call_price=call_price,
