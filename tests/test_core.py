@@ -8,31 +8,35 @@ from optionlab.models import Outputs
 OUTPUT_EXCLUDE_FIELDS = {"data", "inputs"}
 
 
-def assert_approx_equal(actual, expected):
+def assert_approx_equal(actual, expected, key=None):
     if isinstance(expected, dict):
         assert actual.keys() == expected.keys()
 
         for key, value in expected.items():
-            assert_approx_equal(actual[key], value)
+            assert_approx_equal(actual[key], value, key)
     elif isinstance(expected, (list, tuple)):
         assert len(actual) == len(expected)
 
         for actual_item, expected_item in zip(actual, expected):
-            assert_approx_equal(actual_item, expected_item)
+            assert_approx_equal(actual_item, expected_item, key)
     else:
+        if key == "implied_volatility":
+            assert actual == pytest.approx(expected, rel=1e-6, abs=1e-6)
+            return
+
         assert actual == pytest.approx(expected)
 
 
 COVERED_CALL_RESULT = {
     "probability_of_profit": 0.5472008423945267,
-    "expected_profit_if_profitable": 1448.28,
+    "expected_profit_if_profitable": 1449.08,
     "expected_loss_if_unprofitable": -1703.74,
     "profit_ranges": [(164.9, float("inf"))],
     "per_leg_cost": [-16899.0, 409.99999999999994],
     "strategy_cost": -16489.0,
     "minimum_return_in_the_domain": -9590.000000000002,
     "maximum_return_in_the_domain": 2011.0,
-    "implied_volatility": [0.0, 0.456],
+    "implied_volatility": [0.0, 0.45621031663425116],
     "in_the_money_probability": [1.0, 0.256866624586934],
     "probability_of_touch": [1.0, 0.5277250352054264],
     "delta": [1.0, -0.30713817729665704],
@@ -44,13 +48,13 @@ COVERED_CALL_RESULT = {
 
 PROB_100_ITM_RESULT = {
     "probability_of_profit": 1.0,
-    "expected_profit_if_profitable": 492.57,
+    "expected_profit_if_profitable": 492.77,
     "profit_ranges": [(0.0, float("inf"))],
     "per_leg_cost": [-750.0, 990.0],
     "strategy_cost": 240.0,
     "minimum_return_in_the_domain": 240.0,
     "maximum_return_in_the_domain": 740.0000000000018,
-    "implied_volatility": [0.494, 0.483],
+    "implied_volatility": [0.4942372292738584, 0.4826500896570693],
     "in_the_money_probability": [0.54558925139931, 0.465831136209786],
     "probability_of_touch": [1.0, 0.9661799112521838],
     "delta": [0.6039490632362865, -0.525237550169406],
@@ -63,13 +67,13 @@ PROB_100_ITM_RESULT = {
 NAKED_CALL = {
     "probability_of_profit": 0.8389215512144531,
     "expected_profit_if_profitable": 113.49,
-    "expected_loss_if_unprofitable": -717.5,
+    "expected_loss_if_unprofitable": -717.49,
     "profit_ranges": [(0.0, 176.14)],
     "per_leg_cost": [114.99999999999999],
     "strategy_cost": 114.99999999999999,
     "minimum_return_in_the_domain": -6991.999999999999,
     "maximum_return_in_the_domain": 114.99999999999999,
-    "implied_volatility": [0.256],
+    "implied_volatility": [0.2557726289266796],
     "in_the_money_probability": [0.1832371984432129],
     "probability_of_touch": [0.3741546603689868],
     "delta": [-0.20371918274704337],
@@ -129,6 +133,39 @@ def with_expiration(strategy, expiration):
         leg if leg["type"] == "stock" else leg | {"expiration": expiration}
         for leg in strategy
     ]
+
+
+def test_selected_calculations(nvidia):
+    payload = nvidia | {
+        "strategy": with_expiration(COVERED_CALL_LEGS, nvidia["target_date"]),
+        "calculations": ["PoP"],
+    }
+
+    outputs = run_strategy(payload)
+
+    assert outputs.probability_of_profit == pytest.approx(
+        COVERED_CALL_RESULT["probability_of_profit"]
+    )
+    assert outputs.expected_profit_if_profitable == 0.0
+    assert outputs.expected_loss_if_unprofitable == 0.0
+    assert outputs.implied_volatility == []
+    assert outputs.delta == []
+
+    payload["calculations"] = ["expectation", "impvol"]
+    outputs = run_strategy(payload)
+
+    assert outputs.probability_of_profit == 0.0
+    assert outputs.profit_ranges == []
+    assert outputs.expected_profit_if_profitable == pytest.approx(
+        COVERED_CALL_RESULT["expected_profit_if_profitable"]
+    )
+    assert outputs.expected_loss_if_unprofitable == pytest.approx(
+        COVERED_CALL_RESULT["expected_loss_if_unprofitable"]
+    )
+    assert outputs.implied_volatility == pytest.approx(
+        COVERED_CALL_RESULT["implied_volatility"], rel=1e-6, abs=1e-6
+    )
+    assert outputs.delta == []
 
 
 def test_black_scholes():
@@ -195,14 +232,14 @@ def test_covered_call_w_prev_position(nvidia):
         run_validated_strategy(payload),
         {
             "probability_of_profit": 0.7048129541301169,
-            "expected_profit_if_profitable": 2013.63,
-            "expected_loss_if_unprofitable": -1350.06,
+            "expected_profit_if_profitable": 2014.74,
+            "expected_loss_if_unprofitable": -1350.05,
             "profit_ranges": [(154.9, float("inf"))],
             "per_leg_cost": [-15899.0, 409.99999999999994],
             "strategy_cost": -15489.0,
             "minimum_return_in_the_domain": -8590.000000000002,
             "maximum_return_in_the_domain": 3011.0,
-            "implied_volatility": [0.0, 0.456],
+            "implied_volatility": [0.0, 0.45621031663425116],
             "in_the_money_probability": [1.0, 0.256866624586934],
             "probability_of_touch": [1.0, 0.5277250352054264],
             "delta": [1.0, -0.30713817729665704],
@@ -296,14 +333,14 @@ def test_3_legs(nvidia):
         run_validated_strategy(payload),
         {
             "probability_of_profit": 0.6790581742719213,
-            "expected_profit_if_profitable": 2956.8,
+            "expected_profit_if_profitable": 2968.15,
             "expected_loss_if_unprofitable": -1404.83,
             "profit_ranges": [(156.6, float("inf"))],
             "per_leg_cost": [-15899.0, -750.0, 990.0],
             "strategy_cost": -15659.0,
             "minimum_return_in_the_domain": -8760.000000000002,
             "maximum_return_in_the_domain": 11740.0,
-            "implied_volatility": [0.0, 0.494, 0.483],
+            "implied_volatility": [0.0, 0.4942372292738584, 0.4826500896570693],
             "in_the_money_probability": [1.0, 0.54558925139931, 0.465831136209786],
             "probability_of_touch": [1.0, 1.0, 0.9661799112521838],
             "delta": [1.0, 0.6039490632362865, -0.525237550169406],
@@ -349,14 +386,14 @@ def test_calendar_spread():
         run_validated_strategy(payload),
         {
             "probability_of_profit": 0.6002074818796856,
-            "expected_profit_if_profitable": 1380.68,
-            "expected_loss_if_unprofitable": -693.04,
+            "expected_profit_if_profitable": 1380.9,
+            "expected_loss_if_unprofitable": -692.87,
             "profit_ranges": [(118.85, 136.17)],
             "per_leg_cost": [4600.0, -5900.0],
             "strategy_cost": -1300.0,
             "minimum_return_in_the_domain": -1300.0,
             "maximum_return_in_the_domain": 3010.5363361936493,
-            "implied_volatility": [0.47300000000000003, 0.419],
+            "implied_volatility": [0.4727644953287636, 0.4187446787999526],
             "in_the_money_probability": [0.4895105709759477, 0.4805997906939539],
             "probability_of_touch": [1.0, 1.0],
             "delta": [-0.5216914758915705, 0.5273457614638198],

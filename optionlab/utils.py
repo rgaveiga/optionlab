@@ -46,7 +46,7 @@ def get_nonbusiness_days(
     for i in range(n_days):
         current_date = start_date + timedelta(days=i)
 
-        if current_date.weekday() >= 5 or current_date.strftime("%Y-%m-%d") in holidays:
+        if current_date.weekday() >= 5 or current_date in holidays:
             nonbusiness_days += 1
 
     return nonbusiness_days

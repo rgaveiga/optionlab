@@ -8,10 +8,10 @@ from __future__ import division
 
 from functools import lru_cache
 
-from typing import Optional
+from typing import cast
 
 import numpy as np
-from numpy import abs, round, arange, zeros
+from numpy import abs, round, arange
 from numpy.lib.scimath import log, sqrt
 from scipy import stats
 
@@ -203,6 +203,7 @@ def get_pop(
     profit: np.ndarray,
     inputs_data: BlackScholesModelInputs | ArrayInputs,
     target: float = 0.01,
+    calculate_expectation: bool = True,
 ) -> PoPOutputs:
     """
     Estimates the probability of profit (PoP) of an options trading strategy.
@@ -217,6 +218,10 @@ def get_pop(
 
     `target`: target return.
 
+    `calculate_expectation`: whether to compute expected returns above and below
+    the target.
+
+
     ### Returns
 
     Outputs of a probability of profit (PoP) calculation.
@@ -225,8 +230,8 @@ def get_pop(
     probability_of_reaching_target: float
     probability_of_missing_target: float
 
-    expected_return_above_target: Optional[float] = None
-    expected_return_below_target: Optional[float] = None
+    expected_return_above_target = 0.0
+    expected_return_below_target = 0.0
 
     t_ranges = _get_profit_range(s, profit, target)
 
@@ -237,9 +242,10 @@ def get_pop(
         probability_of_reaching_target, probability_of_missing_target = _get_pop_bs(
             s, profit, inputs_data, t_ranges
         )
-        expected_return_above_target, expected_return_below_target = (
-            _compute_expected_returns_bs(s, profit, inputs_data, target)
-        )
+        if calculate_expectation:
+            expected_return_above_target, expected_return_below_target = (
+                _compute_expected_returns_bs(s, profit, inputs_data, target)
+            )
     elif isinstance(inputs_data, ArrayInputs):
         (
             probability_of_reaching_target,
@@ -247,6 +253,9 @@ def get_pop(
             probability_of_missing_target,
             expected_return_below_target,
         ) = _get_pop_array(inputs_data, target)
+        if not calculate_expectation:
+            expected_return_above_target = 0.0
+            expected_return_below_target = 0.0
 
     return PoPOutputs(
         probability_of_reaching_target=probability_of_reaching_target,
@@ -417,6 +426,7 @@ def _compute_expected_returns_bs(
 
     `target`: target return.
 
+
     ### Returns
 
     Expected value above the target and expected value below the target.
@@ -424,9 +434,6 @@ def _compute_expected_returns_bs(
 
     expected_return_above_target: float
     expected_return_below_target: float
-
-    mid_point = 0.5 * (profit[:-1] + profit[1:])
-    weighted_profit = zeros(mid_point.shape[0])
 
     sigma = (
         inputs.volatility * sqrt(inputs.years_to_target_date)
@@ -440,30 +447,188 @@ def _compute_expected_returns_bs(
     ) * inputs.years_to_target_date
     m = log(inputs.stock_price) + drift
 
-    lval = np.where(s[:-1] > 0.0, log(s[:-1]), -np.inf)
-    hval = log(s[1:])
-    prob = np.clip(
-        stats.norm.cdf((hval - m) / sigma) - stats.norm.cdf((lval - m) / sigma),
-        0.0,
-        1.0,
+    lower_prices = []
+    upper_prices = []
+    slopes = []
+    intercepts = []
+    is_above_target = []
+
+    def add_interval(
+        lower_price: float,
+        upper_price: float,
+        slope: float,
+        intercept: float,
+        is_above: bool,
+    ) -> None:
+        if upper_price <= lower_price:
+            return
+
+        lower_prices.append(lower_price)
+        upper_prices.append(upper_price)
+        slopes.append(slope)
+        intercepts.append(intercept)
+        is_above_target.append(is_above)
+
+    def accumulate_segment(
+        lower_price: float,
+        upper_price: float,
+        slope: float,
+        intercept: float,
+    ) -> None:
+        if upper_price <= lower_price:
+            return
+
+        lower_profit = slope * lower_price + intercept
+        upper_profit = (
+            slope * upper_price + intercept if np.isfinite(upper_price) else None
+        )
+
+        if slope == 0.0:
+            intervals = [(lower_price, upper_price, lower_profit >= target)]
+        elif np.isinf(upper_price):
+            if slope > 0.0:
+                if lower_profit >= target:
+                    intervals = [(lower_price, upper_price, True)]
+                else:
+                    cross_price = (target - intercept) / slope
+                    intervals = [
+                        (lower_price, cross_price, False),
+                        (cross_price, upper_price, True),
+                    ]
+            elif lower_profit < target:
+                intervals = [(lower_price, upper_price, False)]
+            else:
+                cross_price = (target - intercept) / slope
+                intervals = [
+                    (lower_price, cross_price, True),
+                    (cross_price, upper_price, False),
+                ]
+        else:
+            assert upper_profit is not None
+            if (lower_profit >= target and upper_profit >= target) or (
+                lower_profit < target and upper_profit < target
+            ):
+                intervals = [(lower_price, upper_price, lower_profit >= target)]
+            else:
+                cross_price = (target - intercept) / slope
+                if lower_profit < target:
+                    intervals = [
+                        (lower_price, cross_price, False),
+                        (cross_price, upper_price, True),
+                    ]
+                else:
+                    intervals = [
+                        (lower_price, cross_price, True),
+                        (cross_price, upper_price, False),
+                    ]
+
+        for interval_lower, interval_upper, is_above in intervals:
+            add_interval(interval_lower, interval_upper, slope, intercept, is_above)
+
+    if s[0] > 0.0 and s.shape[0] > 1:
+        left_slope = (profit[1] - profit[0]) / (s[1] - s[0])
+        accumulate_segment(
+            0.0,
+            s[0],
+            left_slope,
+            profit[0] - left_slope * s[0],
+        )
+
+    for lower_price, upper_price, lower_profit, upper_profit in zip(
+        s[:-1], s[1:], profit[:-1], profit[1:]
+    ):
+        slope = (upper_profit - lower_profit) / (upper_price - lower_price)
+        accumulate_segment(
+            lower_price,
+            upper_price,
+            slope,
+            lower_profit - slope * lower_price,
+        )
+
+    if s.shape[0] > 1:
+        right_slope = (profit[-1] - profit[-2]) / (s[-1] - s[-2])
+    else:
+        right_slope = 0.0
+
+    accumulate_segment(
+        s[-1],
+        float("inf"),
+        right_slope,
+        profit[-1] - right_slope * s[-1],
     )
 
-    weighted_profit = mid_point * prob
-    ind_above_target = np.where(mid_point >= target)
-    ind_below_target = np.where(mid_point < target)
-    sum_prob_above_target = prob[ind_above_target].sum()
-    sum_prob_below_target = prob[ind_below_target].sum()
-    tmp1 = weighted_profit[ind_above_target].sum()
-    tmp2 = weighted_profit[ind_below_target].sum()
+    interval_prob, interval_profit = _integrate_linear_profit_bs(
+        np.asarray(lower_prices),
+        np.asarray(upper_prices),
+        np.asarray(slopes),
+        np.asarray(intercepts),
+        m,
+        sigma,
+    )
+    is_above_target_array = np.asarray(is_above_target)
+
+    sum_prob_above_target = interval_prob[is_above_target_array].sum()
+    sum_prob_below_target = interval_prob[~is_above_target_array].sum()
+    weighted_profit_above_target = interval_profit[is_above_target_array].sum()
+    weighted_profit_below_target = interval_profit[~is_above_target_array].sum()
 
     expected_return_above_target = (
-        round(tmp1 / sum_prob_above_target, 2) if sum_prob_above_target > 0.0 else 0.0
+        round(weighted_profit_above_target / sum_prob_above_target, 2)
+        if sum_prob_above_target > 0.0
+        else 0.0
     )
     expected_return_below_target = (
-        round(tmp2 / sum_prob_below_target, 2) if sum_prob_below_target > 0.0 else 0.0
+        round(weighted_profit_below_target / sum_prob_below_target, 2)
+        if sum_prob_below_target > 0.0
+        else 0.0
     )
 
     return expected_return_above_target, expected_return_below_target
+
+
+def _integrate_linear_profit_bs(
+    lower_price: np.ndarray,
+    upper_price: np.ndarray,
+    slope: np.ndarray,
+    intercept: np.ndarray,
+    log_mean: float,
+    sigma: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Integrates a linear profit function over a Black-Scholes stock-price interval.
+    """
+
+    lower_z = cast(np.ndarray, _lognormal_z(lower_price, log_mean, sigma))
+    upper_z = cast(np.ndarray, _lognormal_z(upper_price, log_mean, sigma))
+    probability = stats.norm.cdf(upper_z) - stats.norm.cdf(lower_z)
+
+    lower_moment_z = cast(
+        np.ndarray, _lognormal_z(lower_price, log_mean + sigma * sigma, sigma)
+    )
+    upper_moment_z = cast(
+        np.ndarray, _lognormal_z(upper_price, log_mean + sigma * sigma, sigma)
+    )
+    first_moment = np.exp(log_mean + 0.5 * sigma * sigma) * (
+        stats.norm.cdf(upper_moment_z) - stats.norm.cdf(lower_moment_z)
+    )
+
+    return probability, slope * first_moment + intercept * probability
+
+
+def _lognormal_z(
+    price: FloatOrNdarray, log_mean: float, sigma: float
+) -> FloatOrNdarray:
+    """Returns the normal z-score for a lognormal stock price boundary."""
+
+    price_array = np.asarray(price)
+    z = np.empty(price_array.shape)
+    z[price_array <= 0.0] = -float("inf")
+    z[np.isinf(price_array)] = float("inf")
+
+    finite_positive = (price_array > 0.0) & np.isfinite(price_array)
+    z[finite_positive] = (log(price_array[finite_positive]) - log_mean) / sigma
+
+    return z.item() if z.shape == () else z
 
 
 def _get_pop_array(
@@ -478,6 +643,7 @@ def _get_pop_array(
     `inputs`: input data used to estimate the probability of profit.
 
     `target`: target return.
+
 
     ### Returns
 
