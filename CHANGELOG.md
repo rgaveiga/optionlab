@@ -1,10 +1,12 @@
 # CHANGELOG
 
-## 1.6.1 (2026-06-22)
+## 1.6.3 (2026-06-22)
 
 - Improved `get_implied_vol` function in black_scholes.py for performance
 - Improved `_compute_expected_returns_bs` function in support.py to consider the contribution of tails in the log normal distribution of prices
 - Added `calculations` attribute to `Inputs` in models.py to define the calculations to be performed for a strategy
+- Improved `get_nonbusiness_days` in utils.py for performance
+- Improved `get_bs_info` in black_scholes.py for performance
 
 ## 1.6.0 (2026-05-31)
 
