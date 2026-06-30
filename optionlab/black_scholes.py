@@ -5,6 +5,8 @@ and the Greeks, related to the Black-Scholes model.
 
 from __future__ import division
 
+from typing import cast
+
 from scipy import optimize, stats
 from scipy.special import ndtr
 from numpy import exp, isscalar, pi, where
@@ -107,8 +109,9 @@ def get_bs_info(
     )
 
     if isscalar(x):
-        call_prob_of_touch = 1.0 if s >= x else call_prob_of_touch_value
-        put_prob_of_touch = 1.0 if s <= x else put_prob_of_touch_value
+        scalar_x = cast(float, x)
+        call_prob_of_touch = 1.0 if s >= scalar_x else call_prob_of_touch_value
+        put_prob_of_touch = 1.0 if s <= scalar_x else put_prob_of_touch_value
     else:
         call_prob_of_touch = where(s >= x, 1.0, call_prob_of_touch_value)
         put_prob_of_touch = where(s <= x, 1.0, put_prob_of_touch_value)
