@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "optionlab"
-version = "1.6.3"
+version = "1.7.0"
 description = "Python library for evaluating options trading strategies"
 authors = ["Roberto Gomes, PhD <roberto.veiga@ufabc.edu.br>"]
 readme = "README.md"
@@ -20,6 +20,12 @@ black = {extras = ["jupyter"], version = "^24.2.0"}
 pytest = "^8.0.2"
 pytest-benchmark = "^4.0.0"
 ruff = "^0.3.2"
+
+[tool.pytest.ini_options]
+addopts = "-m 'not benchmark'"
+markers = [
+    "benchmark: performance benchmarks (run with: pytest -m benchmark)",
+]
 
 [build-system]
 requires = ["poetry-core"]
