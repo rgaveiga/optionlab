@@ -21,6 +21,12 @@ pytest = "^8.0.2"
 pytest-benchmark = "^4.0.0"
 ruff = "^0.3.2"
 
+[tool.pytest.ini_options]
+addopts = "-m 'not benchmark'"
+markers = [
+    "benchmark: performance benchmarks (run with: pytest -m benchmark)",
+]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -7,3 +7,7 @@ run_check
 *.old
 runpdoc.bat
 *.txt
+<<<<<<< HEAD
+=======
+OPTIONLAB_ARCHITECTURE.md
+>>>>>>> 90cee2661e7e4522d71c83e4732a93c0feef6ef9

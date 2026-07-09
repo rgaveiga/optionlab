@@ -116,6 +116,17 @@ COVERED_CALL_LEGS = [
 ]
 
 
+PREVIOUS_POSITION_CALL_BASE = {
+    "stock_price": 168.99,
+    "start_date": "2023-01-16",
+    "target_date": "2023-02-17",
+    "volatility": 0.483,
+    "interest_rate": 0.045,
+    "min_stock": 68.99,
+    "max_stock": 268.99,
+}
+
+
 def run_validated_strategy(payload):
     outputs = run_strategy(Inputs.model_validate(payload))
 
@@ -278,6 +289,56 @@ def test_100_perc_itm(nvidia):
     assert_approx_equal(run_validated_strategy(payload), PROB_100_ITM_RESULT)
 
 
+def test_short_straddle():
+    inputs = Inputs(
+        stock_price=168.99,
+        volatility=0.483,
+        start_date="2023-01-16",
+        target_date="2023-02-17",
+        interest_rate=0.045,
+        min_stock=68.99,
+        max_stock=268.99,
+        strategy=[
+            {
+                "type": "call",
+                "strike": 170.0,
+                "premium": 9.9,
+                "n": 100,
+                "action": "sell",
+            },
+            {
+                "type": "put",
+                "strike": 170.0,
+                "premium": 10.2,
+                "n": 100,
+                "action": "sell",
+            },
+        ],
+    )
+
+    assert_approx_equal(
+        run_validated_strategy(inputs),
+        {
+            "probability_of_profit": 0.5739428738766479,
+            "expected_profit_if_profitable": 1053.27,
+            "expected_loss_if_unprofitable": -1439.89,
+            "profit_ranges": [(149.91, 190.09)],
+            "per_leg_cost": [990.0, 1019.9999999999999],
+            "strategy_cost": 2010.0,
+            "minimum_return_in_the_domain": -8091.0,
+            "maximum_return_in_the_domain": 2010.0,
+            "implied_volatility": [0.4826500896570693, 0.48346942266415105],
+            "in_the_money_probability": [0.465831136209786, 0.534168863790214],
+            "probability_of_touch": [0.9661799112521838, 1.0],
+            "delta": [-0.525237550169406, 0.474762449830594],
+            "gamma": [0.015806160944019643, 0.015806160944019643],
+            "theta": [0.22301627833773927, 0.19278895912917046],
+            "vega": [0.20763771616023433, 0.20763771616023433],
+            "rho": [-0.07509774107468528, 0.0861146280376816],
+        },
+    )
+
+
 def test_naked_call():
     payload = {
         "stock_price": 164.04,
@@ -302,6 +363,160 @@ def test_naked_call():
     }
 
     assert_approx_equal(run_validated_strategy(payload), NAKED_CALL)
+
+
+def test_previous_naked_call():
+    payload = PREVIOUS_POSITION_CALL_BASE | {
+        "strategy": [
+            {
+                "type": "call",
+                "strike": 175.0,
+                "premium": 7.55,
+                "n": 100,
+                "action": "buy",
+                "prev_pos": 9.00,
+            }
+        ]
+    }
+
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.26860484698213005,
+            "expected_profit_if_profitable": 1811.76,
+            "expected_loss_if_unprofitable": -828.07,
+            "profit_ranges": [(184.01, float("inf"))],
+            "per_leg_cost": [-900.0],
+            "strategy_cost": -900.0,
+            "minimum_return_in_the_domain": -900.0,
+            "maximum_return_in_the_domain": 8499.0,
+            "implied_volatility": [0.47185720287639016],
+            "in_the_money_probability": [0.3896519029956125],
+            "probability_of_touch": [0.8052162544137671],
+            "delta": [0.4478206614305777],
+            "gamma": [0.01570219883634658],
+            "theta": [-0.21968576560850298],
+            "vega": [0.2062720173874019],
+            "rho": [0.06466425659962557],
+        },
+    )
+
+
+def test_previous_call_combined_with_currently_sold_call():
+    payload = PREVIOUS_POSITION_CALL_BASE | {
+        "strategy": [
+            {
+                "type": "call",
+                "strike": 175.0,
+                "premium": 7.55,
+                "n": 100,
+                "action": "buy",
+                "prev_pos": 9.00,
+            },
+            {
+                "type": "call",
+                "strike": 180.0,
+                "premium": 5.65,
+                "n": 100,
+                "action": "sell",
+            },
+        ]
+    }
+
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.34170467937409377,
+            "expected_profit_if_profitable": 159.57,
+            "expected_loss_if_unprofitable": -322.96,
+            "profit_ranges": [(178.36, float("inf"))],
+            "per_leg_cost": [-900.0, 565.0],
+            "strategy_cost": -335.0,
+            "minimum_return_in_the_domain": -335.0,
+            "maximum_return_in_the_domain": 165.00000000000182,
+            "implied_volatility": [0.47185720287639016, 0.4643544255095575],
+            "in_the_money_probability": [0.3896519029956125, 0.31945606955896366],
+            "probability_of_touch": [0.8052162544137671, 0.6580872103707619],
+            "delta": [0.4478206614305777, -0.37442226491472497],
+            "gamma": [0.01570219883634658, 0.015046586930711309],
+            "theta": [-0.21968576560850298, 0.20911925871992107],
+            "vega": [0.2062720173874019, 0.19765956814968416],
+            "rho": [0.06466425659962557, -0.05452969743627417],
+        },
+    )
+
+
+def test_sold_call_considering_previous_loss():
+    payload = PREVIOUS_POSITION_CALL_BASE | {
+        "strategy": [
+            {"type": "closed", "prev_pos": -50.0},
+            {
+                "type": "call",
+                "strike": 180.0,
+                "premium": 5.65,
+                "n": 100,
+                "action": "sell",
+            },
+        ]
+    }
+
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.7447665199315079,
+            "expected_profit_if_profitable": 493.26,
+            "expected_loss_if_unprofitable": -1790.34,
+            "profit_ranges": [(0.0, 185.14)],
+            "per_leg_cost": [-50.0, 565.0],
+            "strategy_cost": 515.0,
+            "minimum_return_in_the_domain": -8384.0,
+            "maximum_return_in_the_domain": 515.0,
+            "implied_volatility": [0.0, 0.4643544255095575],
+            "in_the_money_probability": [0.0, 0.31945606955896366],
+            "probability_of_touch": [0.0, 0.6580872103707619],
+            "delta": [0.0, -0.37442226491472497],
+            "gamma": [0.0, 0.015046586930711309],
+            "theta": [0.0, 0.20911925871992107],
+            "vega": [0.0, 0.19765956814968416],
+            "rho": [0.0, -0.05452969743627417],
+        },
+    )
+
+
+def test_bought_call_using_previous_profit():
+    payload = PREVIOUS_POSITION_CALL_BASE | {
+        "strategy": [
+            {"type": "closed", "prev_pos": 565.0},
+            {
+                "type": "call",
+                "strike": 180.0,
+                "premium": 5.65,
+                "n": 100,
+                "action": "buy",
+            },
+        ]
+    }
+
+    assert_approx_equal(
+        run_validated_strategy(payload),
+        {
+            "probability_of_profit": 0.3193228934828556,
+            "expected_profit_if_profitable": 1891.75,
+            "profit_ranges": [(180.01, float("inf"))],
+            "per_leg_cost": [565.0, -565.0],
+            "strategy_cost": 0.0,
+            "minimum_return_in_the_domain": 0.0,
+            "maximum_return_in_the_domain": 8899.0,
+            "implied_volatility": [0.0, 0.4643544255095575],
+            "in_the_money_probability": [0.0, 0.31945606955896366],
+            "probability_of_touch": [0.0, 0.6580872103707619],
+            "delta": [0.0, 0.37442226491472497],
+            "gamma": [0.0, 0.015046586930711309],
+            "theta": [0.0, -0.20911925871992107],
+            "vega": [0.0, 0.19765956814968416],
+            "rho": [0.0, 0.05452969743627417],
+        },
+    )
 
 
 def test_3_legs(nvidia):

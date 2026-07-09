@@ -69,7 +69,11 @@ def get_pl(outputs: Outputs, leg: int | None = None) -> tuple[np.ndarray, np.nda
     Array of stock prices and array or profits/losses.
     """
 
-    if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
+    if (
+        outputs.data.profit.size > 0
+        and leg is not None
+        and leg < outputs.data.profit.shape[0]
+    ):
         return outputs.data.stock_price_array, outputs.data.profit[leg]
 
     return outputs.data.stock_price_array, outputs.data.strategy_profit
@@ -96,7 +100,11 @@ def pl_to_csv(
     `None`.
     """
 
-    if outputs.data.profit.size > 0 and leg and leg < outputs.data.profit.shape[0]:
+    if (
+        outputs.data.profit.size > 0
+        and leg is not None
+        and leg < outputs.data.profit.shape[0]
+    ):
         arr = np.stack((outputs.data.stock_price_array, outputs.data.profit[leg]))
     else:
         arr = np.stack((outputs.data.stock_price_array, outputs.data.strategy_profit))
