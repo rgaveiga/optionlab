@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.7.0 (2026-07-09)
+
+- Added more tests.
+
 ## 1.6.3 (2026-06-22)
 
 - Improved `get_implied_vol` function in black_scholes.py for performance
