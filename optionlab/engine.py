@@ -366,7 +366,7 @@ def _run_option_calcs(data: EngineData, i: int) -> ndarray:
                 opt_value,
                 inputs.interest_rate,
                 target_to_maturity,
-                inputs.interest_rate,
+                inputs.volatility,
                 data.n[i],
                 data.terminal_stock_prices,
                 inputs.dividend_yield,

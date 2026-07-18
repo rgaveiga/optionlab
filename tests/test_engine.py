@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from optionlab import run_strategy
+from optionlab.support import get_pl_profile_bs
 
 COVERED_CALL_LEGS = [
     {"type": "stock", "n": 100, "action": "buy"},
@@ -45,6 +46,52 @@ def test_array_model_pop_close_to_black_scholes(nvidia_days):
     assert array_outputs.expected_profit_if_profitable > 0.0
     assert array_outputs.expected_loss_if_unprofitable < 0.0
     assert array_outputs.strategy_cost == pytest.approx(bs_outputs.strategy_cost)
+
+
+def test_array_model_option_expiring_after_target_uses_volatility(nvidia_days):
+    terminal_prices = np.array([140.0, 170.0, 200.0])
+    option_leg = {
+        "type": "call",
+        "strike": 185.0,
+        "premium": 4.1,
+        "n": 100,
+        "action": "buy",
+        "expiration": 30,
+    }
+    outputs = run_strategy(
+        nvidia_days
+        | {
+            "strategy": [option_leg],
+            "model": "array",
+            "array": terminal_prices,
+        }
+    )
+
+    expected_profit, _ = get_pl_profile_bs(
+        option_type="call",
+        action="buy",
+        x=185.0,
+        val=4.1,
+        r=nvidia_days["interest_rate"],
+        target_to_maturity_years=(30 - 24) / 252,
+        volatility=nvidia_days["volatility"],
+        n=100,
+        s=terminal_prices,
+    )
+    wrong_interest_as_volatility, _ = get_pl_profile_bs(
+        option_type="call",
+        action="buy",
+        x=185.0,
+        val=4.1,
+        r=nvidia_days["interest_rate"],
+        target_to_maturity_years=(30 - 24) / 252,
+        volatility=nvidia_days["interest_rate"],
+        n=100,
+        s=terminal_prices,
+    )
+
+    assert not np.allclose(expected_profit, wrong_interest_as_volatility)
+    np.testing.assert_allclose(outputs.data.strategy_profit_mc, expected_profit)
 
 
 def test_closed_option_leg_bought(nvidia):
