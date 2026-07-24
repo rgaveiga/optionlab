@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.8.0 (2026-07-24)
+
+- Added the `price_step` attribute to `Inputs` and to `create_price_seq` to support configurable stock-price resolution
+- Improved array-model performance by accumulating terminal profits directly in `strategy_profit_mc`, avoiding the per-leg `profit_mc` matrix
+- Added tests and benchmarks for price resolution, CPU usage, memory usage, Covered Calls, and Calendar Spreads
+
 ## 1.7.0 (2026-07-09)
 
 - Added more tests.

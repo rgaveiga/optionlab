@@ -228,9 +228,7 @@ def test_price_step_coarse_grid_close_to_default(nvidia):
     assert coarse_outputs.probability_of_profit == pytest.approx(
         default_outputs.probability_of_profit, abs=5e-3
     )
-    assert coarse_outputs.strategy_cost == pytest.approx(
-        default_outputs.strategy_cost
-    )
+    assert coarse_outputs.strategy_cost == pytest.approx(default_outputs.strategy_cost)
     assert coarse_outputs.minimum_return_in_the_domain == pytest.approx(
         default_outputs.minimum_return_in_the_domain, abs=15.0
     )

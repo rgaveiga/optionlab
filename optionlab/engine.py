@@ -11,7 +11,8 @@ from __future__ import print_function
 
 import datetime as dt
 
-from numpy import full, ndarray, vstack, zeros, array
+import numpy as np
+from numpy import full, ndarray, zeros, array
 
 
 from optionlab.black_scholes import get_bs_info, get_implied_vol
@@ -166,6 +167,9 @@ def _run(data: EngineData) -> EngineData:
     data.cost = [0.0] * len(data.type)
 
     data.strategy_profit = zeros(data.stock_price_array.shape[0])
+    data.profit = np.empty(
+        (len(data.type), data.stock_price_array.shape[0]), dtype=float
+    )
 
     if inputs.model == "array":
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
@@ -175,8 +179,6 @@ def _run(data: EngineData) -> EngineData:
     pop_inputs: BlackScholesModelInputs | ArrayInputs
     pop_out: PoPOutputs
 
-    profit_rows = []
-
     for i, type in enumerate(data.type):
         if type in ("call", "put"):
             leg_profit = _run_option_calcs(data, i)
@@ -185,10 +187,8 @@ def _run(data: EngineData) -> EngineData:
         elif type == "closed":
             leg_profit = _run_closed_position_calcs(data, i)
 
-        profit_rows.append(leg_profit)
-        data.strategy_profit += leg_profit
-
-    data.profit = vstack(profit_rows)
+        data.profit[i] = leg_profit
+        np.add(data.strategy_profit, leg_profit, out=data.strategy_profit)
 
     if calculate_pop or calculate_expectation:
         if inputs.model == "black-scholes":
