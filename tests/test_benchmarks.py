@@ -45,6 +45,21 @@ def test_benchmark_run_strategy_wide_domain(benchmark, nvidia):
     assert outputs.probability_of_profit > 0.0
 
 
+@pytest.mark.benchmark(group="engine-wide")
+def test_benchmark_run_strategy_wide_domain_coarse_step(benchmark, nvidia):
+    payload = nvidia | {
+        "strategy": COVERED_CALL_LEGS,
+        "min_stock": 0.01,
+        "max_stock": 1000.0,
+        "price_step": 0.1,
+        "calculations": ["pop", "expectation"],
+    }
+
+    outputs = benchmark.pedantic(run_strategy, args=(payload,), rounds=3, iterations=1)
+
+    assert outputs.probability_of_profit > 0.0
+
+
 @pytest.mark.benchmark(group="engine-mc")
 def test_benchmark_run_strategy_array_model(benchmark, nvidia):
     time_to_target = 24 / 252

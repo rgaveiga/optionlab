@@ -34,6 +34,37 @@ def test_create_price_seq_invalid_range():
         create_price_seq(100.0, 100.0)
 
 
+def test_create_price_seq_custom_step():
+    seq = create_price_seq(100.0, 101.0, 0.1)
+
+    assert seq.shape[0] == 11
+    assert seq[0] == pytest.approx(100.0)
+    assert seq[-1] == pytest.approx(101.0)
+    assert np.all(np.diff(seq) == pytest.approx(0.1))
+
+
+def test_create_price_seq_default_step_unchanged():
+    assert np.array_equal(
+        create_price_seq(100.0, 101.0), create_price_seq(100.0, 101.0, 0.01)
+    )
+
+
+def test_create_price_seq_coarse_step_keeps_cent_endpoints():
+    seq = create_price_seq(68.99, 268.99, 0.1)
+
+    assert seq.shape[0] == 2001
+    assert seq[0] == pytest.approx(68.99)
+    assert seq[-1] == pytest.approx(268.99)
+
+
+def test_create_price_seq_invalid_step():
+    with pytest.raises(ValueError):
+        create_price_seq(100.0, 101.0, 0.0)
+
+    with pytest.raises(ValueError):
+        create_price_seq(100.0, 101.0, -0.01)
+
+
 def test_get_payoff_call_and_put():
     s = np.array([90.0, 100.0, 110.0])
 

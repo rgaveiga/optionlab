@@ -11,7 +11,8 @@ from __future__ import print_function
 
 import datetime as dt
 
-from numpy import zeros, array
+import numpy as np
+from numpy import full, ndarray, zeros, array
 
 
 from optionlab.black_scholes import get_bs_info, get_implied_vol
@@ -71,7 +72,9 @@ def run_strategy(inputs_data: Inputs | dict) -> Outputs:
 
 def _init_inputs(inputs: Inputs) -> EngineData:
     data = EngineData(
-        stock_price_array=create_price_seq(inputs.min_stock, inputs.max_stock),
+        stock_price_array=create_price_seq(
+            inputs.min_stock, inputs.max_stock, inputs.price_step
+        ),
         terminal_stock_prices=inputs.array if inputs.model == "array" else array([]),
         inputs=inputs,
     )
@@ -163,11 +166,12 @@ def _run(data: EngineData) -> EngineData:
     time_to_target = data.days_to_target / data.days_in_year
     data.cost = [0.0] * len(data.type)
 
-    data.profit = zeros((len(data.type), data.stock_price_array.shape[0]))
     data.strategy_profit = zeros(data.stock_price_array.shape[0])
+    data.profit = np.empty(
+        (len(data.type), data.stock_price_array.shape[0]), dtype=float
+    )
 
     if inputs.model == "array":
-        data.profit_mc = zeros((len(data.type), data.terminal_stock_prices.shape[0]))
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
 
     calculate_pop = _has_calculation(inputs, "pop")
@@ -177,16 +181,14 @@ def _run(data: EngineData) -> EngineData:
 
     for i, type in enumerate(data.type):
         if type in ("call", "put"):
-            _run_option_calcs(data, i)
+            leg_profit = _run_option_calcs(data, i)
         elif type == "stock":
-            _run_stock_calcs(data, i)
+            leg_profit = _run_stock_calcs(data, i)
         elif type == "closed":
-            _run_closed_position_calcs(data, i)
+            leg_profit = _run_closed_position_calcs(data, i)
 
-        data.strategy_profit += data.profit[i]
-
-        if inputs.model == "array":
-            data.strategy_profit_mc += data.profit_mc[i]
+        data.profit[i] = leg_profit
+        np.add(data.strategy_profit, leg_profit, out=data.strategy_profit)
 
     if calculate_pop or calculate_expectation:
         if inputs.model == "black-scholes":
@@ -248,7 +250,7 @@ def _run(data: EngineData) -> EngineData:
     return data
 
 
-def _run_option_calcs(data: EngineData, i: int) -> EngineData:
+def _run_option_calcs(data: EngineData, i: int) -> ndarray:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
     type: OptionType = data.type[i]  # type: ignore
@@ -275,12 +277,11 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
             cost *= -1.0
 
         data.cost[i] = cost
-        data.profit[i] += cost
 
         if inputs.model == "array":
-            data.profit_mc[i] += cost
+            data.strategy_profit_mc += cost
 
-        return data
+        return full(data.stock_price_array.shape[0], cost)
 
     time_to_maturity = data.days_to_maturity[i] / data.days_in_year
 
@@ -343,7 +344,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
             data.days_to_maturity[i] - data.days_to_target
         ) / data.days_in_year  # To consider the expiration date as a trading day
 
-        data.profit[i], data.cost[i] = get_pl_profile_bs(
+        leg_profit, data.cost[i] = get_pl_profile_bs(
             type,
             action,
             data.strike[i],
@@ -358,7 +359,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         )
 
         if inputs.model == "array":
-            data.profit_mc[i] = get_pl_profile_bs(
+            data.strategy_profit_mc += get_pl_profile_bs(
                 type,
                 action,
                 data.strike[i],
@@ -372,7 +373,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
                 inputs.opt_commission,
             )[0]
     else:
-        data.profit[i], data.cost[i] = get_pl_profile(
+        leg_profit, data.cost[i] = get_pl_profile(
             type,
             action,
             data.strike[i],
@@ -383,7 +384,7 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
         )
 
         if inputs.model == "array":
-            data.profit_mc[i] = get_pl_profile(
+            data.strategy_profit_mc += get_pl_profile(
                 type,
                 action,
                 data.strike[i],
@@ -393,10 +394,10 @@ def _run_option_calcs(data: EngineData, i: int) -> EngineData:
                 inputs.opt_commission,
             )[0]
 
-    return data
+    return leg_profit  # type: ignore
 
 
-def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
+def _run_stock_calcs(data: EngineData, i: int) -> ndarray:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
     calculate_impvol = _has_calculation(inputs, "impvol")
@@ -425,19 +426,18 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
             costtmp *= -1.0
 
         data.cost[i] = costtmp
-        data.profit[i] += costtmp
 
         if inputs.model == "array":
-            data.profit_mc[i] += costtmp
+            data.strategy_profit_mc += costtmp
 
-        return data
+        return full(data.stock_price_array.shape[0], costtmp)
 
     if data.previous_position[i] > 0.0:  # Stock price at previous position
         stockpos = data.previous_position[i]
     else:  # Spot price of the stock at start date
         stockpos = inputs.stock_price
 
-    data.profit[i], data.cost[i] = get_pl_profile_stock(
+    leg_profit, data.cost[i] = get_pl_profile_stock(
         stockpos,
         action,
         data.n[i],
@@ -446,7 +446,7 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
     )
 
     if inputs.model == "array":
-        data.profit_mc[i] = get_pl_profile_stock(
+        data.strategy_profit_mc += get_pl_profile_stock(
             stockpos,
             action,
             data.n[i],
@@ -454,10 +454,10 @@ def _run_stock_calcs(data: EngineData, i: int) -> EngineData:
             inputs.stock_commission,
         )[0]
 
-    return data
+    return leg_profit
 
 
-def _run_closed_position_calcs(data: EngineData, i: int) -> EngineData:
+def _run_closed_position_calcs(data: EngineData, i: int) -> ndarray:
     inputs = data.inputs
 
     if _has_calculation(inputs, "impvol"):
@@ -473,12 +473,11 @@ def _run_closed_position_calcs(data: EngineData, i: int) -> EngineData:
         data.theta.append(0.0)
 
     data.cost[i] = data.previous_position[i]
-    data.profit[i] += data.previous_position[i]
 
     if inputs.model == "array":
-        data.profit_mc[i] += data.previous_position[i]
+        data.strategy_profit_mc += data.previous_position[i]
 
-    return data
+    return full(data.stock_price_array.shape[0], data.previous_position[i])
 
 
 def _generate_outputs(data: EngineData) -> Outputs:

@@ -176,10 +176,12 @@ def get_pl_profile_bs(
 
 
 @lru_cache
-def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
+def create_price_seq(
+    min_price: float, max_price: float, step: float = 0.01
+) -> np.ndarray:
     """
     Generates a sequence of stock prices from a minimum to a maximum price with
-    increment $0.01.
+    a fixed increment.
 
     ### Parameters
 
@@ -187,13 +189,28 @@ def create_price_seq(min_price: float, max_price: float) -> np.ndarray:
 
     `max_price`: maximum stock price in the range.
 
+    `step`: increment between consecutive stock prices. The default is $0.01.
+
     ### Returns
 
     Array of sequential stock prices.
     """
 
+    if step <= 0.0:
+        raise ValueError("Step must be greater than zero!")
+
     if max_price > min_price:
-        return round((arange((max_price - min_price) * 100 + 1) * 0.01 + min_price), 2)
+        if step == 0.01:
+            # Legacy expression kept verbatim: arange's implicit ceil can add one
+            # point past max_price, and downstream results are pinned to that grid
+            return round(
+                (arange((max_price - min_price) * 100 + 1) * 0.01 + min_price), 2
+            )
+
+        n = int(np.round((max_price - min_price) / step)) + 1
+        # Round to cent precision at least, finer if the step requires it
+        decimals = max(2, int(np.ceil(-np.log10(step))))
+        return round(arange(n) * step + min_price, decimals)
     else:
         raise ValueError("Maximum price cannot be less than minimum price!")
 

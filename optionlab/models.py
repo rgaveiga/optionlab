@@ -244,6 +244,13 @@ class Inputs(BaseModel):
     max_stock: float = Field(ge=0.0)
     """Maximum value of the stock in the stock price domain."""
 
+    price_step: float = Field(0.01, gt=0.0)
+    """
+    Increment between consecutive stock prices in the stock price domain.
+
+    The default is 0.01.
+    """
+
     strategy: list[StrategyLeg] = Field(..., min_length=1)
     """A list of strategy legs."""
 

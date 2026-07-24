@@ -213,3 +213,49 @@ def test_run_strategy_accepts_dict(nvidia):
 def test_unknown_leg_type_rejected(nvidia):
     with pytest.raises(ValueError):
         run_strategy(nvidia | {"strategy": [{"type": "banana", "n": 100}]})
+
+
+def test_price_step_coarse_grid_close_to_default(nvidia):
+    payload = nvidia | {"strategy": COVERED_CALL_LEGS, "calculations": ["pop"]}
+
+    default_outputs = run_strategy(payload)
+    coarse_outputs = run_strategy(payload | {"price_step": 0.1})
+
+    assert coarse_outputs.data.stock_price_array.shape[0] == 2001
+    assert default_outputs.data.stock_price_array.shape[0] == 20001
+    # Coarse grids locate breakeven crossings at step resolution, so PoP can
+    # shift by roughly step * lognormal density near the breakeven
+    assert coarse_outputs.probability_of_profit == pytest.approx(
+        default_outputs.probability_of_profit, abs=5e-3
+    )
+    assert coarse_outputs.strategy_cost == pytest.approx(default_outputs.strategy_cost)
+    assert coarse_outputs.minimum_return_in_the_domain == pytest.approx(
+        default_outputs.minimum_return_in_the_domain, abs=15.0
+    )
+    assert coarse_outputs.maximum_return_in_the_domain == pytest.approx(
+        default_outputs.maximum_return_in_the_domain
+    )
+
+
+def test_price_step_must_be_positive(nvidia):
+    with pytest.raises(ValueError):
+        run_strategy(nvidia | {"strategy": COVERED_CALL_LEGS, "price_step": 0.0})
+
+    with pytest.raises(ValueError):
+        run_strategy(nvidia | {"strategy": COVERED_CALL_LEGS, "price_step": -0.01})
+
+
+def test_array_model_does_not_populate_per_leg_profit_mc(nvidia_days):
+    rng = np.random.default_rng(42)
+    terminal_prices = rng.lognormal(np.log(nvidia_days["stock_price"]), 0.1, 10_000)
+
+    payload = nvidia_days | {
+        "strategy": COVERED_CALL_LEGS,
+        "model": "array",
+        "array": terminal_prices,
+    }
+    outputs = run_strategy(payload)
+
+    assert outputs.data.profit_mc.size == 0
+    assert outputs.data.strategy_profit_mc.shape == terminal_prices.shape
+    assert 0.0 < outputs.probability_of_profit < 1.0
