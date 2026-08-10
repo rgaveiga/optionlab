@@ -492,16 +492,12 @@ def _compute_expected_returns_bs(
             lower_prices = np.concatenate(([0.0], lower_prices))
             upper_prices = np.concatenate((s[:1], upper_prices))
             interval_slopes = np.concatenate((slopes[:1], interval_slopes))
-            intercepts = np.concatenate(
-                ((profit[0] - slopes[0] * s[0],), intercepts)
-            )
+            intercepts = np.concatenate(((profit[0] - slopes[0] * s[0],), intercepts))
 
         lower_prices = np.concatenate((lower_prices, s[-1:]))
         upper_prices = np.concatenate((upper_prices, [float("inf")]))
         interval_slopes = np.concatenate((interval_slopes, slopes[-1:]))
-        intercepts = np.concatenate(
-            (intercepts, (profit[-1] - slopes[-1] * s[-1],))
-        )
+        intercepts = np.concatenate((intercepts, (profit[-1] - slopes[-1] * s[-1],)))
     else:
         lower_prices = s.copy()
         upper_prices = np.asarray([float("inf")])
@@ -588,6 +584,7 @@ def _compute_expected_returns_bs(
     )
 
     return expected_return_above_target, expected_return_below_target
+
 
 def _integrate_linear_profit_bs(
     lower_price: np.ndarray,

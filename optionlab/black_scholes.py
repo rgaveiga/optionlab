@@ -174,13 +174,9 @@ def get_option_price(
     s = s0 * exp(-y * years_to_maturity)
 
     if option_type == "call":
-        return s * ndtr(d1) - x * exp(
-            -r * years_to_maturity
-        ) * ndtr(d2)
+        return s * ndtr(d1) - x * exp(-r * years_to_maturity) * ndtr(d2)
     elif option_type == "put":
-        return x * exp(-r * years_to_maturity) * ndtr(
-            -d2
-        ) - s * ndtr(-d1)
+        return x * exp(-r * years_to_maturity) * ndtr(-d2) - s * ndtr(-d1)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
@@ -371,21 +367,9 @@ def get_rho(
     """
 
     if option_type == "call":
-        return (
-            x
-            * years_to_maturity
-            * exp(-r * years_to_maturity)
-            * ndtr(d2)
-            / 100
-        )
+        return x * years_to_maturity * exp(-r * years_to_maturity) * ndtr(d2) / 100
     elif option_type == "put":
-        return (
-            -x
-            * years_to_maturity
-            * exp(-r * years_to_maturity)
-            * ndtr(-d2)
-            / 100
-        )
+        return -x * years_to_maturity * exp(-r * years_to_maturity) * ndtr(-d2) / 100
     else:
         raise ValueError("Option must be either 'call' or 'put'!")
 
@@ -498,9 +482,7 @@ def get_implied_vol(
 
     def price_diff(vol: float) -> float:
         return (
-            _get_option_price_scalar(
-                option_type, s0, x, r, vol, years_to_maturity, y
-            )
+            _get_option_price_scalar(option_type, s0, x, r, vol, years_to_maturity, y)
             - oprice
         )
 
@@ -529,8 +511,7 @@ def _get_option_price_scalar(
     sqrt_time = scalar_sqrt(years_to_maturity)
     sigma_sqrt_time = vol * sqrt_time
     d1 = (
-        scalar_log(s0 / x)
-        + (r - y + 0.5 * vol * vol) * years_to_maturity
+        scalar_log(s0 / x) + (r - y + 0.5 * vol * vol) * years_to_maturity
     ) / sigma_sqrt_time
     d2 = d1 - sigma_sqrt_time
     discounted_spot = s0 * scalar_exp(-y * years_to_maturity)
@@ -632,15 +613,15 @@ def get_probability_of_touch(
         if s >= x:
             return 1.0
         else:
-            return ((x / s) ** exp1) * ndtr(-z) + (
-                (x / s) ** exp2
-            ) * ndtr(2.0 * lam * sigma - z)
+            return ((x / s) ** exp1) * ndtr(-z) + ((x / s) ** exp2) * ndtr(
+                2.0 * lam * sigma - z
+            )
     elif option_type == "put":
         if s <= x:
             return 1.0
         else:
-            return ((x / s) ** exp1) * ndtr(z) + (
-                (x / s) ** exp2
-            ) * ndtr(z - 2.0 * lam * sigma)
+            return ((x / s) ** exp1) * ndtr(z) + ((x / s) ** exp2) * ndtr(
+                z - 2.0 * lam * sigma
+            )
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
