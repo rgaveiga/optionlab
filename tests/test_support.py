@@ -284,3 +284,30 @@ def test_get_pop_black_scholes_expected_returns_sign():
 
     assert pop_no_expectation.expected_return_above_target == 0.0
     assert pop_no_expectation.expected_return_below_target == 0.0
+
+
+
+def test_pl_profiles_can_reuse_output_buffer():
+    s = np.array([80.0, 100.0, 120.0])
+    out = np.empty_like(s)
+
+    expected_option, _ = get_pl_profile("call", "buy", 100.0, 5.0, 100, s)
+    option_profile, _ = get_pl_profile(
+        "call", "buy", 100.0, 5.0, 100, s, out=out
+    )
+    assert option_profile is out
+    np.testing.assert_allclose(option_profile, expected_option)
+
+    expected_stock, _ = get_pl_profile_stock(100.0, "sell", 100, s)
+    stock_profile, _ = get_pl_profile_stock(100.0, "sell", 100, s, out=out)
+    assert stock_profile is out
+    np.testing.assert_allclose(stock_profile, expected_stock)
+
+    expected_bs, _ = get_pl_profile_bs(
+        "put", "buy", 100.0, 5.0, 0.01, 30 / 365, 0.3, 100, s
+    )
+    bs_profile, _ = get_pl_profile_bs(
+        "put", "buy", 100.0, 5.0, 0.01, 30 / 365, 0.3, 100, s, out=out
+    )
+    assert bs_profile is out
+    np.testing.assert_allclose(bs_profile, expected_bs)
