@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.8.5 (2026-08-09)
+
+- Vectorized Black-Scholes expected-return integration and replaced normal-distribution wrappers with `scipy.special.ndtr`
+- Improved implied-volatility performance with a dedicated scalar Black-Scholes pricing path
+- Reduced array-model allocations by reusing output buffers and calculating option payoffs in place with `numpy.maximum`
+- Added regression tests for reusable profit-profile output buffers
+
 ## 1.8.0 (2026-07-24)
 
 - Added the `price_step` attribute to `Inputs` and to `create_price_seq` to support configurable stock-price resolution

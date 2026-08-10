@@ -171,8 +171,10 @@ def _run(data: EngineData) -> EngineData:
         (len(data.type), data.stock_price_array.shape[0]), dtype=float
     )
 
+    mc_leg_profit: ndarray | None = None
     if inputs.model == "array":
         data.strategy_profit_mc = zeros(data.terminal_stock_prices.shape[0])
+        mc_leg_profit = np.empty_like(data.strategy_profit_mc)
 
     calculate_pop = _has_calculation(inputs, "pop")
     calculate_expectation = _has_calculation(inputs, "expectation")
@@ -181,9 +183,9 @@ def _run(data: EngineData) -> EngineData:
 
     for i, type in enumerate(data.type):
         if type in ("call", "put"):
-            leg_profit = _run_option_calcs(data, i)
+            leg_profit = _run_option_calcs(data, i, mc_leg_profit)
         elif type == "stock":
-            leg_profit = _run_stock_calcs(data, i)
+            leg_profit = _run_stock_calcs(data, i, mc_leg_profit)
         elif type == "closed":
             leg_profit = _run_closed_position_calcs(data, i)
 
@@ -250,7 +252,9 @@ def _run(data: EngineData) -> EngineData:
     return data
 
 
-def _run_option_calcs(data: EngineData, i: int) -> ndarray:
+def _run_option_calcs(
+    data: EngineData, i: int, mc_out: ndarray | None = None
+) -> ndarray:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
     type: OptionType = data.type[i]  # type: ignore
@@ -359,7 +363,8 @@ def _run_option_calcs(data: EngineData, i: int) -> ndarray:
         )
 
         if inputs.model == "array":
-            data.strategy_profit_mc += get_pl_profile_bs(
+            assert mc_out is not None
+            mc_profile = get_pl_profile_bs(
                 type,
                 action,
                 data.strike[i],
@@ -371,7 +376,9 @@ def _run_option_calcs(data: EngineData, i: int) -> ndarray:
                 data.terminal_stock_prices,
                 inputs.dividend_yield,
                 inputs.opt_commission,
+                out=mc_out,
             )[0]
+            np.add(data.strategy_profit_mc, mc_profile, out=data.strategy_profit_mc)
     else:
         leg_profit, data.cost[i] = get_pl_profile(
             type,
@@ -384,7 +391,8 @@ def _run_option_calcs(data: EngineData, i: int) -> ndarray:
         )
 
         if inputs.model == "array":
-            data.strategy_profit_mc += get_pl_profile(
+            assert mc_out is not None
+            mc_profile = get_pl_profile(
                 type,
                 action,
                 data.strike[i],
@@ -392,12 +400,16 @@ def _run_option_calcs(data: EngineData, i: int) -> ndarray:
                 data.n[i],
                 data.terminal_stock_prices,
                 inputs.opt_commission,
+                out=mc_out,
             )[0]
+            np.add(data.strategy_profit_mc, mc_profile, out=data.strategy_profit_mc)
 
     return leg_profit  # type: ignore
 
 
-def _run_stock_calcs(data: EngineData, i: int) -> ndarray:
+def _run_stock_calcs(
+    data: EngineData, i: int, mc_out: ndarray | None = None
+) -> ndarray:
     inputs = data.inputs
     action: Action = data.action[i]  # type: ignore
     calculate_impvol = _has_calculation(inputs, "impvol")
@@ -446,13 +458,16 @@ def _run_stock_calcs(data: EngineData, i: int) -> ndarray:
     )
 
     if inputs.model == "array":
-        data.strategy_profit_mc += get_pl_profile_stock(
+        assert mc_out is not None
+        mc_profile = get_pl_profile_stock(
             stockpos,
             action,
             data.n[i],
             data.terminal_stock_prices,
             inputs.stock_commission,
+            out=mc_out,
         )[0]
+        np.add(data.strategy_profit_mc, mc_profile, out=data.strategy_profit_mc)
 
     return leg_profit
 

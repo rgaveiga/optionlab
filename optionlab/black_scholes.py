@@ -5,9 +5,10 @@ and the Greeks, related to the Black-Scholes model.
 
 from __future__ import division
 
+from math import erf, exp as scalar_exp, log as scalar_log, sqrt as scalar_sqrt
 from typing import cast
 
-from scipy import optimize, stats
+from scipy import optimize
 from scipy.special import ndtr
 from numpy import exp, isscalar, pi, where
 from numpy.lib.scimath import log, sqrt
@@ -173,13 +174,9 @@ def get_option_price(
     s = s0 * exp(-y * years_to_maturity)
 
     if option_type == "call":
-        return s * stats.norm.cdf(d1) - x * exp(
-            -r * years_to_maturity
-        ) * stats.norm.cdf(d2)
+        return s * ndtr(d1) - x * exp(-r * years_to_maturity) * ndtr(d2)
     elif option_type == "put":
-        return x * exp(-r * years_to_maturity) * stats.norm.cdf(
-            -d2
-        ) - s * stats.norm.cdf(-d1)
+        return x * exp(-r * years_to_maturity) * ndtr(-d2) - s * ndtr(-d1)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
@@ -211,9 +208,9 @@ def get_delta(
     yfac = exp(-y * years_to_maturity)
 
     if option_type == "call":
-        return yfac * stats.norm.cdf(d1)
+        return yfac * ndtr(d1)
     elif option_type == "put":
-        return yfac * (stats.norm.cdf(d1) - 1.0)
+        return yfac * (ndtr(d1) - 1.0)
     else:
         raise ValueError("Option must be either 'call' or 'put'!")
 
@@ -298,14 +295,14 @@ def get_theta(
     if option_type == "call":
         return -(
             s * vol * cdf_d1_prime / (2.0 * sqrt(years_to_maturity))
-            + r * x * exp(-r * years_to_maturity) * stats.norm.cdf(d2)
-            - y * s * stats.norm.cdf(d1)
+            + r * x * exp(-r * years_to_maturity) * ndtr(d2)
+            - y * s * ndtr(d1)
         )
     elif option_type == "put":
         return -(
             s * vol * cdf_d1_prime / (2.0 * sqrt(years_to_maturity))
-            - r * x * exp(-r * years_to_maturity) * stats.norm.cdf(-d2)
-            + y * s * stats.norm.cdf(-d1)
+            - r * x * exp(-r * years_to_maturity) * ndtr(-d2)
+            + y * s * ndtr(-d1)
         )
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
@@ -370,21 +367,9 @@ def get_rho(
     """
 
     if option_type == "call":
-        return (
-            x
-            * years_to_maturity
-            * exp(-r * years_to_maturity)
-            * stats.norm.cdf(d2)
-            / 100
-        )
+        return x * years_to_maturity * exp(-r * years_to_maturity) * ndtr(d2) / 100
     elif option_type == "put":
-        return (
-            -x
-            * years_to_maturity
-            * exp(-r * years_to_maturity)
-            * stats.norm.cdf(-d2)
-            / 100
-        )
+        return -x * years_to_maturity * exp(-r * years_to_maturity) * ndtr(-d2) / 100
     else:
         raise ValueError("Option must be either 'call' or 'put'!")
 
@@ -496,10 +481,8 @@ def get_implied_vol(
     max_vol = 1.0
 
     def price_diff(vol: float) -> float:
-        d1 = get_d1(s0, x, r, vol, years_to_maturity, y)
-        d2 = get_d2(s0, x, r, vol, years_to_maturity, y)
-        return float(
-            get_option_price(option_type, s0, x, r, years_to_maturity, d1, d2, y)
+        return (
+            _get_option_price_scalar(option_type, s0, x, r, vol, years_to_maturity, y)
             - oprice
         )
 
@@ -512,6 +495,37 @@ def get_implied_vol(
         return max_vol
 
     return float(optimize.brentq(price_diff, min_vol, max_vol, xtol=5e-7, maxiter=50))
+
+
+def _get_option_price_scalar(
+    option_type: OptionType,
+    s0: float,
+    x: float,
+    r: float,
+    vol: float,
+    years_to_maturity: float,
+    y: float = 0.0,
+) -> float:
+    """Fast scalar Black-Scholes price used by iterative solvers."""
+
+    sqrt_time = scalar_sqrt(years_to_maturity)
+    sigma_sqrt_time = vol * sqrt_time
+    d1 = (
+        scalar_log(s0 / x) + (r - y + 0.5 * vol * vol) * years_to_maturity
+    ) / sigma_sqrt_time
+    d2 = d1 - sigma_sqrt_time
+    discounted_spot = s0 * scalar_exp(-y * years_to_maturity)
+    discounted_strike = x * scalar_exp(-r * years_to_maturity)
+
+    def normal_cdf(value: float) -> float:
+        return 0.5 * (1.0 + erf(value / scalar_sqrt(2.0)))
+
+    if option_type == "call":
+        return discounted_spot * normal_cdf(d1) - discounted_strike * normal_cdf(d2)
+    elif option_type == "put":
+        return discounted_strike * normal_cdf(-d2) - discounted_spot * normal_cdf(-d1)
+    else:
+        raise ValueError("Option type must be either 'call' or 'put'!")
 
 
 def get_itm_probability(
@@ -541,9 +555,9 @@ def get_itm_probability(
     yfac = exp(-y * years_to_maturity)
 
     if option_type == "call":
-        return yfac * stats.norm.cdf(d2)
+        return yfac * ndtr(d2)
     elif option_type == "put":
-        return yfac * stats.norm.cdf(-d2)
+        return yfac * ndtr(-d2)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
@@ -599,15 +613,15 @@ def get_probability_of_touch(
         if s >= x:
             return 1.0
         else:
-            return ((x / s) ** exp1) * stats.norm.cdf(-z) + (
-                (x / s) ** exp2
-            ) * stats.norm.cdf(2.0 * lam * sigma - z)
+            return ((x / s) ** exp1) * ndtr(-z) + ((x / s) ** exp2) * ndtr(
+                2.0 * lam * sigma - z
+            )
     elif option_type == "put":
         if s <= x:
             return 1.0
         else:
-            return ((x / s) ** exp1) * stats.norm.cdf(z) + (
-                (x / s) ** exp2
-            ) * stats.norm.cdf(z - 2.0 * lam * sigma)
+            return ((x / s) ** exp1) * ndtr(z) + ((x / s) ** exp2) * ndtr(
+                z - 2.0 * lam * sigma
+            )
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
