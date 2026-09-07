@@ -10,7 +10,7 @@ from typing import cast
 
 from scipy import optimize
 from scipy.special import ndtr
-from numpy import exp, isscalar, pi, where
+from numpy import exp, isscalar, pi, where, asarray, maximum, zeros_like
 from numpy.lib.scimath import log, sqrt
 
 from optionlab.models import BlackScholesInfo, OptionType, FloatOrNdarray
@@ -46,6 +46,36 @@ def get_bs_info(
 
     Information calculated using the Black-Scholes formula.
     """
+
+    if vol == 0 or years_to_maturity == 0:
+        # At the deterministic kink Greeks do not exist. Report that limitation
+        # explicitly instead of returning NaNs or inventing finite derivatives.
+        strike = asarray(x)
+        dy, dr = exp(-y * years_to_maturity), exp(-r * years_to_maturity)
+        difference = s * dy - strike * dr
+        if (difference == 0).any():
+            raise ValueError(
+                "Greeks are undefined at a deterministic option payoff kink; disable greeks"
+            )
+        itm = (difference > 0).astype(float)
+        zero = zeros_like(difference)
+        terminal = s * exp((r - y) * years_to_maturity)
+        return BlackScholesInfo(
+            call_price=maximum(difference, 0.0),
+            put_price=maximum(-difference, 0.0),
+            call_delta=dy * itm,
+            put_delta=dy * (itm - 1),
+            gamma=zero,
+            vega=zero,
+            call_theta=(y * s * dy - r * strike * dr) * itm,
+            put_theta=(r * strike * dr - y * s * dy) * (1 - itm),
+            call_rho=strike * years_to_maturity * dr * itm / 100,
+            put_rho=-strike * years_to_maturity * dr * (1 - itm) / 100,
+            call_itm_prob=dy * itm,
+            put_itm_prob=dy * (1 - itm),
+            call_prob_of_touch=(maximum(s, terminal) >= strike).astype(float),
+            put_prob_of_touch=(-maximum(-s, -terminal) <= strike).astype(float),
+        )
 
     sqrt_time = sqrt(years_to_maturity)
     discount_y = exp(-y * years_to_maturity)

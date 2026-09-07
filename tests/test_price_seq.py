@@ -1,21 +1,12 @@
 import pytest
 
 from optionlab import run_strategy
+from tests.profit_reference import assert_reference
 from tests.test_core import COVERED_CALL_LEGS, with_expiration
 
 
-@pytest.mark.parametrize(
-    ("price_step", "expected_pop", "expected_profit"),
-    [
-        (0.05, 0.5465561805405352, 1449.08),
-        (0.20, 0.5457504007541361, 1449.08),
-        (0.50, 0.5457504007541361, 1449.08),
-        (1.00, 0.5457504007541361, 1449.07),
-    ],
-)
-def test_covered_call_price_resolution(
-    nvidia, price_step, expected_pop, expected_profit
-):
+@pytest.mark.parametrize("price_step", [0.05, 0.20, 0.50, 1.00])
+def test_covered_call_price_resolution(nvidia, price_step):
     payload = nvidia | {
         "strategy": with_expiration(COVERED_CALL_LEGS, nvidia["target_date"]),
         "price_step": price_step,
@@ -23,26 +14,14 @@ def test_covered_call_price_resolution(
     }
 
     outputs = run_strategy(payload)
+    assert_reference(outputs)
 
-    assert outputs.probability_of_profit == pytest.approx(expected_pop)
-    assert outputs.expected_profit_if_profitable == pytest.approx(expected_profit)
-    assert outputs.expected_loss_if_unprofitable == pytest.approx(-1703.74)
     assert outputs.implied_volatility == []
     assert outputs.delta == []
 
 
-@pytest.mark.parametrize(
-    ("price_step", "expected_pop", "expected_profit", "expected_loss"),
-    [
-        (0.05, 0.5996008032388984, 1380.88, -692.87),
-        (0.20, 0.5965539037891692, 1380.80, -692.85),
-        (0.50, 0.5910310742609183, 1380.19, -692.85),
-        (1.00, 0.5627644236750425, 1374.10, -692.78),
-    ],
-)
-def test_calendar_spread_price_resolution(
-    price_step, expected_pop, expected_profit, expected_loss
-):
+@pytest.mark.parametrize("price_step", [0.05, 0.20, 0.50, 1.00])
+def test_calendar_spread_price_resolution(price_step):
     payload = {
         "stock_price": 127.14,
         "start_date": "2021-01-18",
@@ -73,9 +52,7 @@ def test_calendar_spread_price_resolution(
     }
 
     outputs = run_strategy(payload)
+    assert_reference(outputs)
 
-    assert outputs.probability_of_profit == pytest.approx(expected_pop)
-    assert outputs.expected_profit_if_profitable == pytest.approx(expected_profit)
-    assert outputs.expected_loss_if_unprofitable == pytest.approx(expected_loss)
     assert outputs.implied_volatility == []
     assert outputs.delta == []

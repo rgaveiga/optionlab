@@ -166,6 +166,9 @@ class TheoreticalModelInputs(BaseModel):
 class BlackScholesModelInputs(TheoreticalModelInputs):
     """Defines the input data for the calculations using the Black-Scholes model."""
 
+    volatility: float = Field(ge=0.0)
+    """Zero volatility defines a deterministic terminal price."""
+
     model: Literal["black-scholes"] = "black-scholes"
     """It must be *'black-scholes'*."""
 

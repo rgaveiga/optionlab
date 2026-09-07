@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import print_function
 
 import datetime as dt
+from functools import partial
 
 import numpy as np
 from numpy import full, ndarray, zeros, array
@@ -37,6 +38,7 @@ from optionlab.support import (
     get_pop,
 )
 from optionlab.utils import get_nonbusiness_days
+from optionlab.profit import array_segments, profile_pop, adaptive_segments
 
 
 def _has_calculation(inputs: Inputs, calculation: str) -> bool:
@@ -206,7 +208,10 @@ def _run(data: EngineData) -> EngineData:
         else:
             raise ValueError("Model is not valid!")
 
-        pop_out = get_pop(
+        pop_calculator = (
+            partial(_strategy_pop, data) if inputs.model == "black-scholes" else get_pop
+        )
+        pop_out = pop_calculator(
             data.stock_price_array,
             data.strategy_profit,
             pop_inputs,
@@ -226,7 +231,7 @@ def _run(data: EngineData) -> EngineData:
             and inputs.profit_target is not None
             and inputs.profit_target > 0.01
         ):
-            pop_out_prof_targ = get_pop(
+            pop_out_prof_targ = pop_calculator(
                 data.stock_price_array,
                 data.strategy_profit,
                 pop_inputs,
@@ -239,7 +244,7 @@ def _run(data: EngineData) -> EngineData:
             data.profit_target_ranges = pop_out_prof_targ.reaching_target_range
 
         if calculate_pop and inputs.loss_limit is not None and inputs.loss_limit < 0.0:
-            pop_out_loss_lim = get_pop(
+            pop_out_loss_lim = pop_calculator(
                 data.stock_price_array,
                 data.strategy_profit,
                 pop_inputs,
@@ -250,6 +255,110 @@ def _run(data: EngineData) -> EngineData:
             data.loss_limit_ranges = pop_out_loss_lim.missing_target_range
 
     return data
+
+
+def _strategy_pop(data, s, profit, inputs, target=0.01, calculate_expectation=True):
+    """Evaluate the same legs independently of the public plotting domain."""
+    scratch = data.model_copy(deep=False)
+    scratch.inputs = data.inputs.model_copy(
+        update={"calculations": [], "model": "black-scholes"}
+    )
+    scratch.cost = list(data.cost)
+
+    def evaluate(prices):
+        scratch.stock_price_array = prices
+        total = np.zeros_like(prices)
+        for i, kind in enumerate(data.type):
+            if kind in ("call", "put"):
+                total += _run_option_calcs(scratch, i)
+            elif kind == "stock":
+                total += _run_stock_calcs(scratch, i)
+            else:
+                total += _run_closed_position_calcs(scratch, i)
+        return total
+
+    knots = []
+    live = {}
+    lower_slope = upper_slope = 0.0
+    upper_intercept = float(evaluate(np.array([0.0]))[0])
+    lower_intercept = upper_intercept
+    for i, kind in enumerate(data.type):
+        if data.previous_position[i] < 0 or kind == "closed":
+            continue
+        n = data.n[i] * (1 if data.action[i] == "buy" else -1)
+        if kind == "stock":
+            lower_slope += n
+            upper_slope += n
+            continue
+        tau = max(
+            0.0, (data.days_to_maturity[i] - data.days_to_target) / data.days_in_year
+        )
+        discount = np.exp(-inputs.dividend_yield * tau)
+        strike_value = data.strike[i] * np.exp(-inputs.interest_rate * tau)
+        knots.append(strike_value / discount)
+        if kind == "put":
+            lower_slope -= n * discount
+            upper_intercept -= n * strike_value
+        else:
+            upper_slope += n * discount
+            upper_intercept -= n * strike_value
+        if tau > 0 and inputs.volatility > 0:
+            # Calls and puts have the same curvature; net identical exposures.
+            key = (data.strike[i], tau)
+            live[key] = live.get(key, 0) + n
+    live = {key: n for key, n in live.items() if n != 0}
+
+    if not live:
+        nodes = np.unique([0.0, *knots, max([inputs.stock_price, *knots]) * 2])
+        segments = array_segments(nodes, evaluate(nodes))
+    else:
+
+        def bounds(nodes, interior):
+            error = np.zeros(len(nodes) + 1)
+            for (strike, tau), n in live.items():
+                w = inputs.volatility * np.sqrt(tau)
+                drift = (
+                    inputs.interest_rate
+                    - inputs.dividend_yield
+                    + inputs.volatility**2 / 2
+                ) * tau
+                # Gamma is unimodal in log price; clamp its maximizer to each cell.
+                mode = strike * np.exp(-drift - w * w)
+                point = np.clip(mode, nodes[:-1], nodes[1:])
+                d1 = (np.log(point / strike) + drift) / w
+                gamma = np.exp(-inputs.dividend_yield * tau - d1 * d1 / 2) / (
+                    point * w * np.sqrt(2 * np.pi)
+                )
+                error[1:-1] += abs(n) * gamma * np.diff(nodes) ** 2 / 8
+                # OTM prices bound deviation from the exact asymptotes over
+                # each entire tail, so no unbounded payoff moment is omitted.
+                for index, kind, price in (
+                    (0, "call", nodes[0]),
+                    (-1, "put", nodes[-1]),
+                ):
+                    residual = get_pl_profile_bs(
+                        kind,
+                        "buy",
+                        strike,
+                        0.0,
+                        inputs.interest_rate,
+                        tau,
+                        inputs.volatility,
+                        1,
+                        np.array([price]),
+                        inputs.dividend_yield,
+                    )[0][0]
+                    error[index] += abs(n) * abs(residual)
+            tails = [
+                [0.0, nodes[0], lower_slope, lower_intercept],
+                [nodes[-1], np.inf, upper_slope, upper_intercept],
+            ]
+            return np.concatenate(([tails[0]], interior, [tails[1]])), error
+
+        segments = adaptive_segments(
+            evaluate, bounds, knots, inputs, target, calculate_expectation
+        )
+    return profile_pop(segments, inputs, target, calculate_expectation, evaluate)
 
 
 def _run_option_calcs(

@@ -13,15 +13,14 @@ from typing import cast
 import numpy as np
 from numpy import round, arange
 from numpy.lib.scimath import log, sqrt
-from scipy.special import ndtr
 
 from optionlab.black_scholes import get_d1, get_option_price
+from optionlab.profit import array_segments, profile_pop, ranges, normal_mass
 from optionlab.models import (
     OptionType,
     Action,
     BlackScholesModelInputs,
     ArrayInputs,
-    Range,
     PoPOutputs,
     FloatOrNdarray,
 )
@@ -175,8 +174,24 @@ def get_pl_profile_bs(
     else:
         raise ValueError("Action must be either 'buy' or 'sell'!")
 
+    if volatility == 0 or target_to_maturity_years == 0:
+        discounted_spot = np.asarray(s) * np.exp(-y * target_to_maturity_years)
+        discounted_strike = x * np.exp(-r * target_to_maturity_years)
+        return get_pl_profile(
+            option_type,
+            action,
+            discounted_strike,
+            val,
+            n,
+            discounted_spot,
+            commission,
+            out=out,
+        )
+
     sqrt_time = sqrt(target_to_maturity_years)
-    d1: FloatOrNdarray = get_d1(s, x, r, volatility, target_to_maturity_years, y)
+    # At price zero the limiting d1=-inf gives the exact discounted put/call.
+    with np.errstate(divide="ignore"):
+        d1: FloatOrNdarray = get_d1(s, x, r, volatility, target_to_maturity_years, y)
     d2: FloatOrNdarray = d1 - volatility * sqrt_time
     calcprice: FloatOrNdarray = get_option_price(
         option_type, s, x, r, target_to_maturity_years, d1, d2, y
@@ -243,6 +258,12 @@ def get_pop(
     """
     Estimates the probability of profit (PoP) of an options trading strategy.
 
+    Black-Scholes uses risk-neutral probabilities and nominal conditional P/L.
+    Arrays define linear interpolation and end-secant extrapolation on [0, inf);
+    one point defines a constant profile. Missing strikes/curvature cannot be
+    recovered from arrays. Zero is returned for undefined empty-event means.
+    The default success threshold is one cent (>= 0.01).
+
     ### Parameters
 
     `s`: array of stock prices.
@@ -262,6 +283,11 @@ def get_pop(
     Outputs of a probability of profit (PoP) calculation.
     """
 
+    if isinstance(inputs_data, BlackScholesModelInputs):
+        return profile_pop(
+            array_segments(s, profit), inputs_data, target, calculate_expectation
+        )
+
     probability_of_reaching_target: float
     probability_of_missing_target: float
 
@@ -273,15 +299,7 @@ def get_pop(
     reaching_target_range = t_ranges[0] if t_ranges[0] != [(0.0, 0.0)] else []
     missing_target_range = t_ranges[1] if t_ranges[1] != [(0.0, 0.0)] else []
 
-    if isinstance(inputs_data, BlackScholesModelInputs):
-        probability_of_reaching_target, probability_of_missing_target = _get_pop_bs(
-            s, profit, inputs_data, t_ranges
-        )
-        if calculate_expectation:
-            expected_return_above_target, expected_return_below_target = (
-                _compute_expected_returns_bs(s, profit, inputs_data, target)
-            )
-    elif isinstance(inputs_data, ArrayInputs):
+    if isinstance(inputs_data, ArrayInputs):
         (
             probability_of_reaching_target,
             expected_return_above_target,
@@ -405,185 +423,10 @@ def _get_pl_stock(
         raise ValueError("Action must be either 'sell' or 'buy'!")
 
 
-def _get_pop_bs(
-    s: np.ndarray,
-    profit: np.ndarray,
-    inputs: BlackScholesModelInputs,
-    profit_range: tuple[list[Range], list[Range]],
-) -> tuple[float, float]:
-    """
-    Estimates the probability of profit (PoP) of an options trading strategy using
-    the Black-Scholes model.
-
-    ### Parameters
-
-    `s`: array of stock prices.
-
-    `profit`: array of profits and losses.
-
-    `inputs`: input data used to estimate the probability of profit.
-
-    `profit_range`: lists of stock price pairs defining the profit and loss
-    ranges.
-
-    ### Returns
-
-    Probability of reaching the return target and probability of missing the
-    return target.
-    """
-
-    sigma = (
-        inputs.volatility * sqrt(inputs.years_to_target_date)
-        if inputs.volatility > 0.0
-        else 1e-10
-    )
-    drift = (
-        inputs.interest_rate
-        - inputs.dividend_yield
-        - 0.5 * inputs.volatility * inputs.volatility
-    ) * inputs.years_to_target_date
-    m = log(inputs.stock_price) + drift
-
-    for i, t in enumerate(profit_range):
-        prob = 0.0
-
-        if t != [(0.0, 0.0)]:
-            for p_range in t:
-                lval = log(p_range[0]) if p_range[0] > 0.0 else -float("inf")
-                hval = log(p_range[1])
-                prob += ndtr((hval - m) / sigma) - ndtr((lval - m) / sigma)
-
-        if i == 0:
-            probability_of_reaching_target = prob
-        else:
-            probability_of_missing_target = prob
-
-    return probability_of_reaching_target, probability_of_missing_target
-
-
-def _compute_expected_returns_bs(
-    s: np.ndarray,
-    profit: np.ndarray,
-    inputs: BlackScholesModelInputs,
-    target: float = 0.01,
-) -> tuple[float, float]:
-    """Computes conditional expected returns with vectorized interval integration."""
-
-    sigma = (
-        inputs.volatility * sqrt(inputs.years_to_target_date)
-        if inputs.volatility > 0.0
-        else 1e-10
-    )
-    drift = (
-        inputs.interest_rate
-        - inputs.dividend_yield
-        - 0.5 * inputs.volatility * inputs.volatility
-    ) * inputs.years_to_target_date
-    log_mean = log(inputs.stock_price) + drift
-
-    if s.shape[0] > 1:
-        slopes = np.diff(profit) / np.diff(s)
-        lower_prices = s[:-1]
-        upper_prices = s[1:]
-        interval_slopes = slopes
-        intercepts = profit[:-1] - slopes * s[:-1]
-
-        if s[0] > 0.0:
-            lower_prices = np.concatenate(([0.0], lower_prices))
-            upper_prices = np.concatenate((s[:1], upper_prices))
-            interval_slopes = np.concatenate((slopes[:1], interval_slopes))
-            intercepts = np.concatenate(((profit[0] - slopes[0] * s[0],), intercepts))
-
-        lower_prices = np.concatenate((lower_prices, s[-1:]))
-        upper_prices = np.concatenate((upper_prices, [float("inf")]))
-        interval_slopes = np.concatenate((interval_slopes, slopes[-1:]))
-        intercepts = np.concatenate((intercepts, (profit[-1] - slopes[-1] * s[-1],)))
-    else:
-        lower_prices = s.copy()
-        upper_prices = np.asarray([float("inf")])
-        interval_slopes = np.zeros(1)
-        intercepts = profit.copy()
-
-    lower_profit = interval_slopes * lower_prices + intercepts
-    cross_prices = np.divide(
-        target - intercepts,
-        interval_slopes,
-        out=np.full_like(interval_slopes, np.nan),
-        where=interval_slopes != 0.0,
-    )
-    crossing = (
-        (interval_slopes != 0.0)
-        & (cross_prices > lower_prices)
-        & (cross_prices < upper_prices)
-    )
-    not_crossing = ~crossing
-
-    lower_is_above = (lower_profit > target) | (
-        (lower_profit == target) & (interval_slopes >= 0.0)
-    )
-
-    integration_lower = np.concatenate(
-        (
-            lower_prices[not_crossing],
-            lower_prices[crossing],
-            cross_prices[crossing],
-        )
-    )
-    integration_upper = np.concatenate(
-        (
-            upper_prices[not_crossing],
-            cross_prices[crossing],
-            upper_prices[crossing],
-        )
-    )
-    integration_slopes = np.concatenate(
-        (
-            interval_slopes[not_crossing],
-            interval_slopes[crossing],
-            interval_slopes[crossing],
-        )
-    )
-    integration_intercepts = np.concatenate(
-        (
-            intercepts[not_crossing],
-            intercepts[crossing],
-            intercepts[crossing],
-        )
-    )
-    is_above_target = np.concatenate(
-        (
-            lower_is_above[not_crossing],
-            lower_is_above[crossing],
-            ~lower_is_above[crossing],
-        )
-    )
-
-    interval_prob, interval_profit = _integrate_linear_profit_bs(
-        integration_lower,
-        integration_upper,
-        integration_slopes,
-        integration_intercepts,
-        log_mean,
-        sigma,
-    )
-
-    sum_prob_above_target = interval_prob[is_above_target].sum()
-    sum_prob_below_target = interval_prob[~is_above_target].sum()
-    weighted_profit_above_target = interval_profit[is_above_target].sum()
-    weighted_profit_below_target = interval_profit[~is_above_target].sum()
-
-    expected_return_above_target = (
-        round(weighted_profit_above_target / sum_prob_above_target, 2)
-        if sum_prob_above_target > 0.0
-        else 0.0
-    )
-    expected_return_below_target = (
-        round(weighted_profit_below_target / sum_prob_below_target, 2)
-        if sum_prob_below_target > 0.0
-        else 0.0
-    )
-
-    return expected_return_above_target, expected_return_below_target
+def _compute_expected_returns_bs(s, profit, inputs, target=0.01):
+    """Conditional expectations; absent events return zero by convention."""
+    result = profile_pop(array_segments(s, profit), inputs, target)
+    return result.expected_return_above_target, result.expected_return_below_target
 
 
 def _integrate_linear_profit_bs(
@@ -600,7 +443,7 @@ def _integrate_linear_profit_bs(
 
     lower_z = cast(np.ndarray, _lognormal_z(lower_price, log_mean, sigma))
     upper_z = cast(np.ndarray, _lognormal_z(upper_price, log_mean, sigma))
-    probability = ndtr(upper_z) - ndtr(lower_z)
+    probability = normal_mass(lower_z, upper_z)
 
     lower_moment_z = cast(
         np.ndarray, _lognormal_z(lower_price, log_mean + sigma * sigma, sigma)
@@ -609,7 +452,7 @@ def _integrate_linear_profit_bs(
         np.ndarray, _lognormal_z(upper_price, log_mean + sigma * sigma, sigma)
     )
     first_moment = np.exp(log_mean + 0.5 * sigma * sigma) * (
-        ndtr(upper_moment_z) - ndtr(lower_moment_z)
+        normal_mass(lower_moment_z, upper_moment_z)
     )
 
     return probability, slope * first_moment + intercept * probability
@@ -682,105 +525,13 @@ def _get_pop_array(
     )
 
 
-def _get_profit_range(
-    s: np.ndarray, profit: np.ndarray, target: float = 0.01
-) -> tuple[list[Range], list[Range]]:
-    """
-    Returns lists of stock price ranges: one representing the ranges where the
-    options trade returns are equal to or greater than the target, and the other
-    representing the ranges where they fall short.
-
-    ### Parameters
-
-    `s`: array of stock prices.
-
-    `profit`: array of profits and losses.
-
-    `target`: target profit.
-
-    ### Returns
-
-    Lists of stock price pairs.
-    """
-
-    profit_range = []
-    loss_range = []
-
-    crossings = _get_sign_changes(profit, target)
-    n_crossings = len(crossings)
-
-    if n_crossings == 0:
-        if profit[0] >= target:
-            return [(0.0, float("inf"))], [(0.0, 0.0)]
-        else:
-            return [(0.0, 0.0)], [(0.0, float("inf"))]
-
-    lb_profit = hb_profit = None
-    lb_loss = hb_loss = None
-
-    for i, index in enumerate(crossings):
-        if i == 0:
-            if profit[index] < profit[index - 1]:
-                lb_profit = 0.0
-                hb_profit = s[index - 1]
-                lb_loss = s[index]
-
-                if n_crossings == 1:
-                    hb_loss = float("inf")
-            else:
-                lb_profit = s[index]
-                lb_loss = 0.0
-                hb_loss = s[index - 1]
-
-                if n_crossings == 1:
-                    hb_profit = float("inf")
-        elif i == n_crossings - 1:
-            if profit[index] > profit[index - 1]:
-                lb_profit = s[index]
-                hb_profit = float("inf")
-                hb_loss = s[index - 1]
-            else:
-                hb_profit = s[index - 1]
-                lb_loss = s[index]
-                hb_loss = float("inf")
-        else:
-            if profit[index] > profit[index - 1]:
-                lb_profit = s[index]
-                hb_loss = s[index - 1]
-            else:
-                hb_profit = s[index - 1]
-                lb_loss = s[index]
-
-        if lb_profit is not None and hb_profit is not None:
-            profit_range.append((lb_profit, hb_profit))
-
-            lb_profit = hb_profit = None
-
-        if lb_loss is not None and hb_loss is not None:
-            loss_range.append((lb_loss, hb_loss))
-
-            lb_loss = hb_loss = None
-
-    return profit_range, loss_range
+def _get_profit_range(s, profit, target=0.01):
+    """Shared interpolated/extrapolated event ranges (legacy empty sentinel)."""
+    above, below = ranges(array_segments(s, profit), target)
+    return above or [(0.0, 0.0)], below or [(0.0, 0.0)]
 
 
-def _get_sign_changes(profit: np.ndarray, target: float) -> list[int]:
-    """
-    Returns a list of the indices in the array of profits where the sign changes.
-
-    ### Parameters
-
-    `profit`: array of profits and losses.
-
-    `target`: target profit.
-
-    ### Returns
-
-    List of indices.
-    """
-
-    p_temp = profit - target + 1e-10
-
-    sign_changes = (np.sign(p_temp[:-1]) * np.sign(p_temp[1:])) < 0
-
-    return list(np.where(sign_changes)[0] + 1)
+def _get_sign_changes(profit, target):
+    """Indices where the exact >= target classification changes."""
+    above = np.asarray(profit) >= target
+    return list(np.flatnonzero(above[:-1] != above[1:]) + 1)

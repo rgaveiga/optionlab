@@ -3,9 +3,21 @@ import pytest
 from optionlab import Inputs, run_strategy
 from optionlab.black_scholes import get_bs_info
 from optionlab.models import Outputs
+from tests.profit_reference import assert_reference, reference
 
 
-OUTPUT_EXCLUDE_FIELDS = {"data", "inputs"}
+# Probabilities and ranges are checked against independent root solving and
+# quadrature; snapshots retain the unaffected outputs and monetary regressions.
+OUTPUT_EXCLUDE_FIELDS = {
+    "data",
+    "inputs",
+    "probability_of_profit",
+    "profit_ranges",
+    "probability_of_profit_target",
+    "profit_target_ranges",
+    "probability_of_loss_limit",
+    "loss_limit_ranges",
+}
 
 
 def assert_approx_equal(actual, expected, key=None):
@@ -28,10 +40,8 @@ def assert_approx_equal(actual, expected, key=None):
 
 
 COVERED_CALL_RESULT = {
-    "probability_of_profit": 0.5472008423945267,
     "expected_profit_if_profitable": 1449.08,
     "expected_loss_if_unprofitable": -1703.74,
-    "profit_ranges": [(164.9, float("inf"))],
     "per_leg_cost": [-16899.0, 409.99999999999994],
     "strategy_cost": -16489.0,
     "minimum_return_in_the_domain": -9590.000000000002,
@@ -47,9 +57,7 @@ COVERED_CALL_RESULT = {
 }
 
 PROB_100_ITM_RESULT = {
-    "probability_of_profit": 1.0,
     "expected_profit_if_profitable": 492.77,
-    "profit_ranges": [(0.0, float("inf"))],
     "per_leg_cost": [-750.0, 990.0],
     "strategy_cost": 240.0,
     "minimum_return_in_the_domain": 240.0,
@@ -65,10 +73,8 @@ PROB_100_ITM_RESULT = {
 }
 
 NAKED_CALL = {
-    "probability_of_profit": 0.8389215512144531,
     "expected_profit_if_profitable": 113.49,
     "expected_loss_if_unprofitable": -717.49,
-    "profit_ranges": [(0.0, 176.14)],
     "per_leg_cost": [114.99999999999999],
     "strategy_cost": 114.99999999999999,
     "minimum_return_in_the_domain": -6991.999999999999,
@@ -81,10 +87,6 @@ NAKED_CALL = {
     "theta": [0.091289876347897],
     "vega": [0.12750177318341913],
     "rho": [-0.02417676577711979],
-    "probability_of_profit_target": 0.8197909190785164,
-    "profit_target_ranges": [(0.0, 175.15)],
-    "probability_of_loss_limit": 0.14307836806156238,
-    "loss_limit_ranges": [(177.15, float("inf"))],
 }
 
 BLACK_SCHOLES_EXPECTED = {
@@ -131,6 +133,7 @@ def run_validated_strategy(payload):
     outputs = run_strategy(Inputs.model_validate(payload))
 
     assert isinstance(outputs, Outputs)
+    assert_reference(outputs)
 
     return outputs.model_dump(
         exclude=OUTPUT_EXCLUDE_FIELDS,
@@ -155,7 +158,7 @@ def test_selected_calculations(nvidia):
     outputs = run_strategy(payload)
 
     assert outputs.probability_of_profit == pytest.approx(
-        COVERED_CALL_RESULT["probability_of_profit"]
+        reference(outputs)[0][0], abs=1e-9, rel=0
     )
     assert outputs.expected_profit_if_profitable == 0.0
     assert outputs.expected_loss_if_unprofitable == 0.0
@@ -242,10 +245,8 @@ def test_covered_call_w_prev_position(nvidia):
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.7048129541301169,
             "expected_profit_if_profitable": 2014.74,
             "expected_loss_if_unprofitable": -1350.05,
-            "profit_ranges": [(154.9, float("inf"))],
             "per_leg_cost": [-15899.0, 409.99999999999994],
             "strategy_cost": -15489.0,
             "minimum_return_in_the_domain": -8590.000000000002,
@@ -319,10 +320,8 @@ def test_short_straddle():
     assert_approx_equal(
         run_validated_strategy(inputs),
         {
-            "probability_of_profit": 0.5739428738766479,
             "expected_profit_if_profitable": 1053.27,
             "expected_loss_if_unprofitable": -1439.89,
-            "profit_ranges": [(149.91, 190.09)],
             "per_leg_cost": [990.0, 1019.9999999999999],
             "strategy_cost": 2010.0,
             "minimum_return_in_the_domain": -8091.0,
@@ -382,10 +381,8 @@ def test_previous_naked_call():
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.26860484698213005,
             "expected_profit_if_profitable": 1811.76,
             "expected_loss_if_unprofitable": -828.07,
-            "profit_ranges": [(184.01, float("inf"))],
             "per_leg_cost": [-900.0],
             "strategy_cost": -900.0,
             "minimum_return_in_the_domain": -900.0,
@@ -426,10 +423,8 @@ def test_previous_call_combined_with_currently_sold_call():
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.34170467937409377,
             "expected_profit_if_profitable": 159.57,
             "expected_loss_if_unprofitable": -322.96,
-            "profit_ranges": [(178.36, float("inf"))],
             "per_leg_cost": [-900.0, 565.0],
             "strategy_cost": -335.0,
             "minimum_return_in_the_domain": -335.0,
@@ -463,10 +458,8 @@ def test_sold_call_considering_previous_loss():
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.7447665199315079,
             "expected_profit_if_profitable": 493.26,
             "expected_loss_if_unprofitable": -1790.34,
-            "profit_ranges": [(0.0, 185.14)],
             "per_leg_cost": [-50.0, 565.0],
             "strategy_cost": 515.0,
             "minimum_return_in_the_domain": -8384.0,
@@ -500,9 +493,7 @@ def test_bought_call_using_previous_profit():
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.3193228934828556,
             "expected_profit_if_profitable": 1891.75,
-            "profit_ranges": [(180.01, float("inf"))],
             "per_leg_cost": [565.0, -565.0],
             "strategy_cost": 0.0,
             "minimum_return_in_the_domain": 0.0,
@@ -547,10 +538,8 @@ def test_3_legs(nvidia):
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.6790581742719213,
             "expected_profit_if_profitable": 2968.15,
             "expected_loss_if_unprofitable": -1404.83,
-            "profit_ranges": [(156.6, float("inf"))],
             "per_leg_cost": [-15899.0, -750.0, 990.0],
             "strategy_cost": -15659.0,
             "minimum_return_in_the_domain": -8760.000000000002,
@@ -600,10 +589,8 @@ def test_calendar_spread():
     assert_approx_equal(
         run_validated_strategy(payload),
         {
-            "probability_of_profit": 0.6002074818796856,
             "expected_profit_if_profitable": 1380.9,
             "expected_loss_if_unprofitable": -692.87,
-            "profit_ranges": [(118.85, 136.17)],
             "per_leg_cost": [4600.0, -5900.0],
             "strategy_cost": -1300.0,
             "minimum_return_in_the_domain": -1300.0,
