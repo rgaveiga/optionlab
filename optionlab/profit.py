@@ -126,10 +126,10 @@ def profile_pop(
         reaching_target_range=reaching,
         missing_target_range=missing,
         expected_return_above_target=(
-            float(np.round(expectations[0], 2)) if calculate_expectation else 0.0
+            float(expectations[0]) if calculate_expectation else 0.0
         ),
         expected_return_below_target=(
-            float(np.round(expectations[1], 2)) if calculate_expectation else 0.0
+            float(expectations[1]) if calculate_expectation else 0.0
         ),
     )
 
