@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.8.6 (2026-09-07)
+## 1.9.0 (2026-09-07)
 
 - Unified Black-Scholes profit probabilities, conditional expectations, and price ranges using exact target crossings and a shared piecewise-linear profile
 - Made expiration metrics independent of the plotting domain and price resolution by including all strategy strikes

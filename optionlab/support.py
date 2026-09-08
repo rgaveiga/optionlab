@@ -507,12 +507,12 @@ def _get_pop_array(
     probability_of_missing_target = 1.0 - probability_of_reaching_target
 
     expected_return_above_target = (
-        round(np.sum(inputs.array, where=reaching_target) / n_reaching, 2)
+        np.sum(inputs.array, where=reaching_target) / n_reaching
         if n_reaching > 0
         else 0.0
     )
     expected_return_below_target = (
-        round(np.sum(inputs.array, where=~reaching_target) / n_missing, 2)
+        np.sum(inputs.array, where=~reaching_target) / n_missing
         if n_missing > 0
         else 0.0
     )

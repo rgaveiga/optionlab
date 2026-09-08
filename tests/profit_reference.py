@@ -121,12 +121,13 @@ def reference(outputs, target=0.01):
 
 def assert_reference(outputs):
     p, means, groups = reference(outputs)
+    # Allow the 0.0005 interpolation bound plus quadrature roundoff.
     assert outputs.probability_of_profit == pytest.approx(p[0], abs=1e-9, rel=0)
     assert outputs.expected_profit_if_profitable == pytest.approx(
-        means[0], abs=0.0055, rel=0
+        means[0], abs=0.00051, rel=0
     )
     assert outputs.expected_loss_if_unprofitable == pytest.approx(
-        means[1], abs=0.0055, rel=0
+        means[1], abs=0.00051, rel=0
     )
     np.testing.assert_allclose(outputs.profit_ranges, groups[0], atol=1e-6, rtol=0)
     for target, probability, intervals, index in (

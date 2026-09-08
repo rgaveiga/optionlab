@@ -29,8 +29,8 @@ MODEL = BlackScholesModelInputs(
 @pytest.mark.parametrize(
     "kind,p,above,below",
     [
-        ("stock", 0.5594204551783997, 19.64, -13.30),
-        ("call", 0.4623849888709348, 18.24, -4.55),
+        ("stock", 0.5594204551783997, 19.638887641345562, -13.299041897846353),
+        ("call", 0.4623849888709348, 18.237215774795903, -4.550130321375573),
     ],
 )
 def test_complete_profile_analytic_reference(domain, kind, p, above, below):
@@ -47,9 +47,9 @@ def test_complete_profile_analytic_reference(domain, kind, p, above, below):
         )
     )
     assert out.probability_of_profit == pytest.approx(p, abs=1e-12, rel=0)
-    assert out.expected_profit_if_profitable == above
-    assert out.expected_loss_if_unprofitable == below
-    assert out.minimum_return_in_the_domain == out.data.strategy_profit.min()
+    assert out.expected_profit_if_profitable == pytest.approx(above, abs=1e-10, rel=0)
+    assert out.expected_loss_if_unprofitable == pytest.approx(below, abs=1e-10, rel=0)
+    assert out.minimum_return_in_the_domain == pytest.approx(out.data.strategy_profit.min())
     assert_reference(out)
 
 
@@ -79,15 +79,15 @@ def test_degenerate(vol, time, target, p):
         target = 100 * np.exp(0.05) - 100
     with np.errstate(all="raise"):
         out = get_pop(np.array([50.0, 150.0]), np.array([-50.0, 50.0]), model, target)
-    assert out.probability_of_reaching_target == p
-    assert out.probability_of_missing_target == 1 - p
+    assert out.probability_of_reaching_target == pytest.approx(p)
+    assert out.probability_of_missing_target == pytest.approx(1 - p)
 
 
 @pytest.mark.parametrize("value,p", [(-1, 0), (0.01, 1), (1, 1)])
 def test_single_point_constant(value, p):
     out = get_pop(np.array([100.0]), np.array([value]), MODEL)
-    assert out.probability_of_reaching_target == p
-    assert out.expected_return_above_target == (value if p else 0)
+    assert out.probability_of_reaching_target == pytest.approx(p)
+    assert out.expected_return_above_target == pytest.approx(value if p else 0)
 
 
 @pytest.mark.parametrize(
@@ -117,7 +117,7 @@ def test_disconnected_and_isolated_events():
     isolated = get_pop(
         np.array([0.0, 100.0, 200.0]), np.array([-1.0, 0.0, -1.0]), MODEL, 0.0
     )
-    assert isolated.probability_of_reaching_target == 0
+    assert isolated.probability_of_reaching_target == pytest.approx(0)
 
 
 def test_right_tail_moment_is_representable():
@@ -182,8 +182,8 @@ def test_zero_volatility_public_and_laplace_validation():
             strategy=[dict(type="call", strike=100.0, premium=5.0, n=1, action="buy")],
         )
     )
-    assert out.probability_of_profit == 1
-    assert out.expected_profit_if_profitable == 0.13
+    assert out.probability_of_profit == pytest.approx(1)
+    assert out.expected_profit_if_profitable == pytest.approx(100 * np.expm1(0.05) - 5)
     assert np.all(np.isfinite(out.gamma + out.delta + out.theta + out.vega + out.rho))
     with pytest.raises(ValueError):
         LaplaceInputs(stock_price=100.0, volatility=0.0, years_to_target_date=1.0)
@@ -198,8 +198,8 @@ def test_deterministic_kink_has_explicit_greek_limitation():
     with pytest.raises(ValueError, match="Greeks are undefined"):
         run_strategy(payload | dict(calculations=["pop", "greeks"]))
     out = run_strategy(payload)
-    assert out.probability_of_profit == 0
-    assert out.expected_loss_if_unprofitable == -5
+    assert out.probability_of_profit == pytest.approx(0)
+    assert out.expected_loss_if_unprofitable == pytest.approx(-5)
 
 
 def test_zero_volatility_before_expiration():
@@ -220,15 +220,15 @@ def test_zero_volatility_before_expiration():
     out = run_strategy(payload)
     spot = 100 * np.exp(0.05 - 0.03)
     value = max(spot * np.exp(-0.03) - 100 * np.exp(-0.05), 0) - 5
-    assert out.expected_loss_if_unprofitable == np.round(value, 2)
-    assert out.probability_of_profit == 0
+    assert out.expected_loss_if_unprofitable == pytest.approx(value)
+    assert out.probability_of_profit == pytest.approx(0)
 
 
 def test_constant_plateau_on_target_retains_mass():
     out = get_pop(np.array([0.0, 100.0, 200.0]), np.array([0.01, 0.01, -1.0]), MODEL)
     expected = norm.cdf((np.log(100) - (np.log(100) + 0.03)) / 0.2)
     assert out.probability_of_reaching_target == pytest.approx(expected, abs=1e-12)
-    assert out.expected_return_above_target == 0.01
+    assert out.expected_return_above_target == pytest.approx(0.01)
 
 
 def test_pre_expiry_narrow_profit_region():
