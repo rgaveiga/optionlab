@@ -1,3 +1,5 @@
+import datetime as dt
+
 import pytest
 
 from optionlab import Inputs, run_strategy
@@ -259,7 +261,9 @@ def test_covered_call_w_prev_position(nvidia):
     )
 
 
-def test_100_perc_itm(nvidia):
+@pytest.mark.parametrize("explicit_expiration", [False, True])
+def test_nonsimultaneous_call_spread(nvidia, explicit_expiration):
+    """The notebook's prior call basis produces a credit and profit at all prices."""
     payload = nvidia | {
         "strategy": with_expiration(
             [
@@ -283,18 +287,28 @@ def test_100_perc_itm(nvidia):
         )
     }
 
+    if not explicit_expiration:
+        for leg in payload["strategy"]:
+            leg.pop("expiration")
+
     assert_approx_equal(run_validated_strategy(payload), PROB_100_ITM_RESULT)
 
 
-def test_short_straddle():
+@pytest.mark.parametrize(
+    "half_range, minimum_return",
+    [(100.0, -8091.0), (round(168.99 * 0.5, 2), -6541.0)],
+    ids=["wide-domain", "notebook"],
+)
+def test_short_straddle(half_range, minimum_return):
+    """Cover the notebook's price domain as well as the wider regression domain."""
     inputs = Inputs(
         stock_price=168.99,
         volatility=0.483,
-        start_date="2023-01-16",
-        target_date="2023-02-17",
+        start_date=dt.date(2023, 1, 16),
+        target_date=dt.date(2023, 2, 17),
         interest_rate=0.045,
-        min_stock=68.99,
-        max_stock=268.99,
+        min_stock=168.99 - half_range,
+        max_stock=168.99 + half_range,
         strategy=[
             {
                 "type": "call",
@@ -318,7 +332,7 @@ def test_short_straddle():
         {
             "per_leg_cost": [990.0, 1019.9999999999999],
             "strategy_cost": 2010.0,
-            "minimum_return_in_the_domain": -8091.0,
+            "minimum_return_in_the_domain": minimum_return,
             "maximum_return_in_the_domain": 2010.0,
             "implied_volatility": [0.4826500896570693, 0.48346942266415105],
             "in_the_money_probability": [0.465831136209786, 0.534168863790214],

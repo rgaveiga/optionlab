@@ -49,7 +49,9 @@ def test_complete_profile_analytic_reference(domain, kind, p, above, below):
     assert out.probability_of_profit == pytest.approx(p, abs=1e-12, rel=0)
     assert out.expected_profit_if_profitable == pytest.approx(above, abs=1e-10, rel=0)
     assert out.expected_loss_if_unprofitable == pytest.approx(below, abs=1e-10, rel=0)
-    assert out.minimum_return_in_the_domain == pytest.approx(out.data.strategy_profit.min())
+    assert out.minimum_return_in_the_domain == pytest.approx(
+        out.data.strategy_profit.min()
+    )
     assert_reference(out)
 
 

@@ -45,23 +45,3 @@ folder `skills/` is a distribution directory, not automatic agent configuration.
 Start a new agent session after installation if it does not discover the skill.
 Installing instructions does not install the Python library: use the project's
 OptionLab environment, or install `optionlab` in the consuming Python environment.
-
-## Use
-
-Ask the agent to use `optionlab-strategy`, for example:
-
-> Use optionlab-strategy to build a covered-call input as both a dictionary and
-> Inputs, run it with my market data, explain Outputs and save a P/L plot.
-
-The entry point routes to a complete [API reference](optionlab-strategy/references/api.md)
-and [examples](optionlab-strategy/references/examples.md). The installed folder is
-self-contained; the notebooks and OptionLab source tree are not needed to read it.
-The examples require the Python library and its dependencies to execute.
-
-## Maintenance
-
-The API reference is based on the working tree's OptionLab 1.9.0 docstrings and
-implementation. When the API changes, compare `Inputs`, `Stock`, `Option`,
-`ClosedPosition` and `Outputs` in `optionlab/models.py`, `run_strategy` in
-`optionlab/engine.py`, and `plot_pl` in `optionlab/plot.py`. Refresh examples against
-`examples/`, and execute their Python blocks with a headless Matplotlib backend.
