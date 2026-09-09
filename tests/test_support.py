@@ -184,8 +184,9 @@ def test_profit_range_single_rising_crossing():
 
     profit_range, loss_range = _get_profit_range(s, profit)
 
-    assert profit_range == [(s[3], float("inf"))]
-    assert loss_range == [(0.0, s[2])]
+    # -1 + 2*(s-2) = .01 => s = 2.505, shared by both events.
+    assert profit_range == [(2.505, float("inf"))]
+    assert loss_range == [(0.0, 2.505)]
 
 
 def test_profit_range_single_falling_crossing():
@@ -194,8 +195,8 @@ def test_profit_range_single_falling_crossing():
 
     profit_range, loss_range = _get_profit_range(s, profit)
 
-    assert profit_range == [(0.0, s[2])]
-    assert loss_range == [(s[3], float("inf"))]
+    assert profit_range == [(0.0, 2.495)]
+    assert loss_range == [(2.495, float("inf"))]
 
 
 def test_profit_range_middle_bump():
@@ -204,8 +205,8 @@ def test_profit_range_middle_bump():
 
     profit_range, loss_range = _get_profit_range(s, profit)
 
-    assert profit_range == [(s[2], s[3])]
-    assert loss_range == [(0.0, s[1]), (s[4], float("inf"))]
+    assert profit_range == [(1.505, 3.495)]
+    assert loss_range == [(0.0, 1.505), (3.495, float("inf"))]
 
 
 def test_get_sign_changes():
@@ -215,7 +216,7 @@ def test_get_sign_changes():
 
 
 def test_get_sign_changes_value_at_target():
-    # A profit exactly equal to the target counts as reaching it (epsilon shift).
+    # A profit exactly equal to the target counts as reaching it, without a shift.
     assert _get_sign_changes(np.array([0.01, 1.0]), 0.01) == []
     assert _get_sign_changes(np.array([0.01, -1.0]), 0.01) == [1]
 
@@ -252,7 +253,7 @@ def test_get_pop_black_scholes_probabilities_sum_to_one():
     pop = get_pop(s, profit, inputs)
 
     assert pop.probability_of_reaching_target + pop.probability_of_missing_target == (
-        pytest.approx(1.0, abs=1e-3)
+        pytest.approx(1.0, abs=1e-12, rel=0)
     )
     assert pop.reaching_target_range[0][0] == pytest.approx(100.01)
     assert pop.reaching_target_range[0][1] == float("inf")

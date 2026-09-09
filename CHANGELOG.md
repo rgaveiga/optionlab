@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.9.0 (2026-09-07)
+
+- Added the `optionlab-strategy` agent skill with API references and runnable examples for strategy construction, result interpretation, and profit/loss plotting
+- Documented agent skill installation from GitHub using `npx skills`
+- Expanded core regression coverage for the nonsimultaneous call spread and short straddle examples
+- Unified Black-Scholes profit probabilities, conditional expectations, and price ranges using exact target crossings and a shared piecewise-linear profile
+- Made expiration metrics independent of the plotting domain and price resolution by including all strategy strikes
+- Added adaptive pre-expiration integration with explicit probability and conditional-return error bounds, asymptotic tails, and convergence failures
+- Handled deterministic Black-Scholes distributions and zero-volatility pricing, and stabilized right-tail probabilities and first moments
+- Added independent analytical and quadrature regressions and documented risk-neutral, nominal-return, and numerical conventions
+
 ## 1.8.5 (2026-08-09)
 
 - Vectorized Black-Scholes expected-return integration and replaced normal-distribution wrappers with `scipy.special.ndtr`

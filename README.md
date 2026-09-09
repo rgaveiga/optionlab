@@ -43,15 +43,18 @@ pip install optionlab
 
 ## Documentation
 
-You can access the API documentation for **OptionLab** on the [project's GitHub Pages site](https://rgaveiga.github.io/optionlab).
+You can access the API documentation for **OptionLab** on the 
+[project's GitHub Pages site](https://rgaveiga.github.io/optionlab).
 
 ## Contributions
 
-Contributions are definitely welcome. However, it should be mentioned that this 
-repository uses [poetry](https://python-poetry.org/) as a package manager and 
+Contributions are welcome. 
+
+This repository uses [poetry](https://python-poetry.org/) as a package manager and 
 [git hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) with 
-[pre-commit](https://pre-commit.com/) to customize actions on the repository. Source 
-code must be formatted using [black](https://github.com/psf/black).
+[pre-commit](https://pre-commit.com/) to customize actions on the repository. 
+
+Source code must be formatted using [black](https://github.com/psf/black).
 
 ## Disclaimer
 

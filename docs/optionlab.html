@@ -38,6 +38,7 @@
                     <li><a href="optionlab/engine.html">engine</a></li>
                     <li><a href="optionlab/models.html">models</a></li>
                     <li><a href="optionlab/plot.html">plot</a></li>
+                    <li><a href="optionlab/profit.html">profit</a></li>
                     <li><a href="optionlab/support.html">support</a></li>
                     <li><a href="optionlab/utils.html">utils</a></li>
             </ul>
@@ -109,6 +110,32 @@ options quant trader's workflow alongside other tools.</p>
 
 <pre><code>pip install optionlab
 </code></pre>
+
+<h3 id="agent-skill">Agent skill</h3>
+
+<p>The <a href="https://github.com/rgaveiga/optionlab/tree/main/skills/optionlab-strategy">optionlab-strategy skill</a>
+helps coding agents build strategy inputs, interpret results, and plot profit/loss.
+With Node.js and npm installed, list the skills available on GitHub:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>npx<span class="w"> </span>skills<span class="w"> </span>add<span class="w"> </span>https://github.com/rgaveiga/optionlab<span class="w"> </span>--list
+</code></pre>
+</div>
+
+<p>Install the skill from GitHub into your consuming project and select your agent
+when prompted:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>npx<span class="w"> </span>skills<span class="w"> </span>add<span class="w"> </span>https://github.com/rgaveiga/optionlab<span class="w"> </span>--skill<span class="w"> </span>optionlab-strategy
+</code></pre>
+</div>
+
+<p>Add <code>--global</code> to install for your user across projects, or <code>--agent claude-code</code>
+to select an agent explicitly. See the <a href="https://github.com/vercel-labs/skills">Skills CLI</a>
+for supported agents and options. The repository's <code>skills/</code> folder is the
+distribution source; installation places the skill and its bundled references
+in the agent's skill directory. Install the Python library separately using
+<code>pip install optionlab</code> as shown above.</p>
 
 <h2 id="quickstart">Quickstart</h2>
 
@@ -268,108 +295,132 @@ directory.</p>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">pip install optionlab</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">```</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">## Quickstart</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">### Agent skill</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">**OptionLab** is designed with ease of use in mind. An options strategy can be </span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">defined and evaluated with just a few lines of Python code. The API is streamlined, </span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">and the learning curve is minimal.</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">The [optionlab-strategy skill](https://github.com/rgaveiga/optionlab/tree/main/skills/optionlab-strategy)</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">helps coding agents build strategy inputs, interpret results, and plot profit/loss.</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">With Node.js and npm installed, list the skills available on GitHub:</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">The evaluation of a strategy is done by calling the `optionlab.engine.run_strategy` </span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">function provided by the library. This function receives the input data either </span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">as a dictionary or an `optionlab.models.Inputs` object.</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">```sh</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">npx skills add https://github.com/rgaveiga/optionlab --list</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">```</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">For example, let&#39;s say we wanted to calculate the probability of profit for naked </span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">calls on Apple stocks expiring on December 17, 2021. The strategy setup consisted </span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">The input data for this strategy can be provided in a dictionary as follows:</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">```python</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">input_data = {</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">    &quot;stock_price&quot;: 164.04,</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">    &quot;start_date&quot;: &quot;2021-11-22&quot;,</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">    &quot;target_date&quot;: &quot;2021-12-17&quot;,</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">    &quot;volatility&quot;: 0.272,</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    &quot;interest_rate&quot;: 0.0002,</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    &quot;min_stock&quot;: 120,</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">    &quot;max_stock&quot;: 200,</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    &quot;strategy&quot;: [</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        {</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">            &quot;type&quot;: &quot;call&quot;,</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">            &quot;strike&quot;: 175.0,</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">            &quot;premium&quot;: 1.15,</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">            &quot;n&quot;: 100,</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">            &quot;action&quot;:&quot;sell&quot;</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        }</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">    ],</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">}</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">```</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">Alternatively, the input data could be defined as the `optionlab.models.Inputs` </span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">object below:</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">    </span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">Install the skill from GitHub into your consuming project and select your agent</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">when prompted:</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">```sh</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">npx skills add https://github.com/rgaveiga/optionlab --skill optionlab-strategy</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">```</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">Add `--global` to install for your user across projects, or `--agent claude-code`</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">to select an agent explicitly. See the [Skills CLI](https://github.com/vercel-labs/skills)</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">for supported agents and options. The repository&#39;s `skills/` folder is the</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">distribution source; installation places the skill and its bundled references</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">in the agent&#39;s skill directory. Install the Python library separately using</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">`pip install optionlab` as shown above.</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">## Quickstart</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">**OptionLab** is designed with ease of use in mind. An options strategy can be </span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">defined and evaluated with just a few lines of Python code. The API is streamlined, </span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">and the learning curve is minimal.</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">The evaluation of a strategy is done by calling the `optionlab.engine.run_strategy` </span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">function provided by the library. This function receives the input data either </span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">as a dictionary or an `optionlab.models.Inputs` object.</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">For example, let&#39;s say we wanted to calculate the probability of profit for naked </span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">calls on Apple stocks expiring on December 17, 2021. The strategy setup consisted </span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="sd">of selling 100 175.00 strike calls for 1.15 each on November 22, 2021.</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">The input data for this strategy can be provided in a dictionary as follows:</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">```python</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">from optionlab import Inputs</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">input_data = Inputs(</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    stock_price = 164.04,</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">    start_date = &quot;2021-11-22&quot;,</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">    target_date = &quot;2021-12-17&quot;,</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">    volatility = 0.272,</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">    interest_rate = 0.0002,</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">    min_stock = 120,</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">    max_stock = 200,</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">    strategy = [</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">        {</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">            &quot;type&quot;: &quot;call&quot;,</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">            &quot;strike&quot;: 175.0,</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">            &quot;premium&quot;: 1.15,</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">            &quot;n&quot;: 100,</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">            &quot;action&quot;:&quot;sell&quot;</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        }</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">    ],</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">)</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">```</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="sd">In both cases, the strategy itself is a list of dictionaries, where each dictionary</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">defines a leg in the strategy. The fields in a leg, depending on the type of the</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">leg, are described in `optionlab.models.Stock`, `optionlab.models.Option`, and</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">`optionlab.models.ClosedPosition`.</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">After defining the input data, we pass it to the `run_strategy` function as shown </span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">below:</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">```python</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">from optionlab import run_strategy, plot_pl</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">out = run_strategy(input_data)</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">print(out)</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">plot_pl(out)</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="sd">```</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="sd">The variable `out` is an `optionlab.models.Outputs` object that contains the </span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="sd">results from the calculations. By calling `print` with `out` as an argument, </span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="sd">these results are displayed on screen. </span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">The `optionlab.plot.plot_pl` function, in turn, takes an `optionlab.models.Outputs` </span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="sd">object as its argument and plots the profit/loss diagram for the strategy.</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="sd">## Examples</span>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">Examples for a number of popular options trading strategies can be found as </span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="sd">Jupyter notebooks in the [examples](https://github.com/rgaveiga/optionlab/tree/main/examples) </span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd">directory.</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">input_data = {</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">    &quot;stock_price&quot;: 164.04,</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">    &quot;start_date&quot;: &quot;2021-11-22&quot;,</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    &quot;target_date&quot;: &quot;2021-12-17&quot;,</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">    &quot;volatility&quot;: 0.272,</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">    &quot;interest_rate&quot;: 0.0002,</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">    &quot;min_stock&quot;: 120,</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">    &quot;max_stock&quot;: 200,</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">    &quot;strategy&quot;: [</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">        {</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">            &quot;type&quot;: &quot;call&quot;,</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">            &quot;strike&quot;: 175.0,</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">            &quot;premium&quot;: 1.15,</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">            &quot;n&quot;: 100,</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">            &quot;action&quot;:&quot;sell&quot;</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">        }</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">    ],</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">}</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">```</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">Alternatively, the input data could be defined as the `optionlab.models.Inputs` </span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">object below:</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="sd">    </span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">```python</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">from optionlab import Inputs</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">input_data = Inputs(</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    stock_price = 164.04,</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">    start_date = &quot;2021-11-22&quot;,</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">    target_date = &quot;2021-12-17&quot;,</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">    volatility = 0.272,</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">    interest_rate = 0.0002,</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">    min_stock = 120,</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">    max_stock = 200,</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">    strategy = [</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">        {</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="sd">            &quot;type&quot;: &quot;call&quot;,</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">            &quot;strike&quot;: 175.0,</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="sd">            &quot;premium&quot;: 1.15,</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="sd">            &quot;n&quot;: 100,</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="sd">            &quot;action&quot;:&quot;sell&quot;</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="sd">        }</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="sd">    ],</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="sd">)</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">```</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="sd">In both cases, the strategy itself is a list of dictionaries, where each dictionary</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="sd">defines a leg in the strategy. The fields in a leg, depending on the type of the</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="sd">leg, are described in `optionlab.models.Stock`, `optionlab.models.Option`, and</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">`optionlab.models.ClosedPosition`.</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd">After defining the input data, we pass it to the `run_strategy` function as shown </span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="sd">below:</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Inputs</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="kn">from</span> <span class="nn">.engine</span> <span class="kn">import</span> <span class="n">run_strategy</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="kn">from</span> <span class="nn">.plot</span> <span class="kn">import</span> <span class="n">plot_pl</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">get_pl</span><span class="p">,</span> <span class="n">pl_to_csv</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">```python</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="sd">from optionlab import run_strategy, plot_pl</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">out = run_strategy(input_data)</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="n">__docformat__</span> <span class="o">=</span> <span class="s2">&quot;markdown&quot;</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;1.8.5&quot;</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">print(out)</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="sd">plot_pl(out)</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="sd">```</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="sd">The variable `out` is an `optionlab.models.Outputs` object that contains the </span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="sd">results from the calculations. By calling `print` with `out` as an argument, </span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">these results are displayed on screen. </span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">The `optionlab.plot.plot_pl` function, in turn, takes an `optionlab.models.Outputs` </span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">object as its argument and plots the profit/loss diagram for the strategy.</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">## Examples</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">Examples for a number of popular options trading strategies can be found as </span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">Jupyter notebooks in the [examples](https://github.com/rgaveiga/optionlab/tree/main/examples) </span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">directory.</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Inputs</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="kn">from</span> <span class="nn">.engine</span> <span class="kn">import</span> <span class="n">run_strategy</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="kn">from</span> <span class="nn">.plot</span> <span class="kn">import</span> <span class="n">plot_pl</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">get_pl</span><span class="p">,</span> <span class="n">pl_to_csv</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="n">__docformat__</span> <span class="o">=</span> <span class="s2">&quot;markdown&quot;</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;1.9.0&quot;</span>
 </span></pre></div>
 
 
