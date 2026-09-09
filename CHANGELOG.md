@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.9.1 (2026-09-09)
+
+- Added the `optionlab-black-scholes` agent skill for theoretical option pricing, Greeks, probability of touch, and implied-volatility calculations
+- Documented installation and usage of the Black-Scholes calculator skill alongside the strategy skill
+- Added an iron condor example notebook
+
 ## 1.9.0 (2026-09-07)
 
 - Added the `optionlab-strategy` agent skill with API references and runnable examples for strategy construction, result interpretation, and profit/loss plotting
