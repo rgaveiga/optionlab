@@ -54,29 +54,41 @@ The easiest way to install **OptionLab** is using **pip**:
 pip install optionlab
 ```
 
-### Agent skill
+### Agent skills
 
 The [optionlab-strategy skill](https://github.com/rgaveiga/optionlab/tree/main/skills/optionlab-strategy)
 helps coding agents build strategy inputs, interpret results, and plot profit/loss.
+
+The [optionlab-black-scholes skill](https://github.com/rgaveiga/optionlab/tree/main/skills/optionlab-black-scholes)
+helps coding agents calculate call and put prices, Greeks, probability of touch,
+and implied volatility.
+
 With Node.js and npm installed, list the skills available on GitHub:
 
 ```sh
 npx skills add https://github.com/rgaveiga/optionlab --list
 ```
 
-Install the skill from GitHub into your consuming project and select your agent
+Install the strategy skill from GitHub into your consuming project and select your agent
 when prompted:
 
 ```sh
 npx skills add https://github.com/rgaveiga/optionlab --skill optionlab-strategy
 ```
 
+Install the Black-Scholes calculator skill in the same way:
+
+```sh
+npx skills add https://github.com/rgaveiga/optionlab --skill optionlab-black-scholes
+```
+
 Add `--global` to install for your user across projects, or `--agent claude-code`
-to select an agent explicitly. See the [Skills CLI](https://github.com/vercel-labs/skills)
-for supported agents and options. The repository's `skills/` folder is the
-distribution source; installation places the skill and its bundled references
-in the agent's skill directory. Install the Python library separately using
-`pip install optionlab` as shown above.
+to select an agent (in this example, Claude Code) explicitly. See the 
+[Skills CLI](https://github.com/vercel-labs/skills) for supported agents and options. 
+
+The repository's `skills/` folder is the distribution source; installation places 
+the skill and its bundled references in the agent's skill directory. Install the 
+Python library separately using `pip install optionlab` as shown above.
 
 ## Quickstart
 
@@ -179,4 +191,4 @@ from .plot import plot_pl
 from .utils import get_pl, pl_to_csv
 
 __docformat__ = "markdown"
-__version__ = "1.9.0"
+__version__ = "1.9.1"
