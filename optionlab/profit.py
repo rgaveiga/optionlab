@@ -61,8 +61,18 @@ def partition(segments, target):
     return pieces, above, owners
 
 
-def ranges(segments, target):
+def ranges(segments, target, *, vectorized=False):
     pieces, above, _ = partition(segments, target)
+    if not vectorized:
+        groups = ([], [])
+        for (lower, upper, _, _), success in zip(pieces, above):
+            group = groups[0 if success else 1]
+            if group and group[-1][1] == lower:
+                group[-1] = (group[-1][0], float(upper))
+            else:
+                group.append((float(lower), float(upper)))
+        return groups
+
     groups = []
     for mask in (above, ~above):
         lower, upper = pieces[mask, 0], pieces[mask, 1]
