@@ -61,16 +61,30 @@ def partition(segments, target):
     return pieces, above, owners
 
 
-def ranges(segments, target):
+def ranges(segments, target, *, vectorized=False):
     pieces, above, _ = partition(segments, target)
-    groups = ([], [])
-    for (lower, upper, _, _), success in zip(pieces, above):
-        group = groups[0 if success else 1]
-        if group and group[-1][1] == lower:
-            group[-1] = (group[-1][0], float(upper))
-        else:
-            group.append((float(lower), float(upper)))
-    return groups
+    if not vectorized:
+        groups = ([], [])
+        for (lower, upper, _, _), success in zip(pieces, above):
+            group = groups[0 if success else 1]
+            if group and group[-1][1] == lower:
+                group[-1] = (group[-1][0], float(upper))
+            else:
+                group.append((float(lower), float(upper)))
+        return groups
+
+    groups = []
+    for mask in (above, ~above):
+        lower, upper = pieces[mask, 0], pieces[mask, 1]
+        if not lower.size:
+            groups.append([])
+            continue
+        # A range continues while each piece starts where the previous one ends.
+        breaks = np.flatnonzero(upper[:-1] != lower[1:])
+        starts = np.concatenate(([0], breaks + 1))
+        ends = np.concatenate((breaks, [len(lower) - 1]))
+        groups.append(list(zip(lower[starts].tolist(), upper[ends].tolist())))
+    return tuple(groups)
 
 
 def integrate(segments, m, v):

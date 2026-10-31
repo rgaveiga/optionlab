@@ -294,7 +294,9 @@ def get_pop(
     expected_return_above_target = 0.0
     expected_return_below_target = 0.0
 
-    t_ranges = _get_profit_range(s, profit, target)
+    t_ranges = _get_profit_range(
+        s, profit, target, vectorized=isinstance(inputs_data, ArrayInputs)
+    )
 
     reaching_target_range = t_ranges[0] if t_ranges[0] != [(0.0, 0.0)] else []
     missing_target_range = t_ranges[1] if t_ranges[1] != [(0.0, 0.0)] else []
@@ -525,9 +527,9 @@ def _get_pop_array(
     )
 
 
-def _get_profit_range(s, profit, target=0.01):
+def _get_profit_range(s, profit, target=0.01, *, vectorized=False):
     """Shared interpolated/extrapolated event ranges (legacy empty sentinel)."""
-    above, below = ranges(array_segments(s, profit), target)
+    above, below = ranges(array_segments(s, profit), target, vectorized=vectorized)
     return above or [(0.0, 0.0)], below or [(0.0, 0.0)]
 
 

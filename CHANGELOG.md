@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.9.2 (2026-10-31)
+
+- Improved array-model performance by vectorizing profit-range grouping
+
 ## 1.9.1 (2026-09-09)
 
 - Added the `optionlab-black-scholes` agent skill for theoretical option pricing, Greeks, probability of touch, and implied-volatility calculations
