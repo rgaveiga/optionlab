@@ -125,9 +125,8 @@ plotted profile still uses the regular price grid. Pre-expiry option valuation,
 implied volatility and Greeks still use Black-Scholes. Array-mode ranges describe
 the grid profile and are limited by that grid; they are not sample quantiles.
 
-`"laplace"` is not an `Inputs.model` choice. The separate `LaplaceInputs` is for
-lower-level helpers, not a `run_strategy` input. If a user supplies samples from
-another distribution, pass those terminal prices through `model="array"`.
+If a user supplies samples from another distribution, pass those terminal prices
+through `model="array"`.
 
 | Calculation | What it populates |
 | --- | --- |

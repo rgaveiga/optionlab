@@ -3,7 +3,7 @@ import pytest
 from scipy.stats import norm
 
 from optionlab import run_strategy
-from optionlab.models import BlackScholesModelInputs, LaplaceInputs
+from optionlab.models import BlackScholesModelInputs
 from optionlab.support import get_pop, _integrate_linear_profit_bs
 from optionlab.profit import array_segments, event_integrals
 from tests.profit_reference import assert_reference
@@ -202,7 +202,7 @@ def test_pre_expiry_dividends_multiple_maturities(domain):
     )
 
 
-def test_zero_volatility_public_and_laplace_validation():
+def test_zero_volatility_public():
     out = run_strategy(
         BASE
         | dict(
@@ -214,8 +214,6 @@ def test_zero_volatility_public_and_laplace_validation():
     assert out.probability_of_profit == pytest.approx(1)
     assert out.expected_profit_if_profitable == pytest.approx(100 * np.expm1(0.05) - 5)
     assert np.all(np.isfinite(out.gamma + out.delta + out.theta + out.vega + out.rho))
-    with pytest.raises(ValueError):
-        LaplaceInputs(stock_price=100.0, volatility=0.0, years_to_target_date=1.0)
 
 
 def test_deterministic_kink_has_explicit_greek_limitation():
