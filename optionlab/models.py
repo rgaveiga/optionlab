@@ -189,21 +189,6 @@ class BlackScholesModelInputs(TheoreticalModelInputs):
     __hash__ = object.__hash__
 
 
-class LaplaceInputs(TheoreticalModelInputs):
-    """
-    Defines the input data for the calculations using a log-Laplace distribution of
-    stock prices.
-    """
-
-    model: Literal["laplace"] = "laplace"
-    """It must be '*laplace*'."""
-
-    mu: float
-    """Annualized return of the underlying asset."""
-
-    __hash__ = object.__hash__
-
-
 class ArrayInputs(BaseModel):
     """
     Defines the input data for the calculations when using an array of strategy

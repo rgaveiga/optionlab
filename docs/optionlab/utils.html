@@ -63,27 +63,27 @@
 
                         <label class="view-source-button" for="mod-utils-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">"""</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">This module defines utility functions.</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">"""</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">division</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dt</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">holidays</span> <span class="kn">import</span> <span class="n">country_holidays</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">holidays</span><span class="w"> </span><span class="kn">import</span> <span class="n">country_holidays</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">optionlab.models</span> <span class="kn">import</span> <span class="n">Outputs</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">optionlab.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Outputs</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="nd">@lru_cache</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="k">def</span> <span class="nf">get_nonbusiness_days</span><span class="p">(</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="n">start_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;US&quot;</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_nonbusiness_days</span><span class="p">(</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="n">start_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"US"</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="w">    </span><span class="sd">"""</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    Returns the number of non-business days (i.e., weekends and holidays) between</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    the start and end date.</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
@@ -98,12 +98,12 @@
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    ### Returns</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    Number of weekends and holidays between the start and end date.</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">    """</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="k">if</span> <span class="n">end_date</span> <span class="o">&gt;</span> <span class="n">start_date</span><span class="p">:</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="n">n_days</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_date</span> <span class="o">-</span> <span class="n">start_date</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;End date must be after start date!&quot;</span><span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"End date must be after start date!"</span><span class="p">)</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="n">nonbusiness_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="n">holidays</span> <span class="o">=</span> <span class="n">country_holidays</span><span class="p">(</span><span class="n">country</span><span class="p">)</span>
@@ -117,8 +117,8 @@
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>    <span class="k">return</span> <span class="n">nonbusiness_days</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="k">def</span> <span class="nf">get_pl</span><span class="p">(</span><span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_pl</span><span class="p">(</span><span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="w">    </span><span class="sd">"""</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">    Returns the stock prices and the corresponding profit/loss profile of either</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">    a leg or the whole strategy.</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
@@ -132,7 +132,7 @@
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    ### Returns</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    Array of stock prices and array or profits/losses.</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    """</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">if</span> <span class="p">(</span>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">profit</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -144,10 +144,10 @@
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">return</span> <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">stock_price_array</span><span class="p">,</span> <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">strategy_profit</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="k">def</span> <span class="nf">pl_to_csv</span><span class="p">(</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pl.csv&quot;</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="k">def</span><span class="w"> </span><span class="nf">pl_to_csv</span><span class="p">(</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pl.csv"</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">    </span><span class="sd">"""</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    Saves the stock prices and corresponding profit/loss profile of either a leg</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">    or the whole strategy to a CSV file.</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
@@ -163,7 +163,7 @@
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">    ### Returns</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">    `None`.</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    """</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="k">if</span> <span class="p">(</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">profit</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -175,7 +175,7 @@
 </span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">stock_price_array</span><span class="p">,</span> <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">strategy_profit</span><span class="p">))</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="n">filename</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s2">&quot;StockPrice,Profit/Loss&quot;</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="n">filename</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">","</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s2">"StockPrice,Profit/Loss"</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="p">)</span>
 </span></pre></div>
 
@@ -187,17 +187,17 @@
                     <div class="decorator decorator-lru_cache">@lru_cache</div>
 
         <span class="def">def</span>
-        <span class="name">get_nonbusiness_days</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">start_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span>,</span><span class="param">	<span class="n">end_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span>,</span><span class="param">	<span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;US&#39;</span></span><span class="return-annotation">) -> <span class="nb">int</span>:</span></span>
+        <span class="name">get_nonbusiness_days</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">start_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span>,</span><span class="param">	<span class="n">end_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span>,</span><span class="param">	<span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'US'</span></span><span class="return-annotation">) -> <span class="nb">int</span>:</span></span>
 
                 <label class="view-source-button" for="get_nonbusiness_days-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#get_nonbusiness_days"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_nonbusiness_days-18"><a href="#get_nonbusiness_days-18"><span class="linenos">18</span></a><span class="nd">@lru_cache</span>
-</span><span id="get_nonbusiness_days-19"><a href="#get_nonbusiness_days-19"><span class="linenos">19</span></a><span class="k">def</span> <span class="nf">get_nonbusiness_days</span><span class="p">(</span>
-</span><span id="get_nonbusiness_days-20"><a href="#get_nonbusiness_days-20"><span class="linenos">20</span></a>    <span class="n">start_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;US&quot;</span>
+</span><span id="get_nonbusiness_days-19"><a href="#get_nonbusiness_days-19"><span class="linenos">19</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_nonbusiness_days</span><span class="p">(</span>
+</span><span id="get_nonbusiness_days-20"><a href="#get_nonbusiness_days-20"><span class="linenos">20</span></a>    <span class="n">start_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"US"</span>
 </span><span id="get_nonbusiness_days-21"><a href="#get_nonbusiness_days-21"><span class="linenos">21</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="get_nonbusiness_days-22"><a href="#get_nonbusiness_days-22"><span class="linenos">22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="get_nonbusiness_days-22"><a href="#get_nonbusiness_days-22"><span class="linenos">22</span></a><span class="w">    </span><span class="sd">"""</span>
 </span><span id="get_nonbusiness_days-23"><a href="#get_nonbusiness_days-23"><span class="linenos">23</span></a><span class="sd">    Returns the number of non-business days (i.e., weekends and holidays) between</span>
 </span><span id="get_nonbusiness_days-24"><a href="#get_nonbusiness_days-24"><span class="linenos">24</span></a><span class="sd">    the start and end date.</span>
 </span><span id="get_nonbusiness_days-25"><a href="#get_nonbusiness_days-25"><span class="linenos">25</span></a>
@@ -212,12 +212,12 @@
 </span><span id="get_nonbusiness_days-34"><a href="#get_nonbusiness_days-34"><span class="linenos">34</span></a><span class="sd">    ### Returns</span>
 </span><span id="get_nonbusiness_days-35"><a href="#get_nonbusiness_days-35"><span class="linenos">35</span></a>
 </span><span id="get_nonbusiness_days-36"><a href="#get_nonbusiness_days-36"><span class="linenos">36</span></a><span class="sd">    Number of weekends and holidays between the start and end date.</span>
-</span><span id="get_nonbusiness_days-37"><a href="#get_nonbusiness_days-37"><span class="linenos">37</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_nonbusiness_days-37"><a href="#get_nonbusiness_days-37"><span class="linenos">37</span></a><span class="sd">    """</span>
 </span><span id="get_nonbusiness_days-38"><a href="#get_nonbusiness_days-38"><span class="linenos">38</span></a>
 </span><span id="get_nonbusiness_days-39"><a href="#get_nonbusiness_days-39"><span class="linenos">39</span></a>    <span class="k">if</span> <span class="n">end_date</span> <span class="o">&gt;</span> <span class="n">start_date</span><span class="p">:</span>
 </span><span id="get_nonbusiness_days-40"><a href="#get_nonbusiness_days-40"><span class="linenos">40</span></a>        <span class="n">n_days</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_date</span> <span class="o">-</span> <span class="n">start_date</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
 </span><span id="get_nonbusiness_days-41"><a href="#get_nonbusiness_days-41"><span class="linenos">41</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="get_nonbusiness_days-42"><a href="#get_nonbusiness_days-42"><span class="linenos">42</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;End date must be after start date!&quot;</span><span class="p">)</span>
+</span><span id="get_nonbusiness_days-42"><a href="#get_nonbusiness_days-42"><span class="linenos">42</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"End date must be after start date!"</span><span class="p">)</span>
 </span><span id="get_nonbusiness_days-43"><a href="#get_nonbusiness_days-43"><span class="linenos">43</span></a>
 </span><span id="get_nonbusiness_days-44"><a href="#get_nonbusiness_days-44"><span class="linenos">44</span></a>    <span class="n">nonbusiness_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 </span><span id="get_nonbusiness_days-45"><a href="#get_nonbusiness_days-45"><span class="linenos">45</span></a>    <span class="n">holidays</span> <span class="o">=</span> <span class="n">country_holidays</span><span class="p">(</span><span class="n">country</span><span class="p">)</span>
@@ -261,8 +261,8 @@ the start and end date.</p>
 
     </div>
     <a class="headerlink" href="#get_pl"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_pl-56"><a href="#get_pl-56"><span class="linenos">56</span></a><span class="k">def</span> <span class="nf">get_pl</span><span class="p">(</span><span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-</span><span id="get_pl-57"><a href="#get_pl-57"><span class="linenos">57</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_pl-56"><a href="#get_pl-56"><span class="linenos">56</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_pl</span><span class="p">(</span><span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+</span><span id="get_pl-57"><a href="#get_pl-57"><span class="linenos">57</span></a><span class="w">    </span><span class="sd">"""</span>
 </span><span id="get_pl-58"><a href="#get_pl-58"><span class="linenos">58</span></a><span class="sd">    Returns the stock prices and the corresponding profit/loss profile of either</span>
 </span><span id="get_pl-59"><a href="#get_pl-59"><span class="linenos">59</span></a><span class="sd">    a leg or the whole strategy.</span>
 </span><span id="get_pl-60"><a href="#get_pl-60"><span class="linenos">60</span></a>
@@ -276,7 +276,7 @@ the start and end date.</p>
 </span><span id="get_pl-68"><a href="#get_pl-68"><span class="linenos">68</span></a><span class="sd">    ### Returns</span>
 </span><span id="get_pl-69"><a href="#get_pl-69"><span class="linenos">69</span></a>
 </span><span id="get_pl-70"><a href="#get_pl-70"><span class="linenos">70</span></a><span class="sd">    Array of stock prices and array or profits/losses.</span>
-</span><span id="get_pl-71"><a href="#get_pl-71"><span class="linenos">71</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_pl-71"><a href="#get_pl-71"><span class="linenos">71</span></a><span class="sd">    """</span>
 </span><span id="get_pl-72"><a href="#get_pl-72"><span class="linenos">72</span></a>
 </span><span id="get_pl-73"><a href="#get_pl-73"><span class="linenos">73</span></a>    <span class="k">if</span> <span class="p">(</span>
 </span><span id="get_pl-74"><a href="#get_pl-74"><span class="linenos">74</span></a>        <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">profit</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -311,16 +311,16 @@ strategy.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">pl_to_csv</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">outputs</span><span class="p">:</span> <span class="n"><a href="models.html#Outputs">optionlab.models.Outputs</a></span>,</span><span class="param">	<span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;pl.csv&#39;</span>,</span><span class="param">	<span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+        <span class="name">pl_to_csv</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">outputs</span><span class="p">:</span> <span class="n"><a href="models.html#Outputs">optionlab.models.Outputs</a></span>,</span><span class="param">	<span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'pl.csv'</span>,</span><span class="param">	<span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
 
                 <label class="view-source-button" for="pl_to_csv-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#pl_to_csv"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="pl_to_csv-83"><a href="#pl_to_csv-83"><span class="linenos"> 83</span></a><span class="k">def</span> <span class="nf">pl_to_csv</span><span class="p">(</span>
-</span><span id="pl_to_csv-84"><a href="#pl_to_csv-84"><span class="linenos"> 84</span></a>    <span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pl.csv&quot;</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="pl_to_csv-83"><a href="#pl_to_csv-83"><span class="linenos"> 83</span></a><span class="k">def</span><span class="w"> </span><span class="nf">pl_to_csv</span><span class="p">(</span>
+</span><span id="pl_to_csv-84"><a href="#pl_to_csv-84"><span class="linenos"> 84</span></a>    <span class="n">outputs</span><span class="p">:</span> <span class="n">Outputs</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pl.csv"</span><span class="p">,</span> <span class="n">leg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="pl_to_csv-85"><a href="#pl_to_csv-85"><span class="linenos"> 85</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="pl_to_csv-86"><a href="#pl_to_csv-86"><span class="linenos"> 86</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="pl_to_csv-86"><a href="#pl_to_csv-86"><span class="linenos"> 86</span></a><span class="w">    </span><span class="sd">"""</span>
 </span><span id="pl_to_csv-87"><a href="#pl_to_csv-87"><span class="linenos"> 87</span></a><span class="sd">    Saves the stock prices and corresponding profit/loss profile of either a leg</span>
 </span><span id="pl_to_csv-88"><a href="#pl_to_csv-88"><span class="linenos"> 88</span></a><span class="sd">    or the whole strategy to a CSV file.</span>
 </span><span id="pl_to_csv-89"><a href="#pl_to_csv-89"><span class="linenos"> 89</span></a>
@@ -336,7 +336,7 @@ strategy.</p>
 </span><span id="pl_to_csv-99"><a href="#pl_to_csv-99"><span class="linenos"> 99</span></a><span class="sd">    ### Returns</span>
 </span><span id="pl_to_csv-100"><a href="#pl_to_csv-100"><span class="linenos">100</span></a>
 </span><span id="pl_to_csv-101"><a href="#pl_to_csv-101"><span class="linenos">101</span></a><span class="sd">    `None`.</span>
-</span><span id="pl_to_csv-102"><a href="#pl_to_csv-102"><span class="linenos">102</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="pl_to_csv-102"><a href="#pl_to_csv-102"><span class="linenos">102</span></a><span class="sd">    """</span>
 </span><span id="pl_to_csv-103"><a href="#pl_to_csv-103"><span class="linenos">103</span></a>
 </span><span id="pl_to_csv-104"><a href="#pl_to_csv-104"><span class="linenos">104</span></a>    <span class="k">if</span> <span class="p">(</span>
 </span><span id="pl_to_csv-105"><a href="#pl_to_csv-105"><span class="linenos">105</span></a>        <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">profit</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -348,7 +348,7 @@ strategy.</p>
 </span><span id="pl_to_csv-111"><a href="#pl_to_csv-111"><span class="linenos">111</span></a>        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">stock_price_array</span><span class="p">,</span> <span class="n">outputs</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">strategy_profit</span><span class="p">))</span>
 </span><span id="pl_to_csv-112"><a href="#pl_to_csv-112"><span class="linenos">112</span></a>
 </span><span id="pl_to_csv-113"><a href="#pl_to_csv-113"><span class="linenos">113</span></a>    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span>
-</span><span id="pl_to_csv-114"><a href="#pl_to_csv-114"><span class="linenos">114</span></a>        <span class="n">filename</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s2">&quot;StockPrice,Profit/Loss&quot;</span>
+</span><span id="pl_to_csv-114"><a href="#pl_to_csv-114"><span class="linenos">114</span></a>        <span class="n">filename</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">","</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s2">"StockPrice,Profit/Loss"</span>
 </span><span id="pl_to_csv-115"><a href="#pl_to_csv-115"><span class="linenos">115</span></a>    <span class="p">)</span>
 </span></pre></div>
 

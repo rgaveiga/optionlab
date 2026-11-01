@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.9.5 (2026-11-01)
+
+- Added `price_array.py` to generate terminal stock-price samples using a geometric brownian motion
+
 ## 1.9.2 (2026-10-31)
 
 - Improved array-model performance by vectorizing profit-range grouping

@@ -3,7 +3,7 @@ import pytest
 from scipy.stats import norm
 
 from optionlab import run_strategy
-from optionlab.models import BlackScholesModelInputs, LaplaceInputs
+from optionlab.models import BlackScholesModelInputs
 from optionlab.support import get_pop, _integrate_linear_profit_bs
 from optionlab.profit import array_segments, event_integrals
 from tests.profit_reference import assert_reference
@@ -68,6 +68,33 @@ def test_partition_and_total_expectation(target):
         p, m = event_integrals(array_segments(s, profit), MODEL, target)
         assert p.sum() == pytest.approx(1.0, abs=1e-12, rel=0)
         assert m.sum() == pytest.approx(expected, abs=1e-11, rel=0)
+
+
+@pytest.mark.parametrize("q", [0.0, 0.03])
+def test_stock_conditional_formula(q):
+    model = MODEL.model_copy(update={"dividend_yield": q})
+    target = 0.01
+    threshold = 100.0 + target
+    d2 = (np.log(100.0 / threshold) + 0.05 - q - 0.2**2 / 2) / 0.2
+    d1 = d2 + 0.2
+    forward = 100.0 * np.exp(0.05 - q)
+    probability_above = norm.cdf(d2)
+    probability_below = norm.cdf(-d2)
+    expected_above = forward * norm.cdf(d1) / probability_above - 100.0
+    expected_below = forward * norm.cdf(-d1) / probability_below - 100.0
+
+    out = get_pop(np.array([50.0, 150.0]), np.array([-50.0, 50.0]), model, target)
+
+    assert out.expected_return_above_target == pytest.approx(
+        expected_above, abs=1e-10, rel=0
+    )
+    assert out.expected_return_below_target == pytest.approx(
+        expected_below, abs=1e-10, rel=0
+    )
+    assert (
+        probability_above * out.expected_return_above_target
+        + probability_below * out.expected_return_below_target
+    ) == pytest.approx(forward - 100.0, abs=1e-10, rel=0)
 
 
 @pytest.mark.parametrize(
@@ -175,7 +202,7 @@ def test_pre_expiry_dividends_multiple_maturities(domain):
     )
 
 
-def test_zero_volatility_public_and_laplace_validation():
+def test_zero_volatility_public():
     out = run_strategy(
         BASE
         | dict(
@@ -187,8 +214,6 @@ def test_zero_volatility_public_and_laplace_validation():
     assert out.probability_of_profit == pytest.approx(1)
     assert out.expected_profit_if_profitable == pytest.approx(100 * np.expm1(0.05) - 5)
     assert np.all(np.isfinite(out.gamma + out.delta + out.theta + out.vega + out.rho))
-    with pytest.raises(ValueError):
-        LaplaceInputs(stock_price=100.0, volatility=0.0, years_to_target_date=1.0)
 
 
 def test_deterministic_kink_has_explicit_greek_limitation():
