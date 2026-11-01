@@ -8,14 +8,12 @@ from __future__ import division
 
 from functools import lru_cache
 
-from typing import cast
-
 import numpy as np
 from numpy import round, arange
 from numpy.lib.scimath import log, sqrt
 
 from optionlab.black_scholes import get_d1, get_option_price
-from optionlab.profit import array_segments, profile_pop, ranges, normal_mass
+from optionlab.profit import array_segments, profile_pop, ranges, integrate
 from optionlab.models import (
     OptionType,
     Action,
@@ -440,24 +438,22 @@ def _integrate_linear_profit_bs(
     sigma: float,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Integrates a linear profit function over a Black-Scholes stock-price interval.
+    Integrates a linear profit function over Black-Scholes stock-price intervals.
+
+    `sigma` is the standard deviation of the log-price over the target horizon.
     """
 
-    lower_z = cast(np.ndarray, _lognormal_z(lower_price, log_mean, sigma))
-    upper_z = cast(np.ndarray, _lognormal_z(upper_price, log_mean, sigma))
-    probability = normal_mass(lower_z, upper_z)
-
-    lower_moment_z = cast(
-        np.ndarray, _lognormal_z(lower_price, log_mean + sigma * sigma, sigma)
+    lower, upper, a, b = np.broadcast_arrays(lower_price, upper_price, slope, intercept)
+    segments = np.column_stack(
+        (
+            np.maximum(lower, 0.0).ravel(),
+            np.maximum(upper, 0.0).ravel(),
+            a.ravel(),
+            b.ravel(),
+        )
     )
-    upper_moment_z = cast(
-        np.ndarray, _lognormal_z(upper_price, log_mean + sigma * sigma, sigma)
-    )
-    first_moment = np.exp(log_mean + 0.5 * sigma * sigma) * (
-        normal_mass(lower_moment_z, upper_moment_z)
-    )
-
-    return probability, slope * first_moment + intercept * probability
+    probability, moment = integrate(segments, log_mean, sigma)
+    return probability.reshape(lower.shape), moment.reshape(lower.shape)
 
 
 def _lognormal_z(

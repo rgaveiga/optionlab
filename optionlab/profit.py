@@ -88,6 +88,14 @@ def ranges(segments, target, *, vectorized=False):
 
 
 def integrate(segments, m, v):
+    """Integrate affine P/L with exact truncated lognormal moments.
+
+    `exp(m + v * v / 2)` is the risk-neutral expected stock price. Shifting
+    the normal bounds by `-v` gives the d1 first moment, while the unshifted
+    bounds give the d2 probability. Conditional means are formed only after
+    summing the event moments.
+    """
+
     lower, upper, a, b = segments.T
     with np.errstate(divide="ignore"):
         zl, zu = (np.log(lower) - m) / v, (np.log(upper) - m) / v

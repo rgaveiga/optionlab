@@ -70,6 +70,33 @@ def test_partition_and_total_expectation(target):
         assert m.sum() == pytest.approx(expected, abs=1e-11, rel=0)
 
 
+@pytest.mark.parametrize("q", [0.0, 0.03])
+def test_stock_conditional_formula(q):
+    model = MODEL.model_copy(update={"dividend_yield": q})
+    target = 0.01
+    threshold = 100.0 + target
+    d2 = (np.log(100.0 / threshold) + 0.05 - q - 0.2**2 / 2) / 0.2
+    d1 = d2 + 0.2
+    forward = 100.0 * np.exp(0.05 - q)
+    probability_above = norm.cdf(d2)
+    probability_below = norm.cdf(-d2)
+    expected_above = forward * norm.cdf(d1) / probability_above - 100.0
+    expected_below = forward * norm.cdf(-d1) / probability_below - 100.0
+
+    out = get_pop(np.array([50.0, 150.0]), np.array([-50.0, 50.0]), model, target)
+
+    assert out.expected_return_above_target == pytest.approx(
+        expected_above, abs=1e-10, rel=0
+    )
+    assert out.expected_return_below_target == pytest.approx(
+        expected_below, abs=1e-10, rel=0
+    )
+    assert (
+        probability_above * out.expected_return_above_target
+        + probability_below * out.expected_return_below_target
+    ) == pytest.approx(forward - 100.0, abs=1e-10, rel=0)
+
+
 @pytest.mark.parametrize(
     "vol,time,target,p",
     [(0.2, 0, 0, 1), (0.2, 0, 0.01, 0), (0, 1, 0, 1), (0, 1, 100 * np.expm1(0.05), 1)],
