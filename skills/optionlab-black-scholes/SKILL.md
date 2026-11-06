@@ -103,9 +103,7 @@ and round only for display. Do not substitute the daily theta convention of
 
 The object also includes `call_itm_prob`, `put_itm_prob`,
 `call_prob_of_touch`, and `put_prob_of_touch`. Display fractions as percentages
-only when requested. The implementation's ITM fields include `exp(-y*t)`;
-with nonzero dividend yield they are dividend-discounted values, not simply
-`N(d2)` and `N(-d2)`. Do not equate ITM or touch values with strategy probability
+only when requested. Do not equate ITM or touch values with strategy probability
 of profit. `BlackScholesInfo` is not the `Outputs` object accepted by `plot_pl`.
 
 ## Probability of touch

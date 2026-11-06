@@ -76,8 +76,8 @@ def get_bs_info(
             put_theta=(r * strike * dr - y * s * dy) * (1 - itm),
             call_rho=strike * years_to_maturity * dr * itm / 100,
             put_rho=-strike * years_to_maturity * dr * (1 - itm) / 100,
-            call_itm_prob=dy * itm,
-            put_itm_prob=dy * (1 - itm),
+            call_itm_prob=itm,
+            put_itm_prob=1 - itm,
             call_prob_of_touch=(maximum(s, terminal) >= strike).astype(float),
             put_prob_of_touch=(-maximum(-s, -terminal) <= strike).astype(float),
         )
@@ -124,8 +124,8 @@ def get_bs_info(
     call_rho = rho_factor * cdf_d2
     put_rho = -rho_factor * cdf_minus_d2
 
-    call_itm_prob = discount_y * cdf_d2
-    put_itm_prob = discount_y * cdf_minus_d2
+    call_itm_prob = cdf_d2
+    put_itm_prob = cdf_minus_d2
 
     mu = (r - y - 0.5 * vol * vol) / (vol * vol)
     lam = sqrt((mu * mu) + 2.0 * r / (vol * vol))
@@ -587,12 +587,10 @@ def get_itm_probability(
     Probability(ies) that the option(s) will expire in-the-money (ITM).
     """
 
-    yfac = exp(-y * years_to_maturity)
-
     if option_type == "call":
-        return yfac * ndtr(d2)
+        return ndtr(d2)
     elif option_type == "put":
-        return yfac * ndtr(-d2)
+        return ndtr(-d2)
     else:
         raise ValueError("Option type must be either 'call' or 'put'!")
 
