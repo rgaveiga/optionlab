@@ -131,3 +131,20 @@ def test_get_bs_info_vectorized_strikes():
             bs_scalar.call_prob_of_touch
         )
         assert bs_vec.put_prob_of_touch[i] == pytest.approx(bs_scalar.put_prob_of_touch)
+
+
+@pytest.mark.parametrize(
+    ("s", "strike", "vol"),
+    [
+        (-37.63, 10.0, 40.0),
+        (0.0, 10.0, 40.0),
+        (18.27, 0.0, 0.25),
+        (18.27, -20.0, 0.25),
+        (18.27, 20.0, float("nan")),
+        (18.27, 20.0, float("inf")),
+        (18.27, 20.0, -0.25),
+    ],
+)
+def test_get_bs_info_rejects_values_outside_model_domain(s, strike, vol):
+    with pytest.raises(ValueError):
+        get_bs_info(s, strike, RATE, vol, YEARS)

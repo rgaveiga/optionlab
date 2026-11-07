@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.9.6 (2026-11-07)
+
+- Added domain validation to `get_bs_info` for stock prices, strike prices, and volatility
+
 ## 1.9.5 (2026-11-01)
 
 - Added `price_array.py` to generate terminal stock-price samples using a geometric brownian motion
