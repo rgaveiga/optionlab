@@ -10,7 +10,7 @@ from typing import cast
 
 from scipy import optimize
 from scipy.special import ndtr
-from numpy import exp, isscalar, pi, where, asarray, maximum, zeros_like
+from numpy import asarray, exp, isfinite, isscalar, maximum, pi, where, zeros_like
 from numpy.lib.scimath import log, sqrt
 
 from optionlab.models import BlackScholesInfo, OptionType, FloatOrNdarray
@@ -47,10 +47,15 @@ def get_bs_info(
     Information calculated using the Black-Scholes formula.
     """
 
+    strike = asarray(x)
+    if not isfinite(s) or s <= 0 or not isfinite(strike).all() or (strike <= 0).any():
+        raise ValueError("Stock and strike prices must be finite and greater than zero")
+    if not isfinite(vol) or vol < 0:
+        raise ValueError("Volatility must be finite and non-negative")
+
     if vol == 0 or years_to_maturity == 0:
         # At the deterministic kink Greeks do not exist. Report that limitation
         # explicitly instead of returning NaNs or inventing finite derivatives.
-        strike = asarray(x)
         dy, dr = exp(-y * years_to_maturity), exp(-r * years_to_maturity)
         difference = s * dy - strike * dr
         if (difference == 0).any():
