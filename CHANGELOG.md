@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.9.7 (2026-11-11)
+
+- Added `create_bs_option_chain` to generate equally spaced strike arrays and their Black-Scholes prices and Greeks using `get_bs_info`
+
 ## 1.9.6 (2026-11-07)
 
 - Added domain validation to `get_bs_info` for stock prices, strike prices, and volatility
