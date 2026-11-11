@@ -9,7 +9,11 @@ language. It includes all input fields, leg types, output fields and runnable ex
 
 ## Install
 
-To install the calculator skill, replace `optionlab-strategy` with `optionlab-black-scholes` in the paths and commands below. Copy the entire chosen skill directory, including any references.
+[optionlab-option-chain](optionlab-option-chain/SKILL.md) covers synthetic option
+chains with user-defined strike bounds and count, NumPy price and Greek arrays,
+and tabular presentation or CSV export using `create_bs_option_chain`.
+
+To install another skill, replace `optionlab-strategy` with `optionlab-black-scholes` or `optionlab-option-chain` in the paths and commands below. Copy the entire chosen skill directory, including any references.
 
 Copy the entire `optionlab-strategy` directory, including `references/`, to one
 of the following destinations. Paths are relative to the consuming project for
