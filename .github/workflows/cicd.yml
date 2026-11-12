@@ -1,10 +1,4 @@
-# Run unit and integration tests for CI
-# Build any branch that passes CI as a docker image
-# Push a docker image tagged with the git hash and branch name
-# For PR's, display the option to deploy to the test env
-# For merges to main, display the option to deploy to the dev env
-# The environments are configured in the GitHub repo settings
-
+# Run checks on every branch and publish successful main builds to PyPI.
 name: CI/CD
 
 on:
@@ -16,14 +10,13 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/cached-venv
-      - name: Run mypy & service tests
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-environment
+      - name: Run type, formatting, and test checks
         run: |
-          source venv/bin/activate
-          mypy optionlab/ --ignore-missing-imports
-          black . --check --diff --color
-          pytest -m "not benchmark"
+          poetry run mypy optionlab/ --ignore-missing-imports
+          poetry run black . --check --diff --color
+          poetry run pytest -m "not benchmark"
 
   publish:
     name: Publish to pypi.org
@@ -31,11 +24,9 @@ jobs:
     needs: [ tests ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/cached-venv
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-environment
       - name: Build and publish
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi "$PYPI_TOKEN"
-          poetry publish --build
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: poetry publish --build --no-interaction
