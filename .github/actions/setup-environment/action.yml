@@ -1,0 +1,21 @@
+name: Set up Python and dependencies
+description: Create a fresh Python 3.11 environment and install locked dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v7
+      with:
+        # Allow any available 3.11 patch release; do not cache virtual environments.
+        python-version: '3.11'
+
+    - name: Install Poetry
+      run: python -m pip install poetry==2.4.1
+      shell: bash
+
+    - name: Install dependencies
+      run: |
+        poetry env use "$(command -v python)"
+        poetry sync --with dev --no-interaction
+      shell: bash
