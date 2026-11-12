@@ -1,15 +1,25 @@
 # OptionLab agent skills
 
 [optionlab-strategy](optionlab-strategy/SKILL.md) teaches coding agents to construct
-`run_strategy` inputs, interpret `Outputs`, and plot P/L. It is written in English
-to match the repository documentation and instructs agents to answer in the user's
-language. It includes all input fields, leg types, output fields and runnable examples.
+`run_strategy` inputs, interpret `Outputs`, and plot P/L. It includes all input fields, 
+leg types, output fields and runnable examples.
 
 [optionlab-black-scholes](optionlab-black-scholes/SKILL.md) covers standalone call and put prices and delta, gamma, theta, vega, and rho, plus probability of touch and implied volatility, with calculator code, units, strike arrays, solver limits, and boundary cases.
 
+[optionlab-option-chain](optionlab-option-chain/SKILL.md) covers synthetic option
+chains with user-defined strike bounds and count, NumPy price and Greek arrays,
+and tabular presentation or CSV export using `create_bs_option_chain`.
+
+[optionlab-monte-carlo](optionlab-monte-carlo/SKILL.md) covers reproducible
+risk-neutral price paths and plotting with `create_price_path_bs` and
+`plot_price_paths`, following `examples/monte_carlo_paths.ipynb`.
+
 ## Install
 
-To install the calculator skill, replace `optionlab-strategy` with `optionlab-black-scholes` in the paths and commands below. Copy the entire chosen skill directory, including any references.
+> [!NOTE]
+> To install another skill, replace `optionlab-strategy` with `optionlab-black-scholes`, 
+> `optionlab-option-chain`, or `optionlab-monte-carlo` in the paths and commands below. 
+> Copy the entire chosen skill directory, including any references.
 
 Copy the entire `optionlab-strategy` directory, including `references/`, to one
 of the following destinations. Paths are relative to the consuming project for
