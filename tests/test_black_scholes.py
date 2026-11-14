@@ -31,6 +31,13 @@ def test_put_call_parity(strike, y):
     assert bs.call_price - bs.put_price == pytest.approx(parity)
 
 
+@pytest.mark.parametrize("vol", [VOL, 0.0])
+def test_itm_probabilities_sum_to_one_with_dividend_yield(vol):
+    bs = get_bs_info(S0, 100.0, RATE, vol, YEARS, 0.03)
+
+    assert bs.call_itm_prob + bs.put_itm_prob == pytest.approx(1.0)
+
+
 @pytest.mark.parametrize("option_type", ["call", "put"])
 def test_implied_vol_round_trip(option_type):
     bs = get_bs_info(S0, 105.0, RATE, VOL, YEARS)
