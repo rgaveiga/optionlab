@@ -438,16 +438,16 @@ class BlackScholesInfo(BaseModel):
     """Rho of a put option."""
 
     call_itm_prob: FloatOrNdarray
-    """Probability of expiring in-the-money probability of a call option."""
+    """Risk-neutral probability of a call option expiring in-the-money."""
 
     put_itm_prob: FloatOrNdarray
-    """Probability of expiring in-the-money of a put option."""
+    """Risk-neutral probability of a put option expiring in-the-money."""
 
     call_prob_of_touch: FloatOrNdarray
-    """Probability of a call ever getting in-the-money before expiration."""
+    """Risk-neutral probability of a call touching the ITM region before expiration."""
 
     put_prob_of_touch: FloatOrNdarray
-    """Probability of a put ever getting in-the-money before expiration."""
+    """Risk-neutral probability of a put touching the ITM region before expiration."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -554,14 +554,10 @@ class Outputs(BaseModel):
     """
 
     in_the_money_probability: list[float]
-    """
-    List of probabilities of legs expiring in-the-money (ITM).
-    """
+    """List of risk-neutral probabilities of legs expiring in-the-money (ITM)."""
 
     probability_of_touch: list[float]
-    """
-    List of probabilities of legs ever getting in-the-money (ITM) before expiration.
-    """
+    """List of risk-neutral probabilities of legs touching ITM before expiration."""
 
     delta: list[float]
     """

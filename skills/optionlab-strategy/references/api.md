@@ -133,7 +133,7 @@ through `model="array"`.
 | `pop` or `PoP` | PoP and profit ranges; target/limit probabilities and ranges when thresholds meet the conditions above. |
 | `expectation` | Both conditional expected-return fields, independently of `pop`. |
 | `impvol` | Per-leg implied volatility from current option premiums. |
-| `greeks` | Delta, gamma, theta, vega, rho, ITM probability and probability of touch. |
+| `greeks` | Delta, gamma, theta, vega, rho, risk-neutral ITM probability and risk-neutral probability of touch. |
 | Always computed | P/L profile, per-leg and total cost, domain minimum and maximum. |
 
 ## All Outputs fields
@@ -152,8 +152,8 @@ Lists associated with legs follow `inputs.strategy` order when calculated.
 | `minimum_return_in_the_domain` | float | Minimum P/L sampled on the price grid; not necessarily global maximum loss. |
 | `maximum_return_in_the_domain` | float | Maximum P/L sampled on the price grid; not necessarily global maximum profit. |
 | `implied_volatility` | list of float | Per-leg implied volatility, in decimal annualized units; zero placeholders for stock/closed legs. |
-| `in_the_money_probability` | list of float | Per-leg probability of expiring ITM. |
-| `probability_of_touch` | list of float | Per-leg probability of touching the ITM region before expiration. |
+| `in_the_money_probability` | list of float | Per-leg risk-neutral probability of expiring ITM. |
+| `probability_of_touch` | list of float | Per-leg risk-neutral, continuously monitored probability of touching the ITM region before expiration. |
 | `delta` | list of float | Per-unit delta, with buy/sell sign applied. |
 | `gamma` | list of float | Per-unit gamma; current engine does not invert its sign for short options. |
 | `theta` | list of float | Per-unit theta per day under the selected year basis, with buy/sell sign applied. |
