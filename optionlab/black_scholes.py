@@ -28,6 +28,11 @@ def get_bs_info(
     Provides information about call and put options calculated using the Black-Scholes
     formula.
 
+    The ITM and touch fields are risk-neutral probabilities. In particular,
+    `call_itm_prob` and `put_itm_prob` are `N(d2)` and `N(-d2)`, respectively.
+    The touch fields are continuously monitored first-passage probabilities, not
+    discounted barrier-option values or probabilities of profit.
+
     ### Parameters
 
     `s`: stock price.
@@ -128,7 +133,10 @@ def get_bs_info(
     put_itm_prob = cdf_minus_d2
 
     mu = (r - y - 0.5 * vol * vol) / (vol * vol)
-    lam = sqrt((mu * mu) + 2.0 * r / (vol * vol))
+    # A pure first-passage probability has no payoff discount rate. Setting the
+    # Laplace-transform parameter to zero reduces lambda to abs(mu); r remains
+    # present in the risk-neutral drift above.
+    lam = abs(mu)
     sigma = vol * sqrt_time
     z = log(x / s) / sigma + lam * sigma
     exp1 = mu + lam
@@ -570,7 +578,12 @@ def get_itm_probability(
     y: float = 0.0,
 ) -> FloatOrNdarray:
     """
-    Returns the probability(ies) that the option(s) will expire in-the-money (ITM).
+    Returns the risk-neutral probability(ies) that the option(s) will expire
+    in-the-money (ITM).
+
+    The result is `N(d2)` for a call and `N(-d2)` for a put. It is a probability,
+    so it is not multiplied by a dividend discount factor. Dividend yield still
+    affects the result through the supplied `d2` value.
 
     ### Parameters
 
@@ -578,9 +591,11 @@ def get_itm_probability(
 
     `d2`: `d2` in Black-Scholes formula.
 
-    `years_to_maturity`: time remaining to maturity, in years.
+    `years_to_maturity`: time remaining to maturity, in years. Retained for backward
+    compatibility; the value is already represented in `d2`.
 
-    `y`: annualized dividend yield.
+    `y`: annualized dividend yield. Retained for backward compatibility; the value
+    must be included when calculating `d2`.
 
     ### Returns
 
@@ -605,13 +620,16 @@ def get_probability_of_touch(
     y: float = 0.0,
 ) -> FloatOrNdarray:
     """
-    Returns the probability(ies) that the option(s) will ever get in-the-money (ITM)
-    before expiration.
+    Returns the risk-neutral probability(ies) that the option(s) will ever get
+    in-the-money (ITM) before expiration.
+
+    This is the continuously monitored first-passage probability for a geometric
+    Brownian motion with risk-neutral drift `r - y`. It is not a discounted
+    barrier-option value and it is not the probability of profit of a strategy.
 
     > [!NOTE]
-    > This function implements equations 2.66 and 2.67 (see pages 80 and 81) in
-    > *The complete guide to option pricing formulas*, 2nd edition, authored by
-    > Espen Gaarder Haug, PhD, and published by McGraw-Hill.
+    > The calculation uses the finite-horizon first-passage distribution of a
+    > Brownian motion with drift, applied to the logarithm of the stock price.
 
     ### Parameters
 
@@ -636,7 +654,7 @@ def get_probability_of_touch(
     """
 
     mu = (r - y - 0.5 * vol * vol) / (vol * vol)
-    lam = sqrt((mu * mu) + 2.0 * r / (vol * vol))
+    lam = abs(mu)
     sigma = vol * sqrt(years_to_maturity)
     z = log(x / s) / sigma + lam * sigma
     exp1 = mu + lam

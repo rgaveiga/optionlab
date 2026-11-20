@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.9.8 (2026-11-20)
+
+- Corrected Black-Scholes ITM probabilities to return the undiscounted
+  risk-neutral values `N(d2)` and `N(-d2)` when a dividend yield is present
+- Corrected probability of touch to return the continuously monitored,
+  risk-neutral first-passage probability
+- Documented the probability measure and discounting conventions explicitly
+
 ## 1.9.7 (2026-11-11)
 
 - Added `create_bs_option_chain` to generate equally spaced strike arrays and their Black-Scholes prices and Greeks using `get_bs_info`

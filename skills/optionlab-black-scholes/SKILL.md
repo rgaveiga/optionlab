@@ -103,8 +103,11 @@ and round only for display. Do not substitute the daily theta convention of
 
 The object also includes `call_itm_prob`, `put_itm_prob`,
 `call_prob_of_touch`, and `put_prob_of_touch`. Display fractions as percentages
-only when requested. Do not equate ITM or touch values with strategy probability
-of profit. `BlackScholesInfo` is not the `Outputs` object accepted by `plot_pl`.
+only when requested. The ITM fields are risk-neutral probabilities: `N(d2)` for
+a call and `N(-d2)` for a put. Dividend yield affects `d2`, but the results are
+not multiplied by `exp(-y*t)` or any other discount factor. Do not equate ITM or
+touch values with strategy probability of profit. `BlackScholesInfo` is not the
+`Outputs` object accepted by `plot_pl`.
 
 ## Probability of touch
 
@@ -124,8 +127,10 @@ print(f"Put probability of touch: {put_touch:.2%}")
 Results are fractions. The function returns 1 for a call when spot is already
 at or above strike, and for a put when spot is at or below strike. Touching the
 strike during the remaining life differs from finishing ITM at expiration.
-Use the library's implemented formula rather than approximating touch as twice
-delta or twice ITM probability.
+The result is the risk-neutral, continuously monitored first-passage probability
+under geometric Brownian motion. It is not a discounted one-touch or barrier-option
+value. Use the library's implemented formula rather than approximating touch as
+twice delta or twice ITM probability.
 
 Despite its array type annotation, the current standalone
 `get_probability_of_touch` uses scalar `if` comparisons: call it once per scalar

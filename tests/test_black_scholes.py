@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from scipy.special import ndtr
 
 from optionlab.black_scholes import (
     get_bs_info,
@@ -36,6 +37,14 @@ def test_itm_probabilities_sum_to_one_with_dividend_yield(vol):
     bs = get_bs_info(S0, 100.0, RATE, vol, YEARS, 0.03)
 
     assert bs.call_itm_prob + bs.put_itm_prob == pytest.approx(1.0)
+
+
+def test_itm_probability_is_undiscounted_risk_neutral_probability():
+    y = 0.20
+    d2 = get_d2(S0, 100.0, RATE, VOL, 1.0, y)
+
+    assert get_itm_probability("call", d2, 1.0, y) == pytest.approx(ndtr(d2))
+    assert get_itm_probability("put", d2, 1.0, y) == pytest.approx(ndtr(-d2))
 
 
 @pytest.mark.parametrize("option_type", ["call", "put"])
@@ -100,6 +109,32 @@ def test_probability_of_touch_matches_get_bs_info():
     assert get_probability_of_touch("call", S0, 110.0, RATE, VOL, YEARS) == (
         pytest.approx(bs.call_prob_of_touch)
     )
+
+
+@pytest.mark.parametrize(("option_type", "strike"), [("call", 120.0), ("put", 80.0)])
+def test_probability_of_touch_matches_first_passage_distribution(option_type, strike):
+    # Independent reflection-principle form for log(S_t / S_0), which follows
+    # Brownian motion with drift r - y - vol**2 / 2 under the risk-neutral measure.
+    years = 1.0
+    rate = 0.15
+    y = 0.03
+    vol = 0.20
+    drift = rate - y - 0.5 * vol * vol
+    barrier = abs(np.log(strike / S0))
+    sigma_time = vol * np.sqrt(years)
+
+    if option_type == "call":
+        expected = ndtr((drift * years - barrier) / sigma_time) + np.exp(
+            2.0 * drift * barrier / (vol * vol)
+        ) * ndtr((-drift * years - barrier) / sigma_time)
+    else:
+        expected = ndtr((-drift * years - barrier) / sigma_time) + np.exp(
+            -2.0 * drift * barrier / (vol * vol)
+        ) * ndtr((drift * years - barrier) / sigma_time)
+
+    actual = get_probability_of_touch(option_type, S0, strike, rate, vol, years, y)
+
+    assert actual == pytest.approx(expected)
 
 
 def test_invalid_option_type_raises():
