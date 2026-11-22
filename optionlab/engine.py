@@ -525,13 +525,14 @@ def _run_stock_calcs(
     calculate_greeks = _has_calculation(inputs, "greeks")
 
     if calculate_greeks:
-        if action == "buy":
-            data.delta.append(1.0)
+        if data.previous_position[i] < 0.0:  # Previous position is closed
+            data.delta.append(0.0)
+            data.itm_probability.append(0.0)
+            data.probability_of_touch.append(0.0)
         else:
-            data.delta.append(-1.0)
-
-        data.itm_probability.append(1.0)
-        data.probability_of_touch.append(1.0)
+            data.delta.append(1.0 if action == "buy" else -1.0)
+            data.itm_probability.append(1.0)
+            data.probability_of_touch.append(1.0)
         data.gamma.append(0.0)
         data.vega.append(0.0)
         data.rho.append(0.0)
