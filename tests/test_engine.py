@@ -143,6 +143,17 @@ def test_closed_option_leg_sold(nvidia):
     assert np.allclose(outputs.data.strategy_profit, expected_cost)
 
 
+def test_closed_stock_leg_has_no_delta(nvidia):
+    payload = nvidia | {
+        "strategy": [{"type": "stock", "n": 100, "action": "sell", "prev_pos": -158.99}]
+    }
+
+    outputs = run_strategy(payload)
+
+    assert np.allclose(outputs.data.strategy_profit, outputs.strategy_cost)
+    assert outputs.delta == [0.0]
+
+
 def test_closed_position_leg_shifts_profit(nvidia):
     base_payload = nvidia | {"strategy": NAKED_CALL_LEG}
     base_outputs = run_strategy(base_payload)
